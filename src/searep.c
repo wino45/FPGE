@@ -18,11 +18,17 @@ char srrTNStr[8]="0";
 char srrGLNStr[8]="0";
 char srrSDStr[8]="0";
 
-int srTTStrOn=1;
-int srRDStrOn=1;
-int srTNStrOn=1;
-int srGLNStrOn=1;
-int srSDStrOn=1;
+int srTTMatchOn=1;
+int srRDMatchOn=1;
+int srTNMatchOn=1;
+int srGLNMatchOn=1;
+int srSDMatchOn=1;
+
+int srTTSetOn=1;
+int srRDSetOn=1;
+int srTNSetOn=1;
+int srGLNSetOn=1;
+int srSDSetOn=1;
 
 /*
 #define SR_BG_COLOR 33
@@ -44,17 +50,26 @@ int srSDStrOn=1;
 #define srTileEditIdx 7
 #define srNameEditIdx 9
 #define srSideEditIdx 11
-#define srTypeEditIdxCheck srSideEditIdx+1
-#define srRoadEditIdxCheck srTypeEditIdxCheck+1
-#define srTileEditIdxCheck srRoadEditIdxCheck+1
-#define srNameEditIdxCheck srTileEditIdxCheck+1
-#define srSideEditIdxCheck srNameEditIdxCheck+1
-#define srrTypeEditIdx srSideEditIdxCheck+1
+
+#define srTypeMatchIdxCheck srSideEditIdx+1
+#define srRoadMatchIdxCheck srTypeMatchIdxCheck+1
+#define srTileMatchIdxCheck srRoadMatchIdxCheck+1
+#define srNameMatchIdxCheck srTileMatchIdxCheck+1
+#define srSideMatchIdxCheck srNameMatchIdxCheck+1
+
+#define srrTypeEditIdx srSideMatchIdxCheck+1
 #define srrRoadEditIdx srrTypeEditIdx+1
 #define srrTileEditIdx srrRoadEditIdx+1
 #define srrNameEditIdx srrTileEditIdx+1
 #define srrSideEditIdx srrNameEditIdx+1
-#define srRoadButton     srrSideEditIdx+1
+
+#define srTypeSetIdxCheck srrSideEditIdx+1
+#define srRoadSetIdxCheck srTypeSetIdxCheck+1
+#define srTileSetIdxCheck srRoadSetIdxCheck+1
+#define srNameSetIdxCheck srTileSetIdxCheck+1
+#define srSideSetIdxCheck srNameSetIdxCheck+1
+
+//#define srRoadButton     srrSideEditIdx+1
 
 int d_sr_start_proc(int msg, DIALOG *d, int c)
 {
@@ -69,33 +84,62 @@ int d_sr_start_proc(int msg, DIALOG *d, int c)
 		searchreplace_dlg[srTileEditIdx].dp = srTNStr;
 		searchreplace_dlg[srNameEditIdx].dp = srGLNStr;
 		searchreplace_dlg[srSideEditIdx].dp = srSDStr;
+
 		searchreplace_dlg[srrTypeEditIdx].dp = srrTTStr;
 		searchreplace_dlg[srrRoadEditIdx].dp = srrRDStr;
 		searchreplace_dlg[srrTileEditIdx].dp = srrTNStr;
 		searchreplace_dlg[srrNameEditIdx].dp = srrGLNStr;
 		searchreplace_dlg[srrSideEditIdx].dp = srrSDStr;
 
-		if (srTTStrOn)
-			searchreplace_dlg[srTypeEditIdxCheck].flags |= D_SELECTED;
+		if (srTTMatchOn)
+			searchreplace_dlg[srTypeMatchIdxCheck].flags |= D_SELECTED;
 		else
-			searchreplace_dlg[srTypeEditIdxCheck].flags &= ~D_SELECTED;
-		if (srRDStrOn)
-			searchreplace_dlg[srRoadEditIdxCheck].flags |= D_SELECTED;
-		else
-			searchreplace_dlg[srRoadEditIdxCheck].flags &= ~D_SELECTED;
-		if (srTNStrOn)
-			searchreplace_dlg[srTileEditIdxCheck].flags |= D_SELECTED;
-		else
-			searchreplace_dlg[srTileEditIdxCheck].flags &= ~D_SELECTED;
-		if (srGLNStrOn)
-			searchreplace_dlg[srNameEditIdxCheck].flags |= D_SELECTED;
-		else
-			searchreplace_dlg[srNameEditIdxCheck].flags &= ~D_SELECTED;
-		if (srSDStrOn)
-			searchreplace_dlg[srSideEditIdxCheck].flags |= D_SELECTED;
-		else
-			searchreplace_dlg[srSideEditIdxCheck].flags &= ~D_SELECTED;
+			searchreplace_dlg[srTypeMatchIdxCheck].flags &= ~D_SELECTED;
 
+		if (srRDMatchOn)
+			searchreplace_dlg[srRoadMatchIdxCheck].flags |= D_SELECTED;
+		else
+			searchreplace_dlg[srRoadMatchIdxCheck].flags &= ~D_SELECTED;
+
+		if (srTNMatchOn)
+			searchreplace_dlg[srTileMatchIdxCheck].flags |= D_SELECTED;
+		else
+			searchreplace_dlg[srTileMatchIdxCheck].flags &= ~D_SELECTED;
+
+		if (srGLNMatchOn)
+			searchreplace_dlg[srNameMatchIdxCheck].flags |= D_SELECTED;
+		else
+			searchreplace_dlg[srNameMatchIdxCheck].flags &= ~D_SELECTED;
+
+		if (srSDMatchOn)
+			searchreplace_dlg[srSideMatchIdxCheck].flags |= D_SELECTED;
+		else
+			searchreplace_dlg[srSideMatchIdxCheck].flags &= ~D_SELECTED;
+
+		if (srTTSetOn)
+			searchreplace_dlg[srTypeSetIdxCheck].flags |= D_SELECTED;
+		else
+			searchreplace_dlg[srTypeSetIdxCheck].flags &= ~D_SELECTED;
+
+		if (srRDSetOn)
+			searchreplace_dlg[srRoadSetIdxCheck].flags |= D_SELECTED;
+		else
+			searchreplace_dlg[srRoadSetIdxCheck].flags &= ~D_SELECTED;
+
+		if (srTNSetOn)
+			searchreplace_dlg[srTileSetIdxCheck].flags |= D_SELECTED;
+		else
+			searchreplace_dlg[srTileSetIdxCheck].flags &= ~D_SELECTED;
+
+		if (srGLNSetOn)
+			searchreplace_dlg[srNameSetIdxCheck].flags |= D_SELECTED;
+		else
+			searchreplace_dlg[srNameSetIdxCheck].flags &= ~D_SELECTED;
+
+		if (srSDSetOn)
+			searchreplace_dlg[srSideSetIdxCheck].flags |= D_SELECTED;
+		else
+			searchreplace_dlg[srSideSetIdxCheck].flags &= ~D_SELECTED;
 	}
 	return d_textbox_proc(msg, d, c);
 }
@@ -105,47 +149,61 @@ int d_sr_coreT_proc(int msg, DIALOG *d, int c)
    if ((msg==MSG_CLICK)||(msg==MSG_KEY))
    {
 		int y= d_check_proc(msg,d,c);
-		if (&(searchreplace_dlg[srTypeEditIdxCheck])==d) srTTStrOn = ((searchreplace_dlg[srTypeEditIdxCheck].flags&D_SELECTED)==D_SELECTED?1:0);
-		if (&(searchreplace_dlg[srRoadEditIdxCheck])==d) srRDStrOn = ((searchreplace_dlg[srRoadEditIdxCheck].flags&D_SELECTED)==D_SELECTED?1:0);
-		if (&(searchreplace_dlg[srTileEditIdxCheck])==d) srTNStrOn = ((searchreplace_dlg[srTileEditIdxCheck].flags&D_SELECTED)==D_SELECTED?1:0);
-		if (&(searchreplace_dlg[srNameEditIdxCheck])==d) srGLNStrOn = ((searchreplace_dlg[srNameEditIdxCheck].flags&D_SELECTED)==D_SELECTED?1:0);
-		if (&(searchreplace_dlg[srSideEditIdxCheck])==d) srSDStrOn = ((searchreplace_dlg[srSideEditIdxCheck].flags&D_SELECTED)==D_SELECTED?1:0);		
+		if (&(searchreplace_dlg[srTypeMatchIdxCheck])==d) srTTMatchOn = ((searchreplace_dlg[srTypeMatchIdxCheck].flags&D_SELECTED)==D_SELECTED?1:0);
+		if (&(searchreplace_dlg[srRoadMatchIdxCheck])==d) srRDMatchOn = ((searchreplace_dlg[srRoadMatchIdxCheck].flags&D_SELECTED)==D_SELECTED?1:0);
+		if (&(searchreplace_dlg[srTileMatchIdxCheck])==d) srTNMatchOn = ((searchreplace_dlg[srTileMatchIdxCheck].flags&D_SELECTED)==D_SELECTED?1:0);
+		if (&(searchreplace_dlg[srNameMatchIdxCheck])==d) srGLNMatchOn = ((searchreplace_dlg[srNameMatchIdxCheck].flags&D_SELECTED)==D_SELECTED?1:0);
+		if (&(searchreplace_dlg[srSideMatchIdxCheck])==d) srSDMatchOn = ((searchreplace_dlg[srSideMatchIdxCheck].flags&D_SELECTED)==D_SELECTED?1:0);
+
+		if (&(searchreplace_dlg[srTypeSetIdxCheck])==d) srTTSetOn = ((searchreplace_dlg[srTypeSetIdxCheck].flags&D_SELECTED)==D_SELECTED?1:0);
+		if (&(searchreplace_dlg[srRoadSetIdxCheck])==d) srRDSetOn = ((searchreplace_dlg[srRoadSetIdxCheck].flags&D_SELECTED)==D_SELECTED?1:0);
+		if (&(searchreplace_dlg[srTileSetIdxCheck])==d) srTNSetOn = ((searchreplace_dlg[srTileSetIdxCheck].flags&D_SELECTED)==D_SELECTED?1:0);
+		if (&(searchreplace_dlg[srNameSetIdxCheck])==d) srGLNSetOn = ((searchreplace_dlg[srNameSetIdxCheck].flags&D_SELECTED)==D_SELECTED?1:0);
+		if (&(searchreplace_dlg[srSideSetIdxCheck])==d) srSDSetOn = ((searchreplace_dlg[srSideSetIdxCheck].flags&D_SELECTED)==D_SELECTED?1:0);
+
 		return y;
    }
    return d_check_proc(msg,d,c);
 }
 
+int is_match(int probe, char* pattern){
+	if (pattern[0]=='!'){
+		return probe != atoi(&pattern[1]);
+	}else
+		return probe == atoi(pattern);
+}
+
 int d_sr_replace_button_proc(int msg, DIALOG *d, int c)
 {
-	int x,y,found,global_found=0;
+	int x,y,found,global_found=0,match=0;;
 
-    
 	if ((msg==MSG_CLICK)||(msg==MSG_KEY))
 	{
 	d_button_proc(msg,d,c);
 	d->flags^=D_SELECTED;
 
 	global_found=0;
+	match=srTTMatchOn+srRDMatchOn+srTNMatchOn+srGLNMatchOn+srSDMatchOn;
     for (y=0; y<mapy; ++y)
 		for (x=0; x<mapx; ++x){
 			//first check
 			found=0;
-			if ((srTTStrOn)&&(map[x][y].utr==atoi(srTTStr))) found=1;
-			if ((srRDStrOn)&&(map[x][y].rc==atoi(srRDStr))) found=1;
-			if ((srTNStrOn)&&(map[x][y].tile==atoi(srTNStr))) found=1;
-			if ((srGLNStrOn)&&(map[x][y].gln==atoi(srGLNStr))) found=1;
-			if ((srSDStrOn)&&(map[x][y].side==atoi(srSDStr))) found=1;
-			if (found && global_found==0){
+			if ((srTTMatchOn)&&(is_match(map[x][y].utr,srTTStr))) found++;
+			if ((srRDMatchOn)&&(is_match(map[x][y].rc,srRDStr))) found++;
+			if ((srTNMatchOn)&&(is_match(map[x][y].tile,srTNStr))) found++;
+			if ((srGLNMatchOn)&&(is_match(map[x][y].gln,srGLNStr))) found++;
+			if ((srSDMatchOn)&&(is_match(map[x][y].side,srSDStr))) found++;
+			if (found==match && global_found==0){
 				global_found=1;
 				open_push_undo_sequenece();
 			}
-			if (found){
+			if (found==match){
 				push_undo_tile(x,y);
-				if ((srTTStrOn)&&(map[x][y].utr==atoi(srTTStr))) map[x][y].utr=atoi(srrTTStr);
-				if ((srRDStrOn)&&(map[x][y].rc==atoi(srRDStr))) map[x][y].rc=atoi(srrRDStr);
-				if ((srTNStrOn)&&(map[x][y].tile==atoi(srTNStr))) map[x][y].tile=atoi(srrTNStr);
-				if ((srGLNStrOn)&&(map[x][y].gln==atoi(srGLNStr))) map[x][y].gln=atoi(srrGLNStr);
-				if ((srSDStrOn)&&(map[x][y].side==atoi(srSDStr))) map[x][y].side=atoi(srrSDStr);
+				if (srTTSetOn) map[x][y].utr=atoi(srrTTStr);
+				if (srRDSetOn) map[x][y].rc=atoi(srrRDStr);
+				if (srTNSetOn) map[x][y].tile=atoi(srrTNStr);
+				if (srGLNSetOn) map[x][y].gln=atoi(srrGLNStr);
+				if (srSDSetOn) map[x][y].side=atoi(srrSDStr);
 			}
 		}
 	   if (global_found)
@@ -157,8 +215,8 @@ int d_sr_replace_button_proc(int msg, DIALOG *d, int c)
 }
 
 DIALOG searchreplace_dlg[SEARCHREPLACE_DLG_SIZE] = {
-	{ d_sr_start_proc, SR_X, SR_Y, 160 + 75 + 16, 150, SR_FG_COLOR, SR_SCREEN_COLOR, 0, 0, 0, 0, 0, 0, 0 },// 0
-	{ d_sr_replace_button_proc, SR_X + 50 + 45 + 80 - 8 - 40 + 16 + 16 - (96 - 66) + 8, SR_Y + 120, 96, 15, SR_FG_COLOR, SR_SCREEN_COLOR, 'r', 0, 0, 0, (void *) "&Replace", 0, 0 },// 1
+	{ d_sr_start_proc, SR_X, SR_Y, 160 + 75 + 16+8*6, 150, SR_FG_COLOR, SR_SCREEN_COLOR, 0, 0, 0, 0, 0, 0, 0 },// 0
+	{ d_sr_replace_button_proc, SR_X + 50 + 45 + 80 - 8 - 40 + 16 + 16 - (96 - 66) + 8*7, SR_Y + 120, 96, 15, SR_FG_COLOR, SR_SCREEN_COLOR, 'r', 0, 0, 0, (void *) "&Replace", 0, 0 },// 1
 	{ d_text_proc, SR_X + 10, SR_LINE1 + 0 * SR_LH, 50, 15, SR_FG_COLOR, SR_SCREEN_COLOR, 0, 0, 0, 0, (void *) "Type", 0, 0 },//2
 	{ d_edit_proc, SR_X + 74, SR_LINE1 + 0 * SR_LH, 50, 15, SR_FG_COLOR, SR_BG_COLOR, 0, 0, 4, 0, 0, 0, 0 },//3 Terrain Type Edit
 	{ d_text_proc, SR_X + 10, SR_LINE1 + 1 * SR_LH, 50, 15, SR_FG_COLOR, SR_SCREEN_COLOR, 0, 0, 0, 0, (void *) "Road", 0, 0 },//4
@@ -169,19 +227,24 @@ DIALOG searchreplace_dlg[SEARCHREPLACE_DLG_SIZE] = {
 	{ d_edit_proc, SR_X + 74, SR_LINE1 + 3 * SR_LH, 50, 15, SR_FG_COLOR, SR_BG_COLOR, 0, 0, 4, 0, 0, 0, 0 },//9 Name Edit
 	{ d_text_proc, SR_X + 10, SR_LINE1 + 4 * SR_LH, 50, 15, SR_FG_COLOR, SR_SCREEN_COLOR, 0, 0, 0, 0, (void *) "Side", 0, 0 },//10
 	{ d_edit_proc, SR_X + 74, SR_LINE1 + 4 * SR_LH, 50, 15, SR_FG_COLOR, SR_BG_COLOR, 0, 0, 4, 0, 0, 0, 0 }, //11 Side Edit
-	{ d_sr_coreT_proc, SR_X + 74 + 60, SR_LINE1 + 0 * SR_LH, 10 + 8 * 3 + 4, 10, SR_FG_COLOR, SR_SCREEN_COLOR, 0, 0, 1, 0, (void *) "use", 0, 0 },
-	{ d_sr_coreT_proc, SR_X + 74 + 60, SR_LINE1 + 1 * SR_LH, 10 + 8 * 3 + 4, 10, SR_FG_COLOR, SR_SCREEN_COLOR, 0, 0, 1,	0, (void *) "use", 0, 0 },
-	{ d_sr_coreT_proc, SR_X + 74 + 60, SR_LINE1 + 2 * SR_LH, 10 + 8 * 3 + 4, 10, SR_FG_COLOR, SR_SCREEN_COLOR, 0, 0, 1, 0, (void *) "use", 0, 0 },
-	{ d_sr_coreT_proc, SR_X + 74 + 60, SR_LINE1 + 3 * SR_LH, 10 + 8 * 3 + 4, 10, SR_FG_COLOR, SR_SCREEN_COLOR, 0, 0, 1, 0, (void *) "use", 0, 0 },
-	{ d_sr_coreT_proc, SR_X + 74 + 60, SR_LINE1 + 4 * SR_LH, 10 + 8 * 3 + 4, 10, SR_FG_COLOR, SR_SCREEN_COLOR, 0, 0, 1, 0, (void *) "use", 0, 0 },
-	{ d_edit_proc, SR_X + 74 + 60 + 10 + 8 * 4, SR_LINE1 + 0 * SR_LH, 50, 15, SR_FG_COLOR, SR_BG_COLOR, 0, 0, 4, 0, 0, 0, 0 },
-	{ d_edit_proc, SR_X + 74 + 60 + 10 + 8 * 4, SR_LINE1 + 1 * SR_LH, 50, 15, SR_FG_COLOR, SR_BG_COLOR, 0, 0, 4, 0, 0, 0, 0 },
-	{ d_edit_proc, SR_X + 74 + 60 + 10 + 8 * 4, SR_LINE1 + 2 * SR_LH, 50, 15, SR_FG_COLOR, SR_BG_COLOR, 0, 0, 4, 0, 0, 0, 0 },
-	{ d_edit_proc, SR_X + 74 + 60 + 10 + 8 * 4, SR_LINE1 + 3 * SR_LH, 50, 15, SR_FG_COLOR, SR_BG_COLOR, 0, 0, 4, 0, 0, 0, 0 },
-	{ d_edit_proc, SR_X + 74 + 60 + 10 + 8 * 4, SR_LINE1 + 4 * SR_LH, 50, 15, SR_FG_COLOR, SR_BG_COLOR, 0, 0, 4, 0, 0, 0, 0 },
+	{ d_sr_coreT_proc, SR_X + 74 + 60, SR_LINE1 + 0 * SR_LH, 10 + 8 * 5 + 4, 10, SR_FG_COLOR, SR_SCREEN_COLOR, 0, 0, 1, 0, (void *) "match", 0, 0 },
+	{ d_sr_coreT_proc, SR_X + 74 + 60, SR_LINE1 + 1 * SR_LH, 10 + 8 * 5 + 4, 10, SR_FG_COLOR, SR_SCREEN_COLOR, 0, 0, 1,	0, (void *) "match", 0, 0 },
+	{ d_sr_coreT_proc, SR_X + 74 + 60, SR_LINE1 + 2 * SR_LH, 10 + 8 * 5 + 4, 10, SR_FG_COLOR, SR_SCREEN_COLOR, 0, 0, 1, 0, (void *) "match", 0, 0 },
+	{ d_sr_coreT_proc, SR_X + 74 + 60, SR_LINE1 + 3 * SR_LH, 10 + 8 * 5 + 4, 10, SR_FG_COLOR, SR_SCREEN_COLOR, 0, 0, 1, 0, (void *) "match", 0, 0 },
+	{ d_sr_coreT_proc, SR_X + 74 + 60, SR_LINE1 + 4 * SR_LH, 10 + 8 * 5 + 4, 10, SR_FG_COLOR, SR_SCREEN_COLOR, 0, 0, 1, 0, (void *) "match", 0, 0 },
+	{ d_edit_proc, SR_X + 74 + 60 + 10 + 8 * 6, SR_LINE1 + 0 * SR_LH, 50, 15, SR_FG_COLOR, SR_BG_COLOR, 0, 0, 4, 0, 0, 0, 0 },
+	{ d_edit_proc, SR_X + 74 + 60 + 10 + 8 * 6, SR_LINE1 + 1 * SR_LH, 50, 15, SR_FG_COLOR, SR_BG_COLOR, 0, 0, 4, 0, 0, 0, 0 },
+	{ d_edit_proc, SR_X + 74 + 60 + 10 + 8 * 6, SR_LINE1 + 2 * SR_LH, 50, 15, SR_FG_COLOR, SR_BG_COLOR, 0, 0, 4, 0, 0, 0, 0 },
+	{ d_edit_proc, SR_X + 74 + 60 + 10 + 8 * 6, SR_LINE1 + 3 * SR_LH, 50, 15, SR_FG_COLOR, SR_BG_COLOR, 0, 0, 4, 0, 0, 0, 0 },
+	{ d_edit_proc, SR_X + 74 + 60 + 10 + 8 * 6, SR_LINE1 + 4 * SR_LH, 50, 15, SR_FG_COLOR, SR_BG_COLOR, 0, 0, 4, 0, 0, 0, 0 },
+	{ d_sr_coreT_proc, SR_X + 74 + 60+ 10 + 8 * 5+10 + 8 * 6 + 4, SR_LINE1 + 0 * SR_LH, 10 + 8 * 3 + 4, 10, SR_FG_COLOR, SR_SCREEN_COLOR, 0, 0, 1, 0, (void *) "set", 0, 0 },
+	{ d_sr_coreT_proc, SR_X + 74 + 60+ 10 + 8 * 5+10 + 8 * 6 + 4, SR_LINE1 + 1 * SR_LH, 10 + 8 * 3 + 4, 10, SR_FG_COLOR, SR_SCREEN_COLOR, 0, 0, 1,	0, (void *) "set", 0, 0 },
+	{ d_sr_coreT_proc, SR_X + 74 + 60+ 10 + 8 * 5+10 + 8 * 6 + 4, SR_LINE1 + 2 * SR_LH, 10 + 8 * 3 + 4, 10, SR_FG_COLOR, SR_SCREEN_COLOR, 0, 0, 1, 0, (void *) "set", 0, 0 },
+	{ d_sr_coreT_proc, SR_X + 74 + 60+ 10 + 8 * 5+10 + 8 * 6 + 4, SR_LINE1 + 3 * SR_LH, 10 + 8 * 3 + 4, 10, SR_FG_COLOR, SR_SCREEN_COLOR, 0, 0, 1, 0, (void *) "set", 0, 0 },
+	{ d_sr_coreT_proc, SR_X + 74 + 60+ 10 + 8 * 5+10 + 8 * 6 + 4, SR_LINE1 + 4 * SR_LH, 10 + 8 * 3 + 4, 10, SR_FG_COLOR, SR_SCREEN_COLOR, 0, 0, 1, 0, (void *) "set", 0, 0 },
 	{ d_button_proc, SR_X + 50 + 45 + 80 - 70 - 8 - 80 + 8 - 8, SR_Y + 120, 96, 15, SR_FG_COLOR, SR_SCREEN_COLOR, 'c', D_EXIT, 0, 0, (void *) "&Cancel", 0, 0 },
-	{ d_text_proc ,	    SR_X+74,SR_LINE1-1*SR_LH,50,15,SR_FG_COLOR,SR_SCREEN_COLOR,	0 ,	    0 ,	0 ,	0 ,	 (void *)"Find" },
-	{ d_text_proc ,	    SR_X+74+60+10+8*4,SR_LINE1-1*SR_LH,50,15,SR_FG_COLOR,SR_SCREEN_COLOR,	0 ,	0 ,	0 ,	0 ,	 (void *)"Set to" },
+	{ d_text_proc ,	    SR_X+74,SR_LINE1-1*SR_LH,50,15,SR_FG_COLOR,SR_SCREEN_COLOR,	0 ,	    0 ,	0 ,	0 ,	 (void *)"Match" },
+	{ d_text_proc ,	    SR_X+74+60+10+8*6,SR_LINE1-1*SR_LH,50,15,SR_FG_COLOR,SR_SCREEN_COLOR,	0 ,	0 ,	0 ,	0 ,	 (void *)"Set to" },
 	{ d_yield_proc,0,0,0,0,0,0,0,0,0,0,0,0,0},
 	//Last
 	{NULL},

@@ -7,7 +7,6 @@
 #include <string.h>
 #include <time.h>
 
-
 #include "fpge.h"
 #include "maingui.h"
 #include "cli.h"
@@ -35,10 +34,11 @@
 #include "move.h"
 #include "bintables.h"
 #include "maputils.h"
+#include "tilemixer.h"
 
 char MapInfoTxt[256];
 char AboutTxt1[256] = "Fred's Panzer General Editor";
-char AboutTxt2[256] = "Version 0.7.2";
+char AboutTxt2[256] = "Version 0.7.3";
 char AboutTxt3[256] = "Modified by Wino";
 char MapStatusTxt[256];
 char FilterStatusTxt[256];
@@ -56,6 +56,10 @@ BITMAP *neutral_hex_bmp;
 BITMAP *deploy_hex_bmp;
 BITMAP *black_hex_bmp;
 BITMAP *problem_hex_bmp;
+
+BITMAP *road_hex_bmp;
+BITMAP *river_hex_bmp;
+BITMAP *road_and_river_hex_bmp;
 
 BITMAP *unit_bmp[MAX_UICONS];
 BITMAP *munit_bmp[MAX_MUICONS];
@@ -136,6 +140,7 @@ int displayAllUnits = 0;
 int displayUnitsOrder = 0;
 int show_ranges = 2;
 int show_problems = 0; //0-do not show,1-river
+int show_debug_problems = 0; //0-do not show
 int colorize_names = 0;
 
 int fpge_gui_fg_color;
@@ -251,6 +256,7 @@ unsigned char gln_utf8[MAX_NAMES][MAX_NAME_UTF_SIZE]= {
 };
 
 unsigned short tempmap[MAX_MAP_X][MAX_MAP_Y];
+//unsigned short tempmap2[MAX_MAP_X][MAX_MAP_Y];
 unsigned char rc[MAX_MAP_X][MAX_MAP_Y];
 unsigned char tiles_temp[MAX_TILES];
 
@@ -526,6 +532,7 @@ void frg_select_click() {
 					}
 					fake_UTF_write_string_with_eol(outf, line);
 					sprintf(line, "# DX, DY, Offset, Type");
+					fake_UTF_write_string_with_eol(outf, line);
 					sprintf(line, "# Type: 0-mountains, 1-isles, 2-forts, 3-forest, 4-rivers, 5-lake, 6-other, 7-road, 8-all");
 					fake_UTF_write_string_with_eol(outf, line);
 					fake_UTF_write_string_with_eol(outf, "");
@@ -1490,13 +1497,19 @@ void none_click() {
 }
 
 int d_mapbmp_proc(int msg, DIALOG *d, int c) {
-	int column, row, X, Y, idx, v, tt, tn, t;
+	int column, row, X, Y, idx, v=D_O_K, tt, tn, t;
 	char line1[64], line2[64], line3[64], line4[64];
 
 	if (msg == MSG_DRAW) {
 		//print_str("MSG_DRAW");
 		scare_mouse();
 		v = d_bitmap_proc(msg, d, c);
+
+		//BITMAP * b = (BITMAP *)d->dp;
+		//if (msg==MSG_DRAW)
+		      //blit(b, gui_get_screen(), 0, 0, d->x, d->y, d->w, d->h);
+			//masked_blit(b, gui_get_screen(), 0, 0, d->x, d->y, d->w, d->h);
+				//stretch_blit(b, gui_get_screen(), 0, 0, d->w, d->h, d->x, d->y, d->w, d->h);
 		unscare_mouse();
 		return v;
 	}
@@ -2706,7 +2719,7 @@ int main(int argc, char *argv[]) {
 				draw_app6_tiles = 0;
 			if (argv[1][i] == 'c')
 				draw_app6_tiles = 2;
-			if (argv[1][i] == 'n')
+			if (argv[1][i] == 'u')
 				draw_app6_units = 0;
 			if (argv[1][i] == 'g')
 				draw_app6_color = 1;
@@ -3204,6 +3217,16 @@ int main(int argc, char *argv[]) {
 
 	prepare_dialogs();
 
+	install_timer();
+	install_keyboard();
+	/* try mouse */
+	//--------These are required ...
+	error = install_mouse();
+	if (error < 0) {
+		my_log("Error. Cannot init mouse. Exiting.");
+		exit_with_key(8);
+	}
+
 	if (set_gfx_mode(card_old, w_old, h_old, 0, 0) < 0) {
 		//use defaults
 		card_old = GFX_AUTODETECT;
@@ -3218,15 +3241,6 @@ int main(int argc, char *argv[]) {
 	set_pal();
 	initialize_dm();
 
-	install_timer();
-	/* try mouse */
-	//--------These are required ...
-	error = install_mouse();
-	if (error < 0) {
-		my_log("Error. Cannot init mouse. Exiting.");
-		exit_with_key(8);
-	}
-	show_mouse(screen);
 	//...--------to show the default mouse
 
 	mousie = create_bitmap(11, 11);
@@ -3237,6 +3251,8 @@ int main(int argc, char *argv[]) {
 	set_mouse_sprite(mousie);
 	set_mouse_sprite_focus(5, 5);
 	set_mouse_speed(1, 1);
+
+	show_mouse(screen);
 
 	/*----------------Set up Bitmaps -------------------------- */
 
@@ -3263,7 +3279,6 @@ int main(int argc, char *argv[]) {
 			//printf("i=%d bmp_idx=%d c=%d\n",i, bmp_idx,c);
 
 			if (bmp_idx > 0 && bmp_idx < MAX_UICONS && is_app6_bmp[bmp_idx] == 0 && unit_bmp[bmp_idx] != NULL) { //convert BMP
-
 				if (c > 0)
 					draw_app6_unit_symbol(unit_bmp[bmp_idx], 0, 0, i, country_side[c] == 0 ? 0 : 1
 					//0
@@ -3322,6 +3337,8 @@ int main(int argc, char *argv[]) {
 	//test_undo();return 0;
 
 	init_undo();
+
+	//load_wtiles();
 
 	while (really_exit) {
 		do_dialog(main_dlg, -1);

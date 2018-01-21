@@ -626,8 +626,6 @@ int map_resize_dialog(){
 	return D_O_K;
 }
 
-
-
 int do_rectangle_import() {
 	if (tile_mode == 1) {
 		tile_cleanup();
@@ -697,8 +695,8 @@ int entrench_mode() {
 int flag_display_toggle() {
 	   if (showCounter==3) showCounter=-1;
 	   else
-			if (showCounter==-1) showCounter=3;
-			else showCounter=3;
+			/*if (showCounter==-1) showCounter=3;
+			else*/ showCounter=3;
 
 	//draw map
 

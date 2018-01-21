@@ -174,6 +174,47 @@ int read_utf16_line_convert_to_utf8(FILE *inf, unsigned char *line){
 	return eof;
 }
 
+int read_utf8_line_convert_to_utf8(FILE *inf, unsigned char *line){
+
+	int gcursor=0;
+	int eol=0,eof=0;
+	unsigned char digit;
+
+	//we expect 2 bytes per char
+	while(!eol){
+		eof=fread(&digit,sizeof(digit),1,inf);
+		if (digit == 0x0d) continue; //ignore 0d
+		if (digit == 0x0a || eof==0) {
+			line[gcursor]=0;
+			eol=1;
+			if (gcursor==0) eof-=1;// eof may be 1 or 0 -> 0 or -1
+			return eof;
+		}
+		if (digit==59) digit=9; //convert ; to tabs
+		//normal char
+		//if (digit>=0 && digit<=0xFF) {
+		  //protect from longlines
+		  if (gcursor<1024){
+			  line[gcursor]=(unsigned char)digit;
+			  gcursor++;
+		  }
+		//}
+	}
+
+	return eof;
+}
+
+
+int load_line(FILE *inf, unsigned char *line, boolean isUTF16){
+
+	if (isUTF16){
+		return read_utf16_line_convert_to_utf8(inf,line);
+	}else{
+		return read_utf8_line_convert_to_utf8(inf,line);
+	}
+}
+
+
 int load_pgf_equipment(int probe_file_only, char *fname){
 	  FILE *inf;
 
@@ -182,8 +223,9 @@ int load_pgf_equipment(int probe_file_only, char *fname){
 	  //int total_victory,total_left,total_right;
 	  int token_len, token_write, bmp_idx;
 	  unsigned short temp;
-
+	  unsigned short file_type_probe;
 	  char path[MAX_PATH];
+	  boolean utf16 = FALSE;
 
       strncpy(path,fname,MAX_PATH);
 	  canonicalize_filename(path,path,MAX_PATH);
@@ -208,7 +250,12 @@ int load_pgf_equipment(int probe_file_only, char *fname){
 	  else
 		  conversion_total_equip=0;
 
-	  while (read_utf16_line_convert_to_utf8(inf,line)>=0){
+	  //probe for UTF16 file magic bytes
+	  fread(&file_type_probe, 2, 1, inf);
+	  if (UCS2_header==file_type_probe) { utf16=TRUE;}
+	  fseek(inf,0,SEEK_SET);
+
+	  while (load_line(inf,line,utf16)>=0){
 		  //count lines so error can be displayed with line number
 		  lines++;
 			  //strip comments
@@ -220,9 +267,15 @@ int load_pgf_equipment(int probe_file_only, char *fname){
 			 // printf("%d\n",1);
 			  token=0;
 			  cursor=0;
-			  for(i=0;i<strlen(line);i++)
-				  if (line[i]==0x09) {tokens[token][cursor]=0;token++;cursor=0;}
-				  else {tokens[token][cursor]=line[i]; cursor++;}
+			for (i = 0; i < strlen(line); i++)
+				if (line[i] == 0x09) {
+					tokens[token][cursor] = 0;
+					token++;
+					cursor = 0;
+				} else {
+					tokens[token][cursor] = line[i];
+					cursor++;
+				}
 			  tokens[token][cursor]=0;
 			  token++;
 			  //printf("%d\n",2);
@@ -846,9 +899,9 @@ int save_pgf_pgscn(int scen_number, int show_info, int save_type, int hide_names
 	  strncat(line,tmp_line, 1024);
 	  //new unit exp
 	  if (pgf_mode)
-		  sprintf(tmp_line,"\t%d",axis_experience);
+		  sprintf(tmp_line,"\t%u",axis_experience);
 	  else
-		  sprintf(tmp_line,"\t%d",axis_experience_table[scen_number-1]*100);
+		  sprintf(tmp_line,"\t%u",axis_experience_table[scen_number-1]*100);
 	  strncat(line,tmp_line, 1024);
 
 	  fake_UTF_write_string_with_eol(inf,line);
@@ -880,9 +933,9 @@ int save_pgf_pgscn(int scen_number, int show_info, int save_type, int hide_names
 	  strncat(line,tmp_line,1024);
 	  //new unit exp
 	  if (pgf_mode)
-		  sprintf(tmp_line,"\t%d",allied_experience);
+		  sprintf(tmp_line,"\t%u",allied_experience);
 	  else
-		  sprintf(tmp_line,"\t%d",allied_experience_table[scen_number-1]*100);
+		  sprintf(tmp_line,"\t%u",allied_experience_table[scen_number-1]*100);
 	  strncat(line,tmp_line,1024);
 
 	  fake_UTF_write_string_with_eol(inf,line);
@@ -1343,7 +1396,11 @@ int load_bmp_tacmap(){
 								&&c!=colors_to24bits(127)
 								&&c!=colors_to24bits(89)
 								&&c!=colors_to24bits(65)
-								&&c!=colors_to24bits(49)&&c!=colors_to24bits(48)&&c!=colors_to24bits(47)&&c!=colors_to24bits(46)&&c!=colors_to24bits(45)
+								&&c!=colors_to24bits(49)
+								&&c!=colors_to24bits(48)
+								&&c!=colors_to24bits(47)
+								&&c!=colors_to24bits(46)
+								&&c!=colors_to24bits(45)
 								)){ //42=river, 127=road, 89=forest 87-mountain 65-city 45-49-sea
 							//green
 							if (draw_app6_color==0){
@@ -1352,8 +1409,8 @@ int load_bmp_tacmap(){
 								c &= 0xff00;
 							}
 							else
-								//grey
 							{
+								//grey
 								int r= (c&0xff0000)>>16;
 								int g= (c&0xff00)>>8;
 								int b= (c&0xff);
@@ -1388,7 +1445,8 @@ int load_bmp_tacmap(){
 						putpixel(til_bmp[x+y*dx],j,i,c);
 						putpixel(dark_til_bmp[x+y*dx],j,i,dc);
 						}
-					else{
+					else
+					{
 						putpixel(til_bmp[x+y*dx],j,i,fpge_mask_color);
 						putpixel(dark_til_bmp[x+y*dx],j,i,fpge_mask_color);
 					}
@@ -1536,7 +1594,7 @@ int load_bmp_strength(){
 		return ERROR_PGF_BMP_STRENGTH_BASE+ERROR_FPGE_WRONG_BMP_SIZE_Y;
 	}
 	dx=strength_bitmap->w/TILE_FULL_WIDTH;
-	dy=strength_bitmap->h/TILE_HEIGHT;
+	//dy=strength_bitmap->h/TILE_HEIGHT;
 	//printf("%d %d\n",dx,dy);
 	//printf("001\n");
 
@@ -2551,10 +2609,10 @@ int save_pgf_equipment(){
 		sprintf(temp_str,"%d\t",equip[unit_id][COST]*COST_DIVISOR); //Cost
 		strncat(line,temp_str, 1024);
 		temp=(unsigned short)equip[unit_id][BMP]+256*equip[unit_id][BMP+1];
-		sprintf(temp_str,"%d\t",temp); //Icon
+		sprintf(temp_str,"%u\t",temp); //Icon
 		strncat(line,temp_str, 1024);
 		temp=(unsigned short)equip[unit_id][ANI]+256*equip[unit_id][ANI+1];
-		sprintf(temp_str,"%d\t",temp); //Animation
+		sprintf(temp_str,"%u\t",temp); //Animation
 		strncat(line,temp_str, 1024);
 		sprintf(temp_str,"%d\t",equip[unit_id][MON]); //Month
 		strncat(line,temp_str, 1024);
@@ -2631,7 +2689,7 @@ int parse_pgcam( int show_info,  int probe_file_only){
 	  char path[MAX_PATH], brfnametmp[256], color_code[256], br_color_code[256], scenario_node[256];
 	  char line[1024],tokens[20][256];
 	  int j,i,block=0,last_line_length=-1,cursor=0,token=0, sub_graph_counter=0;
-	  int lines;
+	  int lines=0;
 
 	  hash_table table;
 
@@ -2942,7 +3000,7 @@ int check_pgcam( int show_info, int probe_file_only, int fix_brefings){
 	  char path[MAX_PATH];
 	  char line[1024],tokens[20][256];
 	  int j,i,block=0,last_line_length=-1,cursor=0,token=0;
-	  int lines,result;
+	  int lines=0,result;
 	  int show_fix_info=0;
 	  int print_ok=0; //not finished
 

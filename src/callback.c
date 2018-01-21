@@ -24,13 +24,14 @@
 #include "unitlist.h"
 
 DIALOG generate_dlg[9] = {
-/* 0 */{ d_textbox_proc, 10, 0, 250, 138, GUI_FG_COLOR, GUI_BG_COLOR, 0, 0, 0, 0, 0, 0, 0 },
+/* 0 */{ d_textbox_proc, 10, 0, 250, 138+24, GUI_FG_COLOR, GUI_BG_COLOR, 0, 0, 0, 0, 0, 0, 0 },
 /* 1 */{ d_text_proc, 22, 12, 156, 18, GUI_FG_COLOR, GUI_BG_COLOR, 0, 0, 0, 0,"Choose tiles to generate" },
 /* 2 */{ d_check_proc, 22, 30, 8 * 13, 15, GUI_FG_COLOR, GUI_BG_COLOR, 'o', 0, 1, 0, "C&oast tiles" },
 /* 3 */{ d_check_proc, 22, 54, 8 * 13, 15, GUI_FG_COLOR, GUI_BG_COLOR, 'r', 0, 1, 0, "&Road tiles" },
 /* 4 */{ d_check_proc, 22, 78, 8 * 13, 15, GUI_FG_COLOR, GUI_BG_COLOR, 'i', 0, 1, 0, "R&iver tiles" },
-/* 5 */{ d_button_proc, 22, 102, 96, 18, GUI_FG_COLOR, GUI_BG_COLOR, 'c', D_EXIT, 0, 0, "&Cancel" },
-/* 6 */{ d_button_proc, 148, 102, 96, 18, GUI_FG_COLOR, GUI_BG_COLOR, 'g', D_EXIT, 0, 0, "&Generate" },
+/* 5 */{ d_button_proc, 22, 102+24, 96, 18, GUI_FG_COLOR, GUI_BG_COLOR, 'c', D_EXIT, 0, 0, "&Cancel" },
+/* 6 */{ d_button_proc, 148, 102+24, 96, 18, GUI_FG_COLOR, GUI_BG_COLOR, 'g', D_EXIT, 0, 0, "&Generate" },
+/* 7 { d_check_proc, 22, 78+24, 8 * 15, 15, GUI_FG_COLOR, GUI_BG_COLOR, 'a', 0, 1, 0, "R &and R tiles" },*/
 	   { d_yield_proc, 0, 0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0 },
 	   { NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL } };
 
@@ -291,7 +292,7 @@ int ctrl_a_keycallback() {
 void mark_problems() {
 	int x, y;
 
-	if (show_problems) //clear all problems
+	if (show_problems && !show_debug_problems) //clear all problems
 		for (y = 0; y < mapy; ++y)
 			for (x = 0; x < mapx; ++x)
 				map[x][y].shade &= ~PROBLEM_MASK;
@@ -493,10 +494,10 @@ int ctrl_alt_s_keycallback() {
 	if (key_shifts & KB_CTRL_FLAG) {
 		if (showCounter == 0)
 			showCounter = -1;
-		else if (showCounter == -1)
+		else //if (showCounter == -1)
 			showCounter = 0;
-		else
-			showCounter = 0;
+		//else
+			//showCounter = 0;
 
 		setup_show_filters_info();
 		draw_map(map_bmp, map_x0, map_y0, tiles_high, tiles_wide);
@@ -507,10 +508,10 @@ int ctrl_alt_s_keycallback() {
 int ctrl_x_keycallback() {
 	if (showCounter == 1)
 		showCounter = -1;
-	else if (showCounter == -1)
+	else //if (showCounter == -1)
 		showCounter = 1;
-	else
-		showCounter = 1;
+	//else
+		//showCounter = 1;
 	setup_show_filters_info();
 	draw_map(map_bmp, map_x0, map_y0, tiles_high, tiles_wide);
 	return D_REDRAW;
@@ -518,10 +519,10 @@ int ctrl_x_keycallback() {
 int ctrl_e_keycallback() {
 	if (showCounter == 2)
 		showCounter = -1;
-	else if (showCounter == -1)
+	else //if (showCounter == -1)
 		showCounter = 2;
-	else
-		showCounter = 2;
+	//else
+		//showCounter = 2;
 	setup_show_filters_info();
 	draw_map(map_bmp, map_x0, map_y0, tiles_high, tiles_wide);
 	return D_REDRAW;
@@ -1013,6 +1014,211 @@ int check_terrain(unsigned char tile, unsigned char filterType) {
 	return 0;
 }
 
+void set_ntile(int x, int y, int no, int value){
+	tempmap[x + dx_tab_N_CW[no]][y + dy_tab_N_CW[no][x % 2]]+=1;
+	map[x + dx_tab_N_CW[no]][y + dy_tab_N_CW[no][x % 2]].tile=value;
+}
+
+int is_magic_tile(int tile, int mode){
+	if (mode==LIMITED_SET_RIVER && tile==MAGIC_RIVER) return 1;
+	if (mode==LIMITED_SET_ROAD && tile==MAGIC_ROAD) return 1;
+	if (mode==LIMITED_SET_ROAD_AND_RIVER && tile==MAGIC_ROAD_AND_RIVER) return 1;
+	if (mode==LIMITED_SET_ALL && ( tile==MAGIC_RIVER || tile==MAGIC_ROAD || tile==MAGIC_ROAD_AND_RIVER )) return 1;
+	return 0;
+}
+
+void gen_magic_river3(int mode){
+	int x,y,i,j,found,limit, border=0;
+		int row[32];
+		int count=0,idx,gc=0,iter=0;
+
+		do {
+			gc=0;
+		for (x = border; x < mapx-border ; ++x)
+			for (y = border; y < mapy-border ; ++y)
+				if (is_magic_tile(map[x][y].tile,mode)){
+					limit=2;
+					row[1]=0;
+					row[0]=map[x][y].tile;
+					int r=2;
+					for (i=0;i<=r;i++)
+							for (j=-r+i/2;j<=r-(i+1)/2;j++){
+								found = is_tile_in_limited_set(get_tile_offmap(x+i,y+j+x%2*(x+i+1)%2),mode);
+								row[1] |= (found >-1);
+								row[1] = row[1] << 1;
+								row[limit]=found;
+								limit++;
+								found = is_tile_in_limited_set(get_tile_offmap(x-i,y+j+x%2*(x+i+1)%2),mode);
+								row[1] |= (found >-1);
+								row[1] = row[1] << 1;
+								row[limit]=found;
+								limit++;
+							}
+					//pattern is computed, now find it in big table  rc_big_table[2652][26]
+					count=0;
+					int first=-1;
+					idx=-1;
+					for(i=0;i<rc_big_table_size;i++){
+						if (rc_big_table[i][1] == row[1] && is_same_set(row[0],rc_big_table[i][0])) {
+							int total_match=1;
+							for(j=0;j<24;j++){
+								if (!is_magic_tile(row[2+j],mode) && row[2+j]!=rc_big_table[i][2+j]) { total_match=0; break; }
+							}
+							if (total_match){
+								idx=i;
+								count++;
+							}
+							if (count==1){
+								first=rc_big_table[i][0];
+							}
+							if (count>1 && first==rc_big_table[i][0]) count--;
+						}
+					}
+					if (count == 1) {
+						map[x][y].tile = rc_big_table[idx][0];
+						map[x][y].gln = iter;
+						gc++;
+					}
+					map[x][y].utr=count;
+				}
+			iter++;
+			print_dec(gc);
+		}while(gc>0 && iter<100);
+		print_dec(iter);
+}
+
+void gen_magic_river2(){
+
+	int x, y, i, j, k, t, ok;
+	int tt[6];
+
+	int pattern[][2][7]= {
+			//{ { -1, -1, -1, -1, -1, -1, -1},{ -1, -1, -1, -1, -1, -1, -1} },
+
+		{ { 72, -1, -1, 65, 54, -1, -1},{ -1, -1, -1, 64, -1, -1, -1} },
+		{ { 72, -1, -1,227, 54, -1, -1},{ -1, -1, -1, 64, -1, -1, -1} },
+		{ { 72, -1, 72, 62, -1, -1, -1},{ 65, -1, 62, -1, -1, -1, -1} },
+		{ { 72, -1, -1, 54, 62, -1, -1},{ -1, -1, -1, 71, -1, -1, -1} },
+		{ { 62, -1, -1,227,227, -1, -1},{ 72, -1, -1, 64, 71, -1, -1} },
+
+		{ { 62, -1, -1, 65,227, -1, -1},{ 72, -1, -1, 64, 71, -1, -1} },
+		{ { 71, -1, 61, 62, -1, -1, -1},{227,227, -1, -1, -1, -1, -1} },
+		{ { 71, -1, 72, 62, -1, -1, -1},{227, -1, 62, -1, -1, -1, -1} },
+		{ { 62, -1, -1,227, 62, -1, -1},{ 72, -1, -1, 64, 71, -1, -1} },
+		{ { 62, -1, -1, 65, 62, -1, -1},{ 72, -1, -1, 64, 71, -1, -1} },
+
+		{ { 61, -1, 61, 64, -1, -1, -1},{ -1, -1,227, -1, -1, -1, -1} },
+		{ { 62, 62, 55, -1, -1, -1, -1},{227, 72, -1, -1, -1, -1, -1} },
+		};
+	int patterns_no=12;
+
+	//for (y = 1; y < mapy - 1; ++y)
+	//	for (x = 1; x < mapx - 1; ++x)
+	//		tempmap[x][y]=0;
+
+	for (y = 1; y < mapy - 1; ++y)
+			for (x = 1; x < mapx - 1; ++x) {
+				t=map[x][y].tile;
+				if ( t==72 || t==62 || t==71  || t==61){
+					for(i=0;i<6;i++)
+						tt[i]=map[x + dx_tab_N_CW[i]][y + dy_tab_N_CW[i][x % 2]].tile;
+
+					for(j=0;j<patterns_no;j++){
+						if (t == pattern[j][0][0]){
+							//check others
+							ok=1;
+
+							for(k=0;k<6;k++){
+								//ti= map[x + dx_tab_N_CW[k]][y + dy_tab_N_CW[k][x % 2]].tile;
+								if (pattern[j][0][1+k]!=-1 && pattern[j][0][1+k]!=tt[k]){
+									//fail
+									/*if (y==32 && j==5){
+										print_dec(pattern[j][0][1+k]);
+										print_dec(tt[k]);
+									print_dec(k);
+									print_dec(x);
+									print_dec(y);
+									print_dec(j);
+									}*/
+									ok=0;
+									break;
+								}
+							}
+							if (ok){
+								if (pattern[j][1][0]!=-1)
+									map[x][y].tile=pattern[j][1][0];
+								for(k=0;k<6;k++){
+									if (pattern[j][1][1+k]!=-1){
+										map[x + dx_tab_N_CW[k]][y + dy_tab_N_CW[k][x % 2]].tile =pattern[j][1][1+k];
+									}
+								}
+								break; //j<patterns_no
+							}
+						}
+					}
+				}
+			}
+
+	//for (y = 1; y < mapy - 1; ++y)
+	//	for (x = 1; x < mapx - 1; ++x)
+	//		map[x][y].utr = tempmap[x][y];
+
+
+}
+void gen_magic_river(){
+
+	int x, y, i;
+	int tt[6];
+	for (y = mapy-2; y >  0; y--)
+			for (x = mapx-2; x > 0; x--) {
+				int t=map[x][y].tile;
+				if (t==72 || t==62 || t==71){
+					for(i=0;i<6;i++)
+						tt[i]=map[x + dx_tab_N_CW[i]][y + dy_tab_N_CW[i][x % 2]].tile;
+					if (t==72 && (tt[2]==65 || tt[2]==227) && tt[3]==54){
+						map[x + dx_tab_N_CW[2]][y + dy_tab_N_CW[2][x % 2]].tile=64;
+					}
+					if (t==72 && tt[1]==72 && tt[2]==62){
+						map[x][y].tile=65;
+						map[x + dx_tab_N_CW[1]][y + dy_tab_N_CW[1][x % 2]].tile=62;
+					}
+					if (t==72 && tt[2]==54 && tt[3]==62){
+						map[x + dx_tab_N_CW[3]][y + dy_tab_N_CW[3][x % 2]].tile=71;
+					}
+					if (t==62 &&  (( tt[2]==227 &&  tt[3]==227 ) || (tt[2]==65 && tt[3]==227 ))){
+						map[x][y].tile=72;
+						map[x + dx_tab_N_CW[2]][y + dy_tab_N_CW[2][x % 2]].tile=64;
+						map[x + dx_tab_N_CW[3]][y + dy_tab_N_CW[3][x % 2]].tile=71;
+					}
+					if (t==71 && tt[2]==62 && tt[1]==61){
+						map[x][y].tile=227;
+						map[x + dx_tab_N_CW[1]][y + dy_tab_N_CW[1][x % 2]].tile=227;
+					}
+					if (t==71 && tt[2]==62 && tt[1]==72){
+						map[x][y].tile=227;
+						map[x + dx_tab_N_CW[1]][y + dy_tab_N_CW[1][x % 2]].tile=62;
+					}
+				}
+			}
+	//loop 2
+	for (y = mapy-2; y >  0; y--)
+			for (x = mapx-2; x > 0; x--) {
+				int t=map[x][y].tile;
+				if (t==62 ){
+					for(i=0;i<6;i++)
+						tt[i]=map[x + dx_tab_N_CW[i]][y + dy_tab_N_CW[i][x % 2]].tile;
+
+					if (t==62 &&  ( tt[2]==227 || tt[2]==65)&&  tt[3]==62 ){
+						map[x][y].tile=72;
+						map[x + dx_tab_N_CW[2]][y + dy_tab_N_CW[2][x % 2]].tile=64;
+						map[x + dx_tab_N_CW[3]][y + dy_tab_N_CW[3][x % 2]].tile=71;
+					}
+
+				}
+			}
+}
+
+
 void gen_terrain(short tile_to_check,
 		unsigned char pattern_array_SE_CCW[],
 		unsigned char pattern_array_size,
@@ -1020,7 +1226,8 @@ void gen_terrain(short tile_to_check,
 		unsigned char filterType) {
 
 	//short tempmap[MAX_MAP_X][MAX_MAP_Y];
-	unsigned char x, y, i, mask;
+	int x, y;
+	unsigned char i, mask;
 
 //   srand(rawclock());
 	srand((unsigned int) time((time_t *) NULL));
@@ -1052,6 +1259,7 @@ void gen_terrain(short tile_to_check,
 			}
 		}
 	// road trick only
+/*
 	for (y = 1; y < mapy - 1; ++y)
 		for (x = 1; x < mapx - 1; ++x) {
 			if (tempmap[x][y] == MAGIC_ROAD) {
@@ -1067,7 +1275,7 @@ void gen_terrain(short tile_to_check,
 			}
 			//if (tempmap[x][y]>=MAX_TILES_IN_PG) tempmap[x][y]=BLACK_TILE;
 		}
-
+*/
 	//copy the result
 	for (y = 1; y < mapy - 1; ++y)
 		for (x = 1; x < mapx - 1; ++x)
@@ -1091,10 +1299,16 @@ int generate_dialog(){
 					gen_terrain(road_check, road_pattern_SE_CCW, road_size,
 							road_pattern_tile, CITY_FILTER_INDEX); //road
 
-				if ((generate_dlg[4].flags & D_SELECTED) == D_SELECTED)
+				if ((generate_dlg[4].flags & D_SELECTED) == D_SELECTED){
 					gen_terrain(river_check, river_pattern_SE_CCW, river_size,
 							river_pattern_tile, NO_FILTER_INDEX); //river
-
+					gen_magic_river2();
+				}
+/*
+				if ((generate_dlg[7].flags & D_SELECTED) == D_SELECTED){
+					gen_magic_river3(LIMITED_SET_ALL);
+				}
+*/
 				draw_map(map_bmp, map_x0, map_y0, tiles_high, tiles_wide);
 			}
 			return D_REDRAW;

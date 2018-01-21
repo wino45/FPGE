@@ -109,6 +109,7 @@ int load_pgf_bin_tables(){
 
 		//FPGE will understand only these PGForever sizes:
 		if (file_size==757760) offset=527392; //PGForexer.exe 1.01
+		if (file_size==753664) offset=528008; //PGForexer.exe 1.02
 
 		if (offset==-1) {
 			fclose(inf);
@@ -128,6 +129,7 @@ int load_pgf_bin_tables(){
 
 		//movement table
 		if (file_size==757760) offset=525080; //PGForexer.exe 1.01
+		if (file_size==753664) offset=525696; //PGForexer.exe 1.02
 
 		fseek(inf,offset,SEEK_SET);
 

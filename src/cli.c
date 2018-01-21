@@ -88,6 +88,7 @@ void CLIHelp(char *VersionName)
     printf("      Use 'l' to list only.\n");
     printf("      Use 's' swap sides: units, icon point, Allies Move First, flags\n");
     printf("      Use 'b' save backup map only\n");
+    printf("      Use 'g' save in LGeneral format instead of PGF format\n");
     printf("-F[rtnhso] fix map, same as ctrl-q\n");
     printf("  Use any of : r-road          n-names         t-terrain type\n");
     printf("  Use any of : h-names, fix harder             s-sea and air transports\n");
@@ -106,11 +107,17 @@ void CLIHelp(char *VersionName)
     printf("-L[nrst] FILE load map layer from file MAPXX.SET or MAPXX.STM file.\n");
     printf("  Use any of : n-name layer    r-road layer    s-tiles layer   t-terrain type\n");
     printf("-Y create GraphViz compatible campaign tree file : '%s'.\n",fpge_pgcam_gv);
-    printf("-Q use APP6 symbols for units. Change tiles color on request.\n");
+    printf("-Q use APP6 symbols for units. PGF mode only. Change tiles color on request.\n");
     printf("  Use any of : c-make tiles with colors        n-do not color tiles.\n");
     printf("  Use any of : g-make tiles gray (default is green).\n");
     printf("  Use any of : u-do not make units icons.\n");
     printf("-d Use tile matrix debug.\n");
+    printf("-P Dump river patterns. Use switches to dump other patterns.\n");
+    printf("  Use any of : R-check radius of 2 instead of 1 \n");
+    printf("  Use any of : r-road patterns  o-road and river a-all\n");
+    printf("-x Upon load of map change tiles\n");
+    printf("  Use any of : s-scope          m-mode\n");
+    printf("  Use any of : r-road patterns  o-road and river a-all\n");
     printf("-h display this help.\n");
 }
 
@@ -127,8 +134,6 @@ int error;
 	}
 	return 0;
 }
-
-
 
 int prepare_mini_tiles(){
 	int error;
@@ -1186,6 +1191,153 @@ void checking_terrain_types(){
 }
 */
 
+int is_in_set(short tile,int limit, short table[]){
+	int j, found =-1;
+
+	for(j=0;j<limit;j++){
+		if (tile == table[j]){
+			found=table[j];
+			break;
+		}
+	}
+	return found;
+}
+
+int is_same_set(int tile, int tile2){
+
+	if (is_tile_in_limited_set(tile,LIMITED_SET_RIVER)>-1 && is_tile_in_limited_set(tile2,LIMITED_SET_RIVER)>-1) return 1;
+	if (is_tile_in_limited_set(tile,LIMITED_SET_ROAD)>-1 && is_tile_in_limited_set(tile2,LIMITED_SET_ROAD)>-1) return 1;
+	if (is_tile_in_limited_set(tile,LIMITED_SET_ROAD_AND_RIVER)>-1 && is_tile_in_limited_set(tile2,LIMITED_SET_ROAD_AND_RIVER)>-1) return 1;
+
+	return 0;
+}
+
+int is_tile_in_limited_set(short tile, int set){
+	short river_tiles[]= {52,53,54,55,61,62,63,64,65,71,72,227,228,229,MAGIC_RIVER};
+	short road_tiles[]=  {37,47,48,49,56,57,58,59,66,67,68, 69, 74,MAGIC_ROAD};
+	short river_and_road_tiles[]= {30,32,40,41,60,70,223,224,225,226,MAGIC_ROAD_AND_RIVER};
+	int river_tiles_no=15;
+	int road_tiles_no=14;
+	int river_and_road_tiles_no=11;
+	int found=-1;
+
+	if (tile<0) return tile;
+
+	switch(set){
+		case LIMITED_SET_RIVER:
+			return is_in_set(tile,river_tiles_no,river_tiles);
+		case LIMITED_SET_ROAD:
+			return is_in_set(tile,road_tiles_no,road_tiles);
+		case LIMITED_SET_ROAD_AND_RIVER:
+			return is_in_set(tile,river_and_road_tiles_no,river_and_road_tiles);
+		case LIMITED_SET_ALL:
+			if ( (found=is_in_set(tile,river_tiles_no,river_tiles))>-1) return found;
+			if ( (found=is_in_set(tile,road_tiles_no ,road_tiles))>-1) return found;
+			return is_in_set(tile,river_and_road_tiles_no,river_and_road_tiles);
+		default:
+			return -1;
+	}
+}
+
+int get_tile_offmap(int x, int y){
+
+	if (x<0 || x>= mapx || y<0 || y>= mapy) return -2; //offmap tile
+	return map[x][y].tile;
+}
+
+//gawk "{ print \"{\" $0 \"},\" }" pat_all_s.txt
+//fpge -P ALL | grep "^[ 0-9][0-9]\{2\}" | sort | uniq -w 12 | wc -l
+void display_patterns(int pattern_mode, int mode){
+	int x,y,i,j,found,limit, border=0;
+	int row[32];
+
+	for (x = border; x < mapx-border ; ++x)
+		for (y = border; y < mapy-border ; ++y)
+					if (is_tile_in_limited_set(map[x][y].tile,pattern_mode)!=-1){
+						row[1]=0;
+						//printf("%3d->",map[x][y].tile);
+						row[0]=map[x][y].tile;
+						if (mode==1){
+							limit=8;
+							for(i=0;i<6;i++){
+								found = is_tile_in_limited_set(map[x + dx_tab_N_CW[i]][y + dy_tab_N_CW[i][x % 2]].tile,pattern_mode);
+								row[1] |= (found >-1);
+								row[1] = row[1] << 1;
+								row[2+i]=found;
+							//printf("%3d%c",found,i<5?',':'\n');
+							}
+						}
+						if (mode==2){
+							limit=2;
+							int r=2;
+							for (i=0;i<=r;i++)
+									for (j=-r+i/2;j<=r-(i+1)/2;j++){
+										found = is_tile_in_limited_set(get_tile_offmap(x+i,y+j+x%2*(x+i+1)%2),pattern_mode);
+										row[1] |= (found >-1);
+										row[1] = row[1] << 1;
+										row[limit]=found;
+										limit++;
+										found = is_tile_in_limited_set(get_tile_offmap(x-i,y+j+x%2*(x+i+1)%2),pattern_mode);
+										row[1] |= (found >-1);
+										row[1] = row[1] << 1;
+										row[limit]=found;
+										limit++;
+									}
+						}
+
+						printf("%3d,0x%08x,",row[0],row[1]);
+						for(i=2;i<limit;i++) printf("%3d%c",row[i],i<limit-1?',':'\n');
+
+					}
+}
+
+void  run_and_marks_rivers(int mode, int scope, int pattern_mode){
+	int x,y;
+
+	int *tempmap2 = malloc(mapx * mapy * sizeof(int));
+	//tempmap+x+mapx*y
+
+	for (y = 0; y < mapy ; ++y)
+		for (x = 0; x < mapx; ++x){
+			tempmap2[x+mapx*y]=map[x][y].tile;
+
+			if (scope==0 && is_tile_in_limited_set(map[x][y].tile, LIMITED_SET_RIVER)>=0)
+				map[x][y].tile=MAGIC_RIVER;
+			if (scope==1 && is_tile_river(x,y))
+				map[x][y].tile=MAGIC_RIVER;
+			if (scope==2 ){
+				if (is_tile_in_limited_set(map[x][y].tile,LIMITED_SET_RIVER)>=0) map[x][y].tile=MAGIC_RIVER;
+				if (is_tile_in_limited_set(map[x][y].tile,LIMITED_SET_ROAD)>=0) map[x][y].tile=MAGIC_ROAD;
+				if (is_tile_in_limited_set(map[x][y].tile,LIMITED_SET_ROAD_AND_RIVER)>=0) map[x][y].tile=MAGIC_ROAD_AND_RIVER;
+			}
+		}
+
+	if (mode==0){
+		gen_terrain(MAGIC_RIVER, river_pattern_SE_CCW, river_size,river_pattern_tile, NO_FILTER_INDEX); //river
+		gen_magic_river2();
+	}
+
+	if (mode==1)
+		gen_magic_river3(pattern_mode);
+
+	if (mode==2){
+			gen_magic_river3(LIMITED_SET_RIVER);
+
+			gen_terrain(MAGIC_RIVER, river_pattern_SE_CCW, river_size,river_pattern_tile, NO_FILTER_INDEX); //river
+			gen_magic_river2();
+		}
+
+	for (y = 0; y < mapy ; ++y)
+			for (x = 0; x < mapx; ++x){
+				if (tempmap2[x+mapx*y]!=map[x][y].tile)
+					map[x][y].shade |= PROBLEM_MASK;
+				else
+					map[x][y].tile=tempmap2[x+mapx*y];
+			}
+
+	free(tempmap2);
+	show_debug_problems=1;
+}
 
 void handle_units_bmp_saving(int units_bmp, int units_per_country_bmp, int bmp_idx, int end_bmp_idx, int country_idx, int m, int y, int comment_bmps, int flipIcons, int bmp_x, int tile_width, int tile_height) {
 	char bmp_name[256];
@@ -1271,6 +1423,7 @@ int cli_parsing(int argc, char *argv[]) {
 	int fix_owner=0;
 	//int fix_units=0;
 	int try_harder=0;
+	int export_to_lgeneral=0;
 	int swap_side=0;
 	int list_only=0;
 	int display_csv=0;
@@ -1282,7 +1435,10 @@ int cli_parsing(int argc, char *argv[]) {
 	int side_save=0;
 	int list_units_mode=0;
 	int flip_icons=0;
-
+	int pattern_range_mode=1;
+	int pattern_mode=LIMITED_SET_RIVER;
+	int tmode=0;
+	int tscope=0;
 	//layers
 	//int layer_tiles=0;
 	//int layer_roads=0;
@@ -1696,6 +1852,9 @@ int cli_parsing(int argc, char *argv[]) {
 				if (strlen(argv[1]) > 2) {
 				for (i = 2; i < strlen(argv[1]); i++) {
 					switch (argv[1][i]) {
+					case 'g':
+						export_to_lgeneral=1;
+						break;
 					case 'h':
 						try_harder=1;
 						break;
@@ -1716,8 +1875,13 @@ int cli_parsing(int argc, char *argv[]) {
 				}
 				if (list_only){
 					list_conversion_of_units(hide_names,try_harder,1); //display conversion
-				}else
-					save_pgf_scenario(hide_names,try_harder,swap_side,side_save);
+				}else{
+					if (export_to_lgeneral){
+						save_lgeneral_scenario_CLI(0);
+					}else{
+						save_pgf_scenario(hide_names,try_harder,swap_side,side_save);
+					}
+				}
 				return 1;
 			case 'N':
 				list_names();
@@ -1908,6 +2072,51 @@ int cli_parsing(int argc, char *argv[]) {
 					}
 				}
 				return 1;
+		case 'P':
+			if (strlen(argv[1]) > 2) {
+				for (i = 2; i < strlen(argv[1]); i++) {
+					switch (argv[1][i]) {
+					case 'R':
+						pattern_range_mode = 2;
+						break;
+					case 'r':// LIMITED_SET_RIVER is default
+						pattern_mode = LIMITED_SET_ROAD;
+						break;
+					case 'o':
+						pattern_mode = LIMITED_SET_ROAD_AND_RIVER;
+						break;
+					case 'a':
+						pattern_mode = LIMITED_SET_ALL;
+						break;
+					}
+				}
+			}
+			display_patterns(pattern_mode, pattern_range_mode); //0-river
+			return 1;
+		case 'x':
+			if (strlen(argv[1]) > 2) {
+				for (i = 2; i < strlen(argv[1]); i++) {
+					switch (argv[1][i]) {
+					case 'm':
+						tmode++;
+						break;
+					case 's':
+						tscope++;
+						break;
+					case 'r':// LIMITED_SET_RIVER is default
+						pattern_mode = LIMITED_SET_ROAD;
+						break;
+					case 'o':
+						pattern_mode = LIMITED_SET_ROAD_AND_RIVER;
+						break;
+					case 'a':
+						pattern_mode = LIMITED_SET_ALL;
+						break;
+					}
+				}
+			}
+			run_and_marks_rivers(tmode,tscope,pattern_mode);
+			break;
 		}
 		}
 	return 0;

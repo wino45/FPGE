@@ -129,16 +129,16 @@ MENU file_menu[] =
 	/* { "Text\tsc",      (callback),  (Submenu), (flags),  (dp)  )*/
 		{ "&Undo\tAlt-u",        (void *)onUndo,       NULL,       0,  NULL  },
 		{ "",     NULL,       NULL,       0,  NULL  },
-	   { "Replace",        (void *)search_replace_dialog,       NULL,       0,  NULL  },
-	   { "",     NULL,       NULL,       0,  NULL  },
-	   { "Map Fragment Export",     (void *)do_rectangle_export,       NULL,       0,  NULL  },
-	   { "Map Fragment Import",     (void *)do_rectangle_import,       NULL,       0,  NULL  },
-	   { "",     NULL,       NULL,       0,  NULL  },
-	   { "Map Resize",     (void *)map_resize_dialog,       NULL,       0,  NULL  },
-	   { "Load Map Layer",     (void *)load_map_layer_dialog,       NULL,       0,  NULL  },
+		{ "Replace",        (void *)search_replace_dialog,       NULL,       0,  NULL  },
+		{ "",     NULL,       NULL,       0,  NULL  },
+		{ "Map Fragment Export",     (void *)do_rectangle_export,       NULL,       0,  NULL  },
+		{ "Map Fragment Import",     (void *)do_rectangle_import,       NULL,       0,  NULL  },
+		{ "",     NULL,       NULL,       0,  NULL  },
+		{ "Map Resize",     (void *)map_resize_dialog,       NULL,       0,  NULL  },
+		{ "Load Map Layer",     (void *)load_map_layer_dialog,       NULL,       0,  NULL  },
 	  // { "",     NULL,       NULL,       0,  NULL  },
 	  // { "Configuration",     (void *)configuration_dialog,       NULL,       0,  NULL  },
-	   { NULL,                  NULL,       NULL,       0,  NULL  }
+		{ NULL,                  NULL,       NULL,       0,  NULL  }
 	};
 
 	MENU display_name_menu[] =

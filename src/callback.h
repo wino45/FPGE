@@ -102,6 +102,8 @@ void position_gui_elements(int , int );
 void mark_road_problems();
 void mark_city_problems();
 
-
+void gen_terrain(short ,unsigned char [],unsigned char ,short [][3],unsigned char );
+void gen_magic_river2();
+void gen_magic_river3(int);
 
 #endif /* CALLBACK_H_ */

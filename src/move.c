@@ -8,6 +8,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "fpge.h"
 #include "maingui.h"
@@ -17,8 +18,11 @@
 
 unsigned char move_points[MOVE_MAP_X][MOVE_MAP_Y];
 unsigned char move_directions_RC[MOVE_MAP_X][MOVE_MAP_Y];
-unsigned char move_points_transport_RC[MOVE_MAP_X][MOVE_MAP_Y];
+unsigned char move_points_transport[MOVE_MAP_X][MOVE_MAP_Y];
 unsigned char move_directions_transport_RC[MOVE_MAP_X][MOVE_MAP_Y];
+unsigned char move_path[MOVE_MAP_X][MOVE_MAP_Y];
+int move_x0;
+int move_y0;
 
 //panzer.exe 0xbfb27 len288
 /* C:\gry\pg\EXE\PANZER.EXE */
@@ -62,12 +66,16 @@ unsigned char PgStaticWeatherTable[WEATHER_BIN_TABLE_SIZE] =
 };
 
 
+void move_path_init(){
+	memset(move_path,MOVE_NO_PATH,sizeof(move_path));
 
+}
 void move_init(){
+	move_path_init();
 	memset(move_points,MOVE_NOT_CHECKED,sizeof(move_points));
 	memset(move_directions_RC,0,sizeof(move_directions_RC));
 
-	memset(move_points_transport_RC,MOVE_NOT_CHECKED,sizeof(move_points_transport_RC));
+	memset(move_points_transport,MOVE_NOT_CHECKED,sizeof(move_points_transport));
 	memset(move_directions_transport_RC,0,sizeof(move_directions_transport_RC));
 }
 
@@ -156,7 +164,6 @@ int compute_costs(unsigned char move_array[][MOVE_MAP_Y],unsigned char move_dir[
 	return changes;
 }
 
-
 void compute_move_hexes(unsigned char move_array[][MOVE_MAP_Y],unsigned char move_dir[][MOVE_MAP_Y], int x0, int y0,int move_type,int move_point,int uside){
 
 	move_array[x0][y0]=move_point;
@@ -187,6 +194,96 @@ void compute_move_hexes(unsigned char move_array[][MOVE_MAP_Y],unsigned char mov
 	}
 }
 
+int compute_prefix(int from_x, int from_y, int to_x, int to_y){
+	int r = abs(from_x-to_x)-abs(from_y-to_y+from_x%2)*2 +
+			(abs(from_x-to_x)==abs(from_y-to_y)*2 && to_y>from_y)*((from_x+1)%2)+
+			(abs(from_x-to_x)-2==abs(from_y-to_y)*2 && to_y<=from_y)*((from_x)%2)
+			;
+	//if (r==0 && (from_x+to_x+1)%2 ) r=1;
+	return r>0;
+}//+(from_x+to_x)%2
+//>(abs(from_y-to_y))*2
+//10*abs(from_x-to_x)+(abs(from_y-to_y))
+void draw_prefix_for_movements(int x, int y, int r){
+	int i,j;
+	int x0,y0;
+
+	 move_init();
+
+	if (r<1) return;
+	for (i=0;i<=r;i++)
+		for (j=-r+i/2;j<=r-(i+1)/2;j++){
+			x0=x+i;
+			y0=y+j+x%2*(x+i+1)%2;
+			move_points[x0][y0]=compute_prefix(x,y,x0,y0);
+			x0=x-i;
+			y0=y+j+x%2*(x+i+1)%2;
+			move_points[x0][y0]=compute_prefix(x,y,x0,y0);
+		}
+}
+
+int compute_path(int from_x,int from_y,int to_x,int to_y){
+	int x,y,i,iter=10;
+	int best_v, best_x, best_y, best_i;
+
+	int prefix = compute_prefix( to_x, to_y,from_x, from_y);
+	//if (from_x%2) prefix = !prefix;
+
+	x=from_x;
+	y=from_y;
+	prefix= (x+to_x)%2;
+	//print_dec(prefix);
+	move_path_init();
+
+	while ( !(x==to_x && y==to_y) && iter>0){
+		int set=0;
+		for(i=0;i<6;i++){
+			int xx=x + dx_tab_N_CW[i];
+			int yy=y + dy_tab_N_CW[i][x % 2];
+			if (xx<0 || xx>= mapx || yy<0 || yy>= mapy) continue;
+			if (!set){
+				if (move_points[xx][yy]!=MOVE_NOT_CHECKED){
+					best_v=move_points[xx][yy];
+					best_x=xx;
+					best_y=yy;
+					best_i=i;
+					set=1;
+				}
+			}else{
+				if (move_points[xx][yy]!=MOVE_NOT_CHECKED  && move_points[xx][yy]>=best_v ){
+					if (move_points[xx][yy]>best_v){
+						best_v=move_points[xx][yy];
+						best_x=xx;
+						best_y=yy;
+						best_i=i;
+					}else{
+						if (!prefix && abs(xx-to_x)<abs(best_x-to_x)){
+							best_x=xx;
+							best_y=yy;
+							best_i=i;
+						}
+						if (prefix && abs(yy-to_y)<abs(best_y-to_y)){
+							best_x=xx;
+							best_y=yy;
+							best_i=i;
+						}
+
+					}
+				}
+			}
+		}
+		move_path[x][y]=best_i;
+		x=best_x;
+		y=best_y;
+		prefix= (x+to_x)%2;
+		iter--;
+		//print_dec(x);
+		//print_dec(y);
+	}
+
+
+	return 0;
+}
 
 int move_click(){
 	//map coordinates are in map_mouse_x, map_mouse_y
@@ -194,7 +291,7 @@ int move_click(){
 	int y0 = map_mouse_y;
 
 	//check if there is a unit
-	if (map[x0][y0].guidx>=0){//ground unit
+	if (map[x0][y0].guidx>=0){//ground unit only
 		//print_str("Move click.");
 		int uid = map[x0][y0].guidx;
 		int uside = get_unit_side(uid);
@@ -215,12 +312,25 @@ int move_click(){
 			int move_point = equip[all_units[uid].orgtnum][MOV];
 			int move_type = equip[all_units[uid].orgtnum][MOV_TYPE];
 			//print_dec(move_point);
-			compute_move_hexes(move_points_transport_RC,move_directions_transport_RC, x0,  y0, move_type, move_point, uside);
+			compute_move_hexes(move_points_transport,move_directions_transport_RC, x0,  y0, move_type, move_point, uside);
 		}
+		move_x0=x0;
+		move_y0=y0;
 
 		//print_dec(move_point);
 		draw_map(map_bmp, map_x0, map_y0, tiles_high, tiles_wide);
 		main_dlg[dmMapBmpIdx].flags |= D_DIRTY;
+	}else{
+		if (move_points[x0][y0]< MOVE_NOT_CHECKED ){
+			//compute path
+			compute_path(x0,y0,move_x0,move_y0);
+			draw_map(map_bmp, map_x0, map_y0, tiles_high, tiles_wide);
+			main_dlg[dmMapBmpIdx].flags |= D_DIRTY;
+		}else{
+			draw_prefix_for_movements(x0,y0,8);
+			draw_map(map_bmp, map_x0, map_y0, tiles_high, tiles_wide);
+			main_dlg[dmMapBmpIdx].flags |= D_DIRTY;
+		}
 	}
 
 	return 0;

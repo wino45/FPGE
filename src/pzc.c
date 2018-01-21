@@ -1332,7 +1332,7 @@ int save_pzc_units(){
 		tbdy = TILE_HEIGHT *3 ;
 	}
 
-	sprintf(MapStatusTxt,"PzC units PNG saving...\nPlease wait.");
+	sprintf(MapStatusTxt,"PzC units PNG saving...\n\nPlease wait.");
 	d_mapstatus_proc(MSG_DRAW, &(main_dlg[dmMapStatusIdx]), 0);
 
 	for(i=0;i<total_uicons;i++){

@@ -259,7 +259,6 @@ DIALOG pg2_convert_map_dlg[PG2_MAP_DLG_SIZE] =
 		     { NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL }
 };
 
-
 int c_pg_country;
 int c_pg_class;
 int c_pg_type;
@@ -736,21 +735,27 @@ int import_pg2_map_file(char *path, int convert_terrain_type, int convert_roads_
 					if (k == -1)
 						k = 6; //clear
 
-					if (rec_buff.road > 0 && rec_buff.tt != 1 && rec_buff.tt != 2 && rec_buff.tt != 12) {
-						if (convert_roads_layer) {
+					if (rec_buff.road > 0 && rec_buff.tt != 1 && rec_buff.tt != 2 && rec_buff.tt != 12 ) {
+						if (convert_roads_layer ) {
 							map[x][y].rc = rec_buff.road;
 							//also let the k be unchanged
 						} else {
 							//when road layer is not converted change to road tile
-							k = 3; //special case road, only when tt is no city or port or airfield
+							k = 3; //special case road, only when tt is no city or port or airfield or river
 						}
 					}// no road layer ever for city, port, airfield
 
 					if (generate_road_tiles && map[x][y].rc){
-						k=3;
+						if  ( rec_buff.tt == 10 || rec_buff.tt == 13 || rec_buff.tt == 15){
+							//road is crossing river
+							k=-1;
+							map[x][y].tile=MAGIC_ROAD_AND_RIVER;
+						}else{
+							k=3;
+						}
 					}
 
-					if (generate_tiles)
+					if (generate_tiles && k>-1)
 						map[x][y].tile = tiles_for_bmp[k][rand() % 3];
 
 					if (convert_terrain_type)
@@ -1145,7 +1150,7 @@ int import_pg2_map_scn_gui() {
 				pg2unit_to_pgunit[i] = -1;
 			}
 
-			//this must be after equ load
+			//this must be after equ loaded
 			load_pg2_conversion_tables();
 
 			//txt
@@ -1208,7 +1213,6 @@ int import_pg2_map_scn_gui() {
 			}
 		} else {
 			//map
-
 			centre_dialog(pg2_convert_map_dlg);
 			if (do_dialog(pg2_convert_map_dlg, -1) == PG2_DLG_OK-3) {
 				//PG2_DLG_TERRAIN_TYPE etc will work here
@@ -1220,7 +1224,6 @@ int import_pg2_map_scn_gui() {
 			if (result==0)
 				clear_all_units();
 			}
-
 		}
 
 		if (result == 0) {

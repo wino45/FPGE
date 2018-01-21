@@ -319,7 +319,7 @@ void write_scenario(FILE *outf, int save_type){
 	for (i=0; i<4; ++i)
 		fputc(255,outf);
 	//now use the old deploy size in the buffer to find the rest of the data
-	deploy_size=4*(scn_buffer[DEPLOY_TABLE]+256*scn_buffer[DEPLOY_TABLE+1]);
+	//deploy_size=4*(scn_buffer[DEPLOY_TABLE]+256*scn_buffer[DEPLOY_TABLE+1]);
 	//units_start=deploy_size+0x87;  //this is the old size
 	//s4_starts=deploy_size+0x77;
 	//write the first section

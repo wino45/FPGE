@@ -23,16 +23,17 @@
 DIALOG lgen_uicons_dlg[LG_U_DLG] =
 {
    /* (proc)        (x)  (y)  (w)  (h)  (fg)           (bg)        (key) (flags)     (d1) (d2)  (dp)                         (dp2) (dp3) */
-   { d_textbox_proc, 0,  0,  228, 124+16+16, GUI_FG_COLOR, GUI_BG_COLOR,   0,    0,          0,   0,   NULL,                        NULL, NULL },
+   { d_textbox_proc, 0,  0,  228, 124+16+16+16, GUI_FG_COLOR, GUI_BG_COLOR,   0,    0,          0,   0,   NULL,                        NULL, NULL },
    { d_text_proc,    12, 12, 176, 8,   GUI_FG_COLOR, GUI_BG_COLOR,   0,    0,          0,   0,   "Export unit icons to LGen", NULL, NULL },
    { d_edit_proc,    72, 28, 96,  8,   GUI_FG_COLOR, GUI_EDIT_COLOR, 0,    0,         11,   1,   "pg",                        NULL, NULL },
    { d_text_proc,    12, 28, 56,  8,   GUI_FG_COLOR, GUI_BG_COLOR,   0,    0,          0,   0,   "Domain",                    NULL, NULL },
    { d_radio_proc,   12, 48, 148, 12,  GUI_FG_COLOR, GUI_BG_COLOR,   'f',    D_SELECTED, 0,   0,   "&Flip icons",                NULL, NULL },
    { d_radio_proc,   12, 64, 148, 12,  GUI_FG_COLOR, GUI_BG_COLOR,   'n',    0,          0,   0,   "&No icons flip",             NULL, NULL },
-   { d_button_proc,  12, 92+16+16, 80,  20,  GUI_FG_COLOR, GUI_BG_COLOR,   'c',    D_EXIT,     0,   0,   "&Cancel",                    NULL, NULL },
-   { d_button_proc, 132, 92+16+16, 80,  20,  GUI_FG_COLOR, GUI_BG_COLOR,   'e',    D_EXIT,     0,   0,   "&Export",                    NULL, NULL },
+   { d_button_proc,  12, 92+16+32, 80,  20,  GUI_FG_COLOR, GUI_BG_COLOR,   'c',    D_EXIT,     0,   0,   "&Cancel",                    NULL, NULL },
+   { d_button_proc, 132, 92+16+32, 80,  20,  GUI_FG_COLOR, GUI_BG_COLOR,   'e',    D_EXIT,     0,   0,   "&Export",                    NULL, NULL },
    { d_check_proc,   12, 64+16+4, 148+20, 12,  GUI_FG_COLOR, GUI_BG_COLOR, 's',    0,          1,   0,   "&Skip not used icons",       NULL, NULL },
    { d_check_proc,   12, 64+16+4+16, 148+20, 12,  GUI_FG_COLOR, GUI_BG_COLOR, 0,    0,          1,   0,   "Individual files",       NULL, NULL },
+   { d_check_proc,   12, 64+16+4+16+16, 148+20, 12,  GUI_FG_COLOR, GUI_BG_COLOR, 'm',    0,          1,   0,   "&Multi column",       NULL, NULL },
    { d_yield_proc, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
    { NULL,           0,   0,   0,   0,   0,   0,   0,    0,          0,   0,   NULL,                        NULL, NULL }
 };
@@ -248,7 +249,7 @@ void find_new_icon_numbers(){
 
 	for(i=0;i<total_equip;i++){
 		bmp_idx = equip[i][BMP] + 256 * equip[i][BMP + 1];
-		if (new_icon_number[bmp_idx]==-1 && bmp_idx<MAX_UICONS && bmp_idx>-1){
+		if (bmp_idx<MAX_UICONS && bmp_idx>-1 && new_icon_number[bmp_idx]==-1){
 			new_icon_number[bmp_idx]=j;
 			j++;
 		}
@@ -595,13 +596,15 @@ int units_convert_database(char *name, char *domain, int discard_not_used_icons)
         //AGW version
 		if ( entry.move < 5 && (entry.move_type == 3 || entry.move_type == 4 || entry.move_type == 10) )
 			strcat( flags, "°ground_trsp_ok" );
-		if ( entry.move < 5 && (entry.move_type == 3 || entry.move_type == 10) )
+		if ( entry.move < 5 && (entry.move_type == 3 || entry.move_type == 10) ){
 			strcat( flags, "°air_trsp_ok" );
+			if (entry.allowed_transport >2 ) strcat( flags, "°parachute" );
+		}
 		if ( entry.move > 1 && (entry.move_type == 4) )
 			strcat( flags, "°air_trsp_ok" );
 
         /* all artillery with range 1 has no attack_first */
-        if (entry.class==4&&entry.range==1)
+        if (entry.class==4 && entry.range==1)
         {
             sprintf( flags, "artillery°suppr_fire" );
             printf( "%s: overwrite flags to: artillery,suppr_fire\n",
@@ -1063,24 +1066,29 @@ int save_lgeneral_map(){
 }
 
 int save_lgeneral_scenario(){
+	return save_lgeneral_scenario_CLI(TRUE);
+}
+
+int save_lgeneral_scenario_CLI(int updateGUI){
 	char name[128],map_name[128];
 
 	sprintf(MapStatusTxt,"LGen MAP saving...\nPlease wait.");
-	d_mapstatus_proc(MSG_DRAW, &(main_dlg[dmMapStatusIdx]), 0);
+	if (updateGUI) d_mapstatus_proc(MSG_DRAW, &(main_dlg[dmMapStatusIdx]), 0);
 
 	snprintf(map_name,128,"map%02d",getScenarioNumber());
 	save_lgeneral_map_file(map_name,"pg");
 
 	sprintf(MapStatusTxt,"LGen scen saving...\nPlease wait.");
-	d_mapstatus_proc(MSG_DRAW, &(main_dlg[dmMapStatusIdx]), 0);
+	if (updateGUI) d_mapstatus_proc(MSG_DRAW, &(main_dlg[dmMapStatusIdx]), 0);
 
 	GetScenarioShortName(name,128);
 
 	save_lgeneral_scenario_file(name,map_name,"pg");
 
-	sprintf(MapStatusTxt,"LGen scen saved.\nPick an Operation.");
-	main_dlg[dmMapStatusIdx].flags |= D_DIRTY;
-
+	if (updateGUI){
+		sprintf(MapStatusTxt,"LGen scen saved.\nPick an Operation.");
+		main_dlg[dmMapStatusIdx].flags |= D_DIRTY;
+	}
 	return D_O_K;
 }
 
@@ -1179,10 +1187,11 @@ int isFlipNeeded(int icon_idx){
 	return flip;
 }
 
-int units_convert_bmps(char *name, int isFlipIcons, int discard_not_used_icons, int individual_files){
+int units_convert_bmps(char *name, int isFlipIcons, int discard_not_used_icons, int individual_files, int multi_column){
 	int icon_idx,sum=0,t,b,r,l,ysize,xsize,k,limit,bmp_idx,s=0;
 	BITMAP *u_bmp;
 	int saved_icons[MAX_UICONS];
+	int SDL_max_height=16384;
 	char name_individual[256];
 
 	if (discard_not_used_icons) {
@@ -1217,13 +1226,24 @@ int units_convert_bmps(char *name, int isFlipIcons, int discard_not_used_icons, 
 		sum += ysize;
 	}
 	if (!individual_files){
-		u_bmp = create_bitmap(TILE_FULL_WIDTH, sum);
-		rectfill(u_bmp, 0, 0, TILE_FULL_WIDTH, sum, colors_to24bits(COLOR_BLACK)); // COLOR_BLACK is a transparent color for LGen
+		int dx = TILE_FULL_WIDTH;
+		int dy = sum;
+
+		if (multi_column){
+			int est_dx = sum / SDL_max_height +1;
+			//add some height
+			dx = TILE_FULL_WIDTH * ( (sum+est_dx*TILE_HEIGHT) / SDL_max_height +1);
+			dy = SDL_max_height;
+		}
+
+		u_bmp = create_bitmap(dx, dy);
+		rectfill(u_bmp, 0, 0, dx, dy, colors_to24bits(COLOR_BLACK)); // COLOR_BLACK is a transparent color for LGen
 	}
 	sum=0;
 	if (discard_not_used_icons) {
 		memset(saved_icons,0,sizeof(saved_icons));
 	}
+	int dx=0;
 	for(k=0;k<limit;k++){
 		if (discard_not_used_icons) {
 			bmp_idx = equip[k][BMP] + 256 * equip[k][BMP + 1];
@@ -1266,20 +1286,24 @@ int units_convert_bmps(char *name, int isFlipIcons, int discard_not_used_icons, 
 			//swap left with right limits after H-flip
 			l=TILE_FULL_WIDTH-r;
 			r=l+xsize;
-			masked_blit(tmp_bmp,u_bmp,l,t,0,sum+1,xsize,ysize);
+			masked_blit(tmp_bmp,u_bmp,l,t,dx,sum+1,xsize,ysize);
 			destroy_bitmap(tmp_bmp);
 		}else{
-			masked_blit(unit_bmp[icon_idx],u_bmp,l,t,0,sum+1,xsize,ysize);
+			masked_blit(unit_bmp[icon_idx],u_bmp,l,t,dx,sum+1,xsize,ysize);
 		}
-		putpixel(u_bmp,0,sum,make_color_fpge(0,192,248));
-		putpixel(u_bmp,xsize,sum,make_color_fpge(0,192,248));
-		putpixel(u_bmp,0,sum+ysize-1,make_color_fpge(0,192,248));
+		putpixel(u_bmp,dx,sum,make_color_fpge(0,192,248));
+		putpixel(u_bmp,dx+xsize,sum,make_color_fpge(0,192,248));
+		putpixel(u_bmp,dx,sum+ysize-1,make_color_fpge(0,192,248));
 
 		if (individual_files){
 			save_bmp(name_individual,u_bmp,NULL);
 			destroy_bitmap(u_bmp);
 		}
 		sum += ysize;
+		if (multi_column && sum+TILE_HEIGHT > SDL_max_height ){
+			dx +=TILE_FULL_WIDTH;
+			sum=0;
+		}
 	}
 	if (!individual_files){
 		save_bmp(name,u_bmp,NULL);
@@ -1304,7 +1328,8 @@ int save_lgeneral_units_bmp(){
 		int doFlip = (lgen_uicons_dlg[4].flags&D_SELECTED)?1:0;
 		int change_icons = (lgen_uicons_dlg[8].flags&D_SELECTED)?1:0;
 		int individual_icons = (lgen_uicons_dlg[9].flags&D_SELECTED)?1:0;
-		units_convert_bmps(name, doFlip, change_icons,individual_icons);
+		int multi_column = (lgen_uicons_dlg[10].flags&D_SELECTED)?1:0;
+		units_convert_bmps(name, doFlip, change_icons,individual_icons,multi_column);
 
 		snprintf(MapStatusTxt,256,"LGen %s saved.\nPick an Operation.",name);
 		main_dlg[dmMapStatusIdx].flags |= D_DIRTY;

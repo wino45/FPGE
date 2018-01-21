@@ -1,4 +1,4 @@
-set VERSION=072
+set VERSION=073
 
 del fpge%VERSION%.zip
 
@@ -8,6 +8,7 @@ copy /y test\countries.txt release\
 copy /y test\icons.txt release\
 copy /y test\tiles.txt release\
 copy /y test\0str.bmp release\
+copy /y test\bmp2ctry.txt release\
 
 rem PzC conversion files examples
 copy /y test\pgu2pzcu.txt release\

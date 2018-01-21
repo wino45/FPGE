@@ -126,6 +126,21 @@ void make_hexes() {
 	line(black_hex_bmp,15,49,45,49,colors_to24bits(BLACK_HEX_COLOR));
 	floodfill(black_hex_bmp,60/2,50/2,colors_to24bits(BLACK_HEX_COLOR));
 
+	road_hex_bmp=create_bitmap(TILE_FULL_WIDTH,TILE_HEIGHT);
+	rectfill(road_hex_bmp,0,0,TILE_FULL_WIDTH,TILE_HEIGHT,fpge_mask_color);
+	masked_blit(black_hex_bmp,road_hex_bmp,0,0,0,0,TILE_FULL_WIDTH,TILE_HEIGHT);
+	rectfill(road_hex_bmp,3,TILE_HEIGHT/2-2,TILE_FULL_WIDTH-3,TILE_HEIGHT/2+2,colors_to24bits(MAGIC_ROAD_COLOR));
+
+	river_hex_bmp=create_bitmap(TILE_FULL_WIDTH,TILE_HEIGHT);
+	rectfill(river_hex_bmp,0,0,TILE_FULL_WIDTH,TILE_HEIGHT,fpge_mask_color);
+	masked_blit(black_hex_bmp,river_hex_bmp,0,0,0,0,TILE_FULL_WIDTH,TILE_HEIGHT);
+	rectfill(river_hex_bmp,TILE_FULL_WIDTH/2-2,3,TILE_FULL_WIDTH/2+2,TILE_HEIGHT-3,colors_to24bits(MAGIC_RIVER_COLOR));
+
+	road_and_river_hex_bmp=create_bitmap(TILE_FULL_WIDTH,TILE_HEIGHT);
+	rectfill(road_and_river_hex_bmp,0,0,TILE_FULL_WIDTH,TILE_HEIGHT,fpge_mask_color);
+	masked_blit(river_hex_bmp,road_and_river_hex_bmp,0,0,0,0,TILE_FULL_WIDTH,TILE_HEIGHT);
+	rectfill(road_and_river_hex_bmp,3,TILE_HEIGHT/2-2,TILE_FULL_WIDTH-3,TILE_HEIGHT/2+2,colors_to24bits(MAGIC_ROAD_COLOR));
+
 	//make the problem hex
 	problem_hex_bmp=create_bitmap(TILE_FULL_WIDTH,TILE_HEIGHT+1);
 	rectfill(problem_hex_bmp,0,0,TILE_FULL_WIDTH,TILE_HEIGHT+1,fpge_mask_color);
@@ -353,9 +368,26 @@ void draw_map_shift(BITMAP *map_to_draw,int x0, int y0, int tiles_high, int tile
 			ys=(y-y0)*TILE_HEIGHT+shift_y;
 			if ((x)%2) ys+=TILE_HEIGHT/2;
 
-			if(map[x][y].tile==BLACK_TILE)
-				masked_blit(black_hex_bmp,map_to_draw,0,0,xs,ys,TILE_FULL_WIDTH,TILE_HEIGHT);
-			else{
+			if(map[x][y].tile>=total_tiles){
+				switch (map[x][y].tile) {
+					case BLACK_TILE:
+						tile_to_draw = black_hex_bmp;
+						break;
+					case MAGIC_ROAD:
+						tile_to_draw = road_hex_bmp;
+						break;
+					case MAGIC_RIVER:
+						tile_to_draw = river_hex_bmp;
+						break;
+					case MAGIC_ROAD_AND_RIVER:
+						tile_to_draw = road_and_river_hex_bmp;
+						break;
+					default:
+						tile_to_draw = black_hex_bmp;
+						break;
+				}
+				masked_blit(tile_to_draw,map_to_draw,0,0,xs,ys,TILE_FULL_WIDTH,TILE_HEIGHT);
+			}else{
 				if ((map[x][y].shade&SHADE_MASK) && show_ranges != 2 && edit_op!=edit_tile){
 					switch(showWeather){
 						case 0:tile_to_draw = dark_til_bmp[map[x][y].tile]; break;
@@ -371,7 +403,7 @@ void draw_map_shift(BITMAP *map_to_draw,int x0, int y0, int tiles_high, int tile
 						default:tile_to_draw =0;break;
 					}
 				}
-			masked_blit(tile_to_draw,map_to_draw,0,0,xs,ys,TILE_FULL_WIDTH,TILE_HEIGHT);
+				masked_blit(tile_to_draw,map_to_draw,0,0,xs,ys,TILE_FULL_WIDTH,TILE_HEIGHT);
 
 			}
 		//if (y<3 && x<21)
@@ -405,7 +437,7 @@ void draw_map_shift(BITMAP *map_to_draw,int x0, int y0, int tiles_high, int tile
 	   }
 
 	//problems
-	if (show_problems && edit_op!=edit_tile)
+	if ((show_problems ||show_debug_problems) && edit_op!=edit_tile)
 	for (y=y0-1; y<y0+tiles_high+1; ++y)
 	   for (x=x0-1; x<x0+tiles_wide+1; ++x){
            xs=(x-x0)*TILE_WIDTH+shift_x;
@@ -691,7 +723,7 @@ void draw_map_shift(BITMAP *map_to_draw,int x0, int y0, int tiles_high, int tile
 		for (y = y0 - 1; y < y0 + tiles_high + 1; ++y)
 			for (x = x0 - 1; x < x0 + tiles_wide + 1; ++x)
 				if (x >= 0 && x < mapx && y >= 0 && y < mapy) {
-					if (move_points_transport_RC[x][y] < MOVE_NOT_CHECKED) {
+					if (move_points_transport[x][y] < MOVE_NOT_CHECKED) {
 
 						xs=(x-x0)*TILE_WIDTH+shift_x;
 						ys=(y-y0)*TILE_HEIGHT+shift_y;
@@ -699,7 +731,7 @@ void draw_map_shift(BITMAP *map_to_draw,int x0, int y0, int tiles_high, int tile
 						fg_color = COLOR_PURPLE;
 						bg_color = COLOR_WHITE;
 
-						sprintf(buf, "%d", move_points_transport_RC[x][y]);
+						sprintf(buf, "%d", move_points_transport[x][y]);
 						textout_centre_ex(map_to_draw, font, buf,
 								xs + TILE_FULL_WIDTH / 2,
 								ys + 2 + 10,
@@ -738,7 +770,17 @@ void draw_map_shift(BITMAP *map_to_draw,int x0, int y0, int tiles_high, int tile
 		  				 if (move_directions_RC[x][y]&0x20) line(map_to_draw,xs+TILE_FULL_WIDTH/2,ys+TILE_HEIGHT/2,xs+(float)TILE_FULL_WIDTH/2.0*0.3,ys-1+(-(float)TILE_HEIGHT/4.0+TILE_HEIGHT),line_color);
 		  				 if (move_directions_RC[x][y]&0x80) line(map_to_draw,xs+TILE_FULL_WIDTH/2,ys+TILE_HEIGHT/2,xs+(float)TILE_FULL_WIDTH/2.0*0.3,ys+TILE_HEIGHT/4,line_color);
 					}
-
+					if (move_path[x][y]<MOVE_NO_PATH){
+						line_color = colors_to24bits(COLOR_BLUE);
+						int tcx=xs+TILE_FULL_WIDTH/2;
+						int tcy=ys+TILE_HEIGHT/2;
+						if (move_path[x][y]==0) line(map_to_draw,tcx,tcy,tcx,tcy-TILE_HEIGHT,line_color);
+						if (move_path[x][y]==1) line(map_to_draw,tcx,tcy,tcx+TILE_WIDTH,tcy-TILE_HEIGHT/2,line_color);
+						if (move_path[x][y]==2) line(map_to_draw,tcx,tcy,tcx+TILE_WIDTH,tcy+TILE_HEIGHT/2,line_color);
+						if (move_path[x][y]==3) line(map_to_draw,tcx,tcy,tcx,tcy+TILE_HEIGHT,line_color);
+						if (move_path[x][y]==4) line(map_to_draw,tcx,tcy,tcx-TILE_WIDTH,tcy+TILE_HEIGHT/2,line_color);
+						if (move_path[x][y]==5) line(map_to_draw,tcx,tcy,tcx-TILE_WIDTH,tcy-TILE_HEIGHT/2,line_color);
+					}
 				}
 	} //move_mode
 
@@ -818,7 +860,7 @@ void draw_map_shift(BITMAP *map_to_draw,int x0, int y0, int tiles_high, int tile
 							}
 
 							if (FilterTiles_Max_Tiles[map[x][y].tile] & (1 << COAST_FILTER_INDEX)){
-								//search for road pattern
+								//search for coast pattern
 								for(i=0;i<coast_size;i++){
 									if (coast_pattern_tile[i][0]==map[x][y].tile || coast_pattern_tile[i][1]==map[x][y].tile || coast_pattern_tile[i][2]==map[x][y].tile){
 										pattern=coast_pattern_SE_CCW[i];
@@ -828,7 +870,7 @@ void draw_map_shift(BITMAP *map_to_draw,int x0, int y0, int tiles_high, int tile
 							}
 
 							if (FilterTiles_Max_Tiles[map[x][y].tile] & (1 << RIVER_FILTER_INDEX)){
-								//search for road pattern
+								//search for river pattern
 								for(i=0;i<river_size;i++){
 									if (river_pattern_tile[i][0]==map[x][y].tile || river_pattern_tile[i][1]==map[x][y].tile || river_pattern_tile[i][2]==map[x][y].tile){
 										pattern=river_pattern_SE_CCW[i];

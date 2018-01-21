@@ -145,7 +145,7 @@ void display_unit_with_flag(int idx){
 
 	//printf("c=%d idx=%d\n",c,idx);
 	if (pgf_mode || pacgen_mode){
-		if (  c>=0 && c<total_flags && flag_bmp[c]!=NULL){
+		if ( c>=0 && c<total_flags && flag_bmp[c]!=NULL){
 			masked_blit(flag_bmp[c],
 					screen,
 					0, 0,
@@ -171,12 +171,13 @@ void display_unit_with_flag(int idx){
 			}
 		}
 	}
+	/*
 	if (draw_app6 && pgf_mode && draw_app6_units)
 		draw_app6_unit_symbol(screen,
 			unit_dlg[0].x+INFO_X+ 20-70-20,
 			unit_dlg[0].y+INFO_Y+ 36+2*INFO_SPACE+8,
 			idx,0);
-
+	 */
 }
 
 

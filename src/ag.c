@@ -752,7 +752,7 @@ int scan_ag_file(int scenario_number, int show_info){
 	if (inf == NULL) return ERROR_AG_SCN_BASE+ERROR_FPGE_FILE_NOT_FOUND;
 
 	fread(head,12,1,inf);
-	head[12]=0;
+	//head[12]=0;
 
 	//printf("%s\n",head);
 
@@ -777,7 +777,7 @@ int scan_ag_file(int scenario_number, int show_info){
 
 	fseek(inf, offset_set-7 , SEEK_SET);
 	fread(head,7,1,inf);
-	head[7]=0;
+	//head[7]=0;
 	//printf("%s\n",head);
 
 	fseek(inf, offset_set+MAP_X_ADDR, SEEK_SET);
@@ -793,7 +793,7 @@ int scan_ag_file(int scenario_number, int show_info){
 
 	fseek(inf, offset_stm-7 , SEEK_SET);
 	fread(head,7,1,inf);
-	head[7]=0;
+	//head[7]=0;
 	//printf("%s\n",head);
 
 	fclose(inf);

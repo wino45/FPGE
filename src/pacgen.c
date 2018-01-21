@@ -235,7 +235,7 @@ int parse_txt_pfp(FILE *txt_pfp_inf, int txt_pfp_inf_off, int txt_pfp_inf_size, 
 	while(cursor<txt_pfp_inf_size){
 		//read one line
 		line_cursor=0;
-		while(buf[cursor]!=0x0d && cursor<txt_pfp_inf_size){
+		while(cursor<txt_pfp_inf_size && buf[cursor]!=0x0d){
 			line[line_cursor]=buf[cursor];
 			line_cursor++;
 			cursor++;
@@ -276,9 +276,6 @@ int parse_txt_pfp(FILE *txt_pfp_inf, int txt_pfp_inf_off, int txt_pfp_inf_size, 
 	free(buf);
 	return line_count;
 }
-
-
-
 
 int load_pfpdata_idx(){
 	FILE *pfpdata_idx_inf, *til_pfp_inf, *shp_pfp_inf, *pal_pfp_inf, *txt_pfp_inf;
@@ -706,16 +703,19 @@ int load_pfpdata_idx(){
 				//printf("%d\n",idx);
 				idx++;
 			}// end of pfpdata.idx scan
+			fclose(pfpdata_idx_inf);
 			fclose(til_pfp_inf);
 			fclose(shp_pfp_inf);
 			fclose(txt_pfp_inf);
-			fclose(pfpdata_idx_inf);
 			memcpy(pgpal,temp_pal,sizeof(temp_pal));
 
 			return 0;
 		} //(pfpdata_idx_inf!=NULL)
+		fclose(til_pfp_inf);
 	  } //(til_pfp_inf!=NULL)
+	  fclose(shp_pfp_inf);
 	} //(shp_pfp_inf!=NULL)
+	fclose(txt_pfp_inf);
 	}//txt_pfp_inf!=NULL
 	return 1;
 }

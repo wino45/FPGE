@@ -348,7 +348,6 @@ void draw_app6_unit_symbol(BITMAP *where_bmp, int x0,int y0, int idx, int side){
 
 	rectfill(where_bmp,x0,y0,x0+TILE_FULL_WIDTH,y0+TILE_HEIGHT,fpge_mask_color);
 
-
 	if (class==CLASS_INFANTRY) {
 		masked_blit(app_components[side?APP_RED_RECT:APP_RECT],where_bmp,0,0,x0,y0,TILE_FULL_WIDTH,TILE_HEIGHT);
 

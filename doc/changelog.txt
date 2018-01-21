@@ -746,7 +746,7 @@ Changelog for version 0.5.0: Jan 09, 2010
     * LGen: Implemented "Skip not used icons" in udb and pg.bmp export
     * Added number of columns and tiles size for units icons export dialog
   
-    0.7.2
+    0.7.2 23 December 2012
     * LGen: Added PGF movement types in UDB export and some checks while export
     * LGen: Added export to LGen individual icons files
     * PacGen: added target type conversion on load (pacgen submarine is now pg naval)
@@ -774,6 +774,21 @@ Changelog for version 0.5.0: Jan 09, 2010
     * PacGen: load equipment with -1 country when no bit is set.
     * PacGen: when found equipment country is -1 set it to orginal country from scenario file.
     * BUGFIX: spotting shading fixed
+
+    0.7.3 11 November 2013
+    * added "parachute" for LGen equipment export
+    * loading PGF.exe data when exe is 753664 bytes long = PGF v1.02
+    * PGF: equipment.pgeqp file can be UTF8 and ; delimters can be used
+    * LGEN: multi column output for eqp bmp
+    * PG2 import: prioritize rivers tiles over roads tiles
+    * BUGFIX: terrain was generated only for x,y <=255, now is for whole map
+    * River generator changed -> river 2nd pass generating
+    * CLI: -Eg will export LGeneral scenario files 
+    * BUGFIX: map resize fixed when New Map X/Y==0 
+    * Search and replace dialog: 'match' decoupled from 'set' for greater flexibility
+    * Search and replace dialog: ! can be used to indicate "not match" : !52 will match everything except 52
+    * BUGFIX: -Qu was not working, in APP6 mode there is no second unit displayed in unit dialog
+    
 
 Check:
 *

@@ -200,7 +200,7 @@ int load_tiles(int show_info)
 			for (x = 0; x < TILE_FULL_WIDTH; ++x){
 				pix_color=getpixel(til_bmp[i], x, y);
 				if ( pix_color!= fpge_mask_color) {
-					//if (pix_color<16) printf("x:%d y:%d i:%d c:%d\n",x,y,i,pix_color); //debug for colorls <16
+					//if (pix_color<16) printf("x:%d y:%d i:%d c:%d\n",x,y,i,pix_color); //debug for colors <16
 					if (fpge_colors_bits == 8)
 						putpixel(dark_til_bmp[i], x, y, pix_color>16?(pix_color + 0x70):pix_color);
 					else {
@@ -225,6 +225,13 @@ int load_tiles(int show_info)
 				else{
 					c = find_pal_element92(getpixel(til_bmp[i], x, y));
 					if (c==92){
+						//base (92) : PGF #C3C377  DROPBOX Screen : #C7C779
+						//mud color #D3B269
+						//dark mud #A28655
+						//white #E7EFEF
+						//dark white #AEB2B2
+						//convert -fill '#e4ecec' -opaque '#c3c377' tacmap_dry.bmp tacmap_frozen.bmp
+
 						putpixel(til_bmp_mud[i], x, y, make_color_fpge(211,178,105)/*((int)211<<16)+((int)178<<8)+(int)105*/);
 						putpixel(dark_til_bmp_mud[i], x, y, make_color_fpge(162,134,85)/*((int)162<<16) + ((int)134<<8) + 85*/);
 

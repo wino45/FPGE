@@ -8,7 +8,7 @@
 #ifndef LGENERAL_H_
 #define LGENERAL_H_
 
-#define LG_U_DLG 12
+#define LG_U_DLG 13
 extern DIALOG lgen_uicons_dlg[LG_U_DLG];
 
 #define LG_EQP_DLG 9
@@ -20,7 +20,7 @@ int save_lgeneral_map();
 int save_lgeneral_scenario();
 int save_lgeneral_units_bmp();
 int save_lgeneral_nations();
-
+int save_lgeneral_scenario_CLI();
 int isFlipNeeded(int idx);
 
 #endif /* LGENERAL_H_ */

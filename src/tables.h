@@ -156,6 +156,9 @@ extern int filter_number_ingroup[];
 extern int filter_number_current_ingroup[12];
 extern int filter_tt_ingroup[][MAX_TERRAIN_TYPE];
 
+extern int rc_big_table_size;
+extern int rc_big_table[][26];
+
 void init_tables();
 void init_tables_post_load();
 

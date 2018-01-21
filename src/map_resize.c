@@ -183,7 +183,7 @@ int d_button_proc_resize(int msg, DIALOG *d, int c){
 									map[x + my_ox][y] = map[x][y];
 					}
 					//fill with default the rest
-
+					}
 					for (y = 0; y < mapy; y++){
 						//left
 						for(x=0;x<my_ox;x++){
@@ -200,7 +200,7 @@ int d_button_proc_resize(int msg, DIALOG *d, int c){
 							map[x][y].auidx=-1;
 						}
 					}
-				}
+
 				//move Y
 				if (my_oy != 0) {
 					if (my_oy > 0) {
@@ -214,6 +214,7 @@ int d_button_proc_resize(int msg, DIALOG *d, int c){
 								if (y + my_oy>=0)
 									map[x][y+my_oy] = map[x][y];
 					}
+				}
 					//fill with default the rest
 					for (x = 0; x < my_x; x++){
 						//left
@@ -232,7 +233,7 @@ int d_button_proc_resize(int msg, DIALOG *d, int c){
 						}
 					}
 
-				}
+
 				//units
 				//move
 				for(i=0;i<total_units;i++){

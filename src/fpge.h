@@ -207,10 +207,14 @@
 #define DEPLOY_HEX_COLOR 255
 #define BLACK_HEX_COLOR 8
 #define PROBLEM_HEX_COLOR 122
+#define MAGIC_ROAD_COLOR 127
+#define MAGIC_RIVER_COLOR 126
 
 #define BLACK_TILE (MAX_TILES+1)
 #define NOT_USED_TILE (MAX_TILES+2)
 #define MAGIC_ROAD (MAX_TILES+3)
+#define MAGIC_RIVER (MAX_TILES+4)
+#define MAGIC_ROAD_AND_RIVER (MAX_TILES+5)
 
 #define BYTE_MAX (256-1)
 #define WORD_MAX (256*256-1)
@@ -232,6 +236,10 @@ extern BITMAP *black_hex_bmp;
 extern BITMAP *neutral_hex_bmp;
 extern BITMAP *deploy_hex_bmp;
 extern BITMAP *problem_hex_bmp;
+extern BITMAP *road_hex_bmp;
+extern BITMAP *river_hex_bmp;
+extern BITMAP *road_and_river_hex_bmp;
+
 extern BITMAP *unit_bmp[MAX_UICONS];
 extern BITMAP *stack_bmp[MAX_SICONS];
 extern BITMAP *save_map_bmp;
@@ -450,6 +458,7 @@ extern struct shp_header header;
 extern struct MAP  map[MAX_MAP_X][MAX_MAP_Y]; //main map storage
 extern unsigned char rc[MAX_MAP_X][MAX_MAP_Y];
 extern unsigned short tempmap[MAX_MAP_X][MAX_MAP_Y];
+//extern unsigned short tempmap2[MAX_MAP_X][MAX_MAP_Y];
 extern int mapx,mapy;  //the mapsize
 extern int map_h;
 extern int map_w;
@@ -609,6 +618,7 @@ extern int graphical_overide_hex; //special hex display
 extern int debug_tile_matrix;
 extern int show_ranges;
 extern int show_problems;
+extern int show_debug_problems;
 extern int colorize_names;
 
 extern char MonthStr[SCENARIO_STR_SIZE];
