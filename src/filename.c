@@ -33,6 +33,7 @@ char exe_ag[]="ag.exe";
 char exe_pgwin[]="pg.exe";
 char exe_panzer[]="panzer.exe";
 char exe_pgf[]="pgforever.exe";
+char exe_pacgen[]="pacgen.exe";
 
 //AG
 char ag_tileart[]="tileart.dat";
@@ -72,6 +73,7 @@ char pac_pfpdata[]="pfpdata.idx";
 char pac_til[]="til.pfp";
 char pac_shp[]="shp.pfp";
 char pac_pal[]="pal.pfp";
+char pac_txt[]="txt.pfp";
 char pac_pacequip[]="pacequip.eqp";
 char pac_pacequip_txt[]="pacequip.txt";
 

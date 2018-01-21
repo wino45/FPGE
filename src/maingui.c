@@ -270,8 +270,13 @@ int about_box(){
 }
 
 int help_dialog(){
-	centre_dialog(help_dlg);
-    do_dialog(help_dlg,-1);
+	if (tile_mode==1) {
+		centre_dialog(help_dlg2);
+		do_dialog(help_dlg2, -1);
+	} else {
+		centre_dialog(help_dlg);
+		do_dialog(help_dlg, -1);
+	}
 	broadcast_dialog_message(MSG_DRAW,0);
 	return D_O_K;
 }

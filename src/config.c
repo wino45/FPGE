@@ -76,6 +76,9 @@ int save_config(){
 		fwrite(&scenario_units_only_filter,sizeof(scenario_units_only_filter),1,inf);
 		fwrite(&exclude_reserved_units_filter,sizeof(exclude_reserved_units_filter),1,inf);
 
+		fwrite(&showHexMatrix,sizeof(showHexMatrix),1,inf);
+		fwrite(&showMatrixMode,sizeof(showMatrixMode),1,inf);
+
 		fclose(inf);
 	}else{
 		exit_code= 3; //cfg file cannot be saved
@@ -145,6 +148,9 @@ int load_config(){
 			//units
 			fread(&scenario_units_only_filter,sizeof(scenario_units_only_filter),1,inf);
 			fread(&exclude_reserved_units_filter,sizeof(exclude_reserved_units_filter),1,inf);
+
+			fread(&showHexMatrix,sizeof(showHexMatrix),1,inf);
+			fread(&showMatrixMode,sizeof(showMatrixMode),1,inf);
 		}else{
 			exit_code= 2;// bad magic number
 		}

@@ -11,7 +11,7 @@
 #include "tables.h"
 #include "move.h"
 
-#define MAX_DYN_DLG_SIZE 100
+#define MAX_DYN_DLG_SIZE 400
 #define RADIO_COL_WIDTH (12+8*(11+11))
 #define RADIO_COL_X 8
 #define RADIO_COL_Y 8
@@ -99,24 +99,32 @@ int my_d_radio_proc(int msg, DIALOG *d, int c) {
 
 int dynamic_dlg(int dlg_type, int radios, int rows, int cols){
 	int i,j;
-	int dlg_rows=0;
+	int dlg_rows=0,dlg_h_size=12;
+
+	//if(rows>25) rows=25;
+	if (rows>12) dlg_h_size=rows;
 
 	s_radios = radios;
 	s_rows = rows;
 	s_cols = cols;
 
-	if (dlg_type)
-		fill_edit_values_table_uchar(PgStaticWeatherTable,radios,rows,cols);
-	else
-		fill_edit_values_table_uchar(PgStaticMoveTable,radios,rows,cols);
-
+	switch (dlg_type) {
+	case 0:
+	case 2:
+		fill_edit_values_table_uchar(PgStaticMoveTable, radios, rows, cols);
+		break;
+	case 1:
+	case 3:
+		fill_edit_values_table_uchar(PgStaticWeatherTable, radios, rows, cols);
+		break;
+	}
 
 	memset(hexedit_dlg,0,sizeof(hexedit_dlg));
 
 	//window
 	hexedit_dlg[dlg_rows].proc=d_textbox_proc;
 	hexedit_dlg[dlg_rows].w=8+TEXT_COL_WIDTH+8+RADIO_COL_WIDTH+8+(EDIT_COL_WIDTH+8)*cols+8+16;
-	hexedit_dlg[dlg_rows].h=16+13*16;
+	hexedit_dlg[dlg_rows].h=(2+dlg_h_size)*16;
 	hexedit_dlg[dlg_rows].fg=GUI_FG_COLOR;
 	hexedit_dlg[dlg_rows].bg=GUI_BG_COLOR;
 	dlg_rows++;
@@ -131,10 +139,21 @@ int dynamic_dlg(int dlg_type, int radios, int rows, int cols){
 		hexedit_dlg[dlg_rows].h=16;
 		hexedit_dlg[dlg_rows].fg=GUI_FG_COLOR;
 		hexedit_dlg[dlg_rows].bg=GUI_BG_COLOR;
-		if (dlg_type)
-			hexedit_dlg[dlg_rows].dp=(void *)weather_zones[i+1];
-		else
-			hexedit_dlg[dlg_rows].dp=(void *)movement_type[i];
+
+		switch (dlg_type) {
+		case 0:
+			hexedit_dlg[dlg_rows].dp = (void *) movement_type[i];
+			break;
+		case 1:
+			hexedit_dlg[dlg_rows].dp = (void *) weather_zones[i + 1];
+			break;
+		case 2:
+			hexedit_dlg[dlg_rows].dp = (void *) pacgen_movement_type[i];
+			break;
+		case 3:
+			hexedit_dlg[dlg_rows].dp = (void *) pacgen_weather_zones[i];
+			break;
+		}
 
 		if (i==0) hexedit_dlg[dlg_rows].flags |= D_SELECTED;
 
@@ -150,10 +169,22 @@ int dynamic_dlg(int dlg_type, int radios, int rows, int cols){
 		hexedit_dlg[dlg_rows].h=16;
 		hexedit_dlg[dlg_rows].fg=GUI_FG_COLOR;
 		hexedit_dlg[dlg_rows].bg=GUI_BG_COLOR;
-		if (dlg_type)
-			hexedit_dlg[dlg_rows].dp=(void *)months_names[i];
-		else
-			hexedit_dlg[dlg_rows].dp=(void *)movement_terrain_names[i];
+
+		switch (dlg_type) {
+		case 0:
+			hexedit_dlg[dlg_rows].dp = (void *) movement_terrain_names[i];
+			break;
+		case 1:
+			hexedit_dlg[dlg_rows].dp = (void *) months_names[i];
+			break;
+		case 2:
+			hexedit_dlg[dlg_rows].dp = (void *) pacgen_movement_terrain_names[i];
+			break;
+		case 3:
+			hexedit_dlg[dlg_rows].dp = (void *) months_names[i];
+			break;
+		}
+
 		dlg_rows++;
 	}
 	//1+PG_MOV_TYPES+PG_TERRAIN_MOV_TYPES
@@ -167,10 +198,20 @@ int dynamic_dlg(int dlg_type, int radios, int rows, int cols){
 			hexedit_dlg[dlg_rows].h=16;
 			hexedit_dlg[dlg_rows].fg=GUI_FG_COLOR;
 			hexedit_dlg[dlg_rows].bg=GUI_BG_COLOR;
-			if (dlg_type)
-				hexedit_dlg[dlg_rows].dp=(void *)weather_params[i];
-			else
-				hexedit_dlg[dlg_rows].dp=(void *)weather_str[i];
+			switch (dlg_type) {
+			case 0:
+				hexedit_dlg[dlg_rows].dp = (void *) weather_str[i];
+				break;
+			case 1:
+				hexedit_dlg[dlg_rows].dp = (void *) weather_params[i];
+				break;
+			case 2:
+				hexedit_dlg[dlg_rows].dp = (void *) weather_str[i];
+				break;
+			case 3:
+				hexedit_dlg[dlg_rows].dp = (void *) weather_params[i];
+				break;
+			}
 			dlg_rows++;
 		}
 	//1+PG_MOV_TYPES+PG_TERRAIN_MOV_TYPES+COL_PG_WEATHER_TYPES
@@ -206,17 +247,26 @@ int dynamic_dlg(int dlg_type, int radios, int rows, int cols){
 
 int show_move_table_dlg(){
 	if (pgf_mode && bin_tables_present){
-		return dynamic_dlg(0,RADIO_PGF_MOV_TYPES,ROW_PG_TERRAIN_MOV_TYPES,COL_PG_WEATHER_TYPES);
+		return dynamic_dlg(0,RADIO_PGF_MOV_TYPES,ROW_PG_TERRAIN_MOV_TYPES,MOVEMENT_TYPES_NO_COL);
 	}else{
-		return dynamic_dlg(0,RADIO_PG_MOV_TYPES,ROW_PG_TERRAIN_MOV_TYPES,COL_PG_WEATHER_TYPES);
+		if (pacgen_mode){
+			return dynamic_dlg(2,11,37,MOVEMENT_TYPES_NO_COL);
+		}else{
+			return dynamic_dlg(0,RADIO_PG_MOV_TYPES,ROW_PG_TERRAIN_MOV_TYPES,MOVEMENT_TYPES_NO_COL);
+		}
 	}
+
 }
 
 int show_weather_table_dlg(){
 	//3 - three zones
 	//12 rows = months
 	//4 - parameters per row
-	return dynamic_dlg(1,3,12,4);
+	if (pacgen_mode)
+		//8-zones-theaters
+		return dynamic_dlg(3,8,12,4);
+	else
+		return dynamic_dlg(1,3,12,4);
 
 }
 

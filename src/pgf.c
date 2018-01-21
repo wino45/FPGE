@@ -766,7 +766,7 @@ int save_pgf_pgscn(int scen_number, int show_info, int save_type, int hide_names
 	  fake_UTF_write_string_with_eol(inf,"# General scenario data");
 
 	  //Name
-	  if (pgf_mode)
+	  if (pgf_mode  || pacgen_mode)
 		  sprintf(line,"Name\t%s",block1_Name);
 	  else{
 		  convert_from_cp1250_to_utf8(tmp_line,scn_short_description[scen_number-1],SHORT_SCN_SIZE);
@@ -774,7 +774,7 @@ int save_pgf_pgscn(int scen_number, int show_info, int save_type, int hide_names
 	  }
 	  fake_UTF_write_string_with_eol(inf,line);
 	  //Description
-	  if (pgf_mode)
+	  if (pgf_mode || pacgen_mode)
 		  sprintf(line,"Description\t%s",block1_Description);
 	  else{
 		  convert_from_cp1250_to_utf8(tmp_line,scn_long_description[scen_number-1],LONG_SCN_SIZE);

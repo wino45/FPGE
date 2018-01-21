@@ -10,6 +10,7 @@
 #include "filename.h"
 #include "tables.h"
 #include "load.h"
+#include "cli.h"
 #include "pgf.h"
 #include "minimap.h"
 #include "mapfrg.h"
@@ -22,8 +23,6 @@ WORD nupl[NUPL_SIZE];
 
 char nupl_countries[NUPL_COUNTRY_IDX] = {15,23,13,16,8,2,7,20,10,24,18,11,3,9,6,1,4,5,12,17,19,21,22,14};
 char nupl_class[NUPL_CLASS_IDX]= {0,1,2,3,4,5,6,7,8,9,10,15};
-
-
 
 // place the color number in the bmp image and bump pix_pos
 void put_pix(BITMAP *bmp, int y, int clr)
@@ -544,14 +543,44 @@ int load_sicons()
   return 0;
 }
 
+int is_map2bmp_category(int cat){
+
+	cat--; //adjust category to filter bit shifts
+
+	if (cat==COAST_FILTER_INDEX || cat==ROAD_FILTER_INDEX || cat==RIVER_FILTER_INDEX)
+		return 1;
+	else
+		return 0;
+}
+
+int validate_bit_string(char *str){
+	int i;
+
+	if (strlen(str)!=6) {
+		return 0;
+	}
+
+	for(i=0;i<6;i++){
+		if(str[i]!='X'&&str[i]!='O'){
+			return 0;
+		}
+	}
+	//printf("%6s\n",str);
+	return 1;
+}
+
 int load_tiles_description(){
 	FILE *inf;
 	//char fname[16];
-	char line[1024],tokens[50][256],road_connections[6];
-	int m,id,i,cursor=0,token=0,lines;
+	char line[1024],tokens[50][256];
+	//char road_connections[6];
+	int id,i,j,cursor=0,token=0,lines;
+	int m, main_category,found;
+	char ms[10];
 	//int gcursor=0;
 	short t;
-	int dir_bit_mask[] = {0x01,0x02,0x08,0x10,0x20,0x80};
+	unsigned int tt;
+	//int dir_bit_mask[] = {0x01,0x02,0x08,0x10,0x20,0x80};
 	char path[MAX_PATH];
 
 	strncpy(path,fpge_tiles,MAX_PATH);
@@ -576,27 +605,241 @@ int load_tiles_description(){
 		//tokenize
 		token=0;
 		cursor=0;
-		for(i=0;i<strlen(line);i++)
-			if (line[i]==0x09) {tokens[token][cursor]=0;token++;cursor=0;}
-			else {tokens[token][cursor]=line[i]; cursor++;}
-		tokens[token][cursor]=0;
+		memset(tokens,0,sizeof(tokens));
+
+		for (i = 0; i < strlen(line); i++)
+			if (line[i] == 0x09) {
+				tokens[token][cursor] = 0;
+				token++;
+				cursor = 0;
+			} else {
+				tokens[token][cursor] = line[i];
+				cursor++;
+			}
+		tokens[token][cursor] = 0;
 		token++;
 
 		id=atoi(tokens[0]);
-		if (id>=0 && id <MAX_TILES && token==10){
-			//first tt
-			t=atoi(tokens[1]);
-			TTData_Max_Tiles[id]=t;
-			//name
-			t=atoi(tokens[3]);
-			NData_Max_Tiles[id]=t;
-			for (i=0;i<6;i++)
-				road_connections[i]=atoi(tokens[4+i]);
-			//compute PGDOS road mask
-			m=0;
-			for (i=0;i<6;i++)
-				m|= road_connections[i]?(dir_bit_mask[i]+dir_bit_mask[(i+1)%6]):0;
-			//printf("%d\n",m);
+		//print_dec(id);
+		if (id>=MAX_TILES_IN_PG && id <total_tiles && token>1 ){
+			//first token: default terrain type
+			if (strlen(tokens[1]) != 0){
+				t=atoi(tokens[1]);
+				TTData_Max_Tiles[id]=t;
+			}
+
+			//default filter
+			tt=0;
+			if (strlen(tokens[2]) != 0){
+				sscanf(tokens[2],"%x",&tt);
+				FilterTiles_Max_Tiles[id]=tt;
+			}
+
+			t=0;
+			if (strlen(tokens[8]) != 0){
+				t=atoi(tokens[8]); //main group ID, in case when more then one bit is set in "default filter"
+			}
+
+			if (t<0 || t>12){
+				printf("Error: Default category %d not >=0 and <=12, line %d\n",t,lines);
+				break;
+			}
+			main_category=0;
+			if (CountBits(tt)>1){
+				if (t){
+					//ok
+					main_category=t;
+				}else{
+					//find lowest set bit
+					for(i=0;i<32;i++){
+						if (tt & (1 << i)){
+							main_category=i+1;
+							break;
+						}
+					}
+					printf("Warning: filter got more then one bit set : 0x%x, default group set to %d, line %d\n",tt,main_category,lines);
+
+				}
+			}else{
+				if (CountBits(tt)==1){
+					//main category == first set bit, there is at least one bit set here
+					m=1; //0x0001
+					main_category=1;
+					for(i=0;i<32;i++){
+						if (tt & m) break;
+						else {
+							m = m << 1;
+							main_category++;
+						}
+					}
+				}
+			}
+			//main_category is valid
+			m= 1<<(main_category-1);
+			MainCategoryTiles_Max_Tiles[id]=m;
+
+			for(i=0;i<total_tiles;i++){
+				if (MainCategoryTiles_Max_Tiles[tiles_display_max_tiles[i]]>m) {
+					for(j=total_tiles;j>i;j--)
+						tiles_display_max_tiles[j]=tiles_display_max_tiles[j-1];
+					tiles_display_max_tiles[i]=id;
+					break;
+				}
+			}
+
+			//default name
+			if (strlen(tokens[3]) != 0){
+				t=atoi(tokens[3]);
+				NData_Max_Tiles[id]=t;
+			}
+
+			//map pattern
+			//map2bmp pattern: coast: where ocean is, river where river is, road where road is.
+			//XOOXOO - N, NE, SE, S, SW, NW - map pattern
+			strupr(tokens[4]);
+			if (strlen(tokens[4]) != 0) {
+				if (is_map2bmp_category(main_category)) {
+					if (validate_bit_string(tokens[4])) {
+						m = 0;
+						for (i = 0; i < 6; i++)
+							if (tokens[4][i] == 'X') {
+								m |= mask_conv_N_CW_to_SE_CCW[i];
+							}
+						//we have main_category set here
+						switch (main_category - 1) {
+						case COAST_FILTER_INDEX:
+							//for coast we check if pattern is already in table
+							found = 0;
+							for (i = 0; i < coast_size; i++) {
+								if (coast_pattern_SE_CCW[i] == m) {
+									//some cases
+									//AAA, ABA no other cases are handled
+									found = 1;
+									if (coast_pattern_tile[i][0] == coast_pattern_tile[i][1] && coast_pattern_tile[i][2] == coast_pattern_tile[i][1]) {
+										//AAA -> ABA
+										coast_pattern_tile[i][1] = id;
+										break; //for
+									}
+									if (coast_pattern_tile[i][0] == coast_pattern_tile[i][2] && coast_pattern_tile[i][0] != coast_pattern_tile[i][1]) {
+										//ABA -> ABC
+										coast_pattern_tile[i][2] = id;
+										break; //for
+									}
+									//warning, 4th case found
+									printf("Warning: Pattern defined 4th time, ignoring. Line %d\n", lines);
+									break;
+								}
+							}
+							if (!found) {
+								coast_pattern_SE_CCW[coast_size] = m;
+								coast_pattern_tile[coast_size][0] = id;
+								coast_pattern_tile[coast_size][1] = id;
+								coast_pattern_tile[coast_size][2] = id;
+								coast_size++;
+							}
+							break;
+						case ROAD_FILTER_INDEX:
+							road_pattern_SE_CCW[road_size] = m;
+							;
+							road_pattern_tile[road_size][0] = id;
+							road_pattern_tile[road_size][1] = id;
+							road_pattern_tile[road_size][2] = id;
+							road_size++;
+							break;
+						case RIVER_FILTER_INDEX:
+							river_pattern_SE_CCW[river_size] = m;
+							river_pattern_tile[river_size][0] = id;
+							river_pattern_tile[river_size][1] = id;
+							river_pattern_tile[river_size][2] = id;
+							river_size++;
+							break;
+						}
+					} else {
+						printf("Error: %s, line %d\n", tokens[4], lines);
+						break;
+					}
+				}
+			}
+			//road connections
+			//XOOXOO - NNE, S, SSE, SSW, W, NNW - road touches hex CORRNER
+			strupr(tokens[5]);
+			if (FilterTiles_Max_Tiles[id] & (1 << ROAD_FILTER_INDEX)) {
+				if (strlen(tokens[5]) != 0) {
+					if (validate_bit_string(tokens[5])) {
+						for (i = 0; i < 6; i++) {
+							if (tokens[5][i] == 'X') {
+								ms[i] = '1';
+							} else {
+								ms[i] = '0';
+							}
+						}
+						ms[6] = 0;
+						road_connection_info[roads_tiles_size].tile=id;
+						strncpy(road_connection_info[roads_tiles_size].pattern_NNW_CW,ms,7);
+						roads_tiles_size++;
+
+					} else {
+						printf("Error: %s, line %d\n", tokens[5], lines);
+						break;
+					}
+				} else {
+					printf("Warning: Road tile should have connections defined, line %d\n", lines);
+				}
+			}
+
+			//river connections, PzC output filter only
+			//XOOXOO - NNE, S, SSE, SSW, W, NNW - river touches hex CORRNER
+			strupr(tokens[6]);
+			if (FilterTiles_Max_Tiles[id] & (1 << RIVER_FILTER_INDEX)) {
+				if (strlen(tokens[6]) != 0) {
+					if (validate_bit_string(tokens[6])) {
+						//ms="";
+						for (i = 0; i < 6; i++) {
+							if (tokens[6][i] == 'X') {
+								ms[i] = '1';
+							} else {
+								ms[i] = '0';
+							}
+						}
+						ms[6] = 0;
+
+						river_connection_info[max_river_conversions_patterns].tile=id;
+						strncpy(river_connection_info[max_river_conversions_patterns].pattern_NNW_CW,ms,7);
+						max_river_conversions_patterns++;
+					} else {
+						printf("Error: %s, line %d\n", tokens[4], lines);
+						break;
+					}
+				} else {
+					printf("Warning: River tile should have connections defined for PzC map export, line %d\n", lines);
+				}
+			}
+			// Only one flag at a time is possible.
+			// R- passive road tiles, probably city tile. Used for road connections
+			// O- ocean tile - with more water then ground
+			strupr(tokens[7]);
+			if (strlen(tokens[7]) != 0) {
+				switch (tokens[7][0]){
+				case 'R':
+					roads_passive_tiles[roads_passive_tiles_size]=id;
+					roads_passive_tiles_size++;
+					break;
+				case 'O':
+					ocean_tiles[ocean_tiles_size]=id;
+					ocean_tiles_size++;
+					break;
+				}
+			}
+
+			if (token ==10){
+				//10th column is random group
+				t=atoi(tokens[9]);
+				RandomGroupTiles_Max_Tiles[id]=t;
+			}
+
+		}else{
+			if (token!=1 && id!=0) printf("Warning: Tile ID illegal or wrong number of columns. Ignoring line %d\n", lines);
+
 		}
 		//for(i=0;i<token;i++)
 		//	printf("%s->",tokens[i]);
@@ -685,7 +928,7 @@ int load_nupl(){
 		if (file_size==811233) offset=772936;
 		if (offset==-1) {
 			fclose(inf);
-			return ERROR_PANZER_EXE_BASE+ERROR_FPGE_UNKNOWN_PANZER_EXE;
+			return ERROR_PANZER_EXE_BASE+ERROR_FPGE_UNKNOWN_EXE;
 		}
 		fseek(inf,offset,SEEK_SET);
 

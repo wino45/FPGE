@@ -107,49 +107,25 @@ void copyToTile(int i) {
 	copyFromTile(i);
 }
 
-void draw_tiles_matrix() {
-	int i, mx, my, j = 0;
-	short tile;
-
-	//clear
-	for (mx = 0; mx < matrix_x; mx++)
-		for (my = 0; my < matrix_y; my++)
-			map[mx][my].tile = BLACK_TILE;
-
-	//draw
-	for (i = 0; i < matrix_x * matrix_y; ++i) {
-		tile = BLACK_TILE;
-		if (i < MAX_TILES_IN_PG) {
-			if (filter_tiles) {
-				//if ((i >= filter_start) && (i <= filter_stop))
-				if (FilterTiles[tiles_display[i]] & (1 << filter_last))
-					tile = tiles_display[i];
-			} else {
-				tile = tiles_display[i];
-			}
-		} else {
-			//draw tile only when filter is off
-			if (i < total_tiles)
-				if (!filter_tiles)
-					tile = i;
-		}
-		mx = j % (matrix_x);
-		my = j / (matrix_x);
-		if (tile != BLACK_TILE) {
-			map[mx][my].tile = tile;
-			j++;
-		}
-	}
-}
 
 void do_filter_tiles_matrix(int i) {
-	if (filter_last == i)
-		filter_tiles = (filter_tiles + 1) % 2;
-	else {
-		if (!filter_tiles)
+	if (filter_last == i){
+		int mod=(filter_number_ingroup[i]==1)?0:2;
+		filter_number_current_ingroup[i]= (filter_number_current_ingroup[i]+1)%(filter_number_ingroup[i]+mod);
+		if (!filter_number_current_ingroup[i])
+			filter_tiles = (filter_tiles + 1) % 2;
+		else
+			filter_tiles=1;
+	}else {
+		if (filter_number_current_ingroup[i]==0) filter_number_current_ingroup[i]=1;
+		if (!filter_tiles){
 			filter_tiles = 1;
+		}
 	}
 	filter_last = i;
+	//print_dec(filter_number_current_ingroup[i]);
+	//print_dec(filter_last);
+
 	//filter_start=tiles_filter[i][0];
 	//filter_stop=tiles_filter[i][1];
 
@@ -346,15 +322,13 @@ void mark_problems() {
 }
 
 void mark_city_problems() {
-	int x, y, i, found;
+	int x, y, found;
 
 	for (y = 1; y < mapy - 1; ++y)
 		for (x = 1; x < mapx - 1; ++x) {
 			found = 0;
-			for (i = tiles_filter[CITY_FILTER_INDEX][0];
-					i <= tiles_filter[CITY_FILTER_INDEX][1]; i++)
-				if ((map[x][y].tile == tiles_display[i])
-						&& (is_tile_name_standard(map[x][y].gln)))
+			//for (i = tiles_filter[CITY_FILTER_INDEX][0];i <= tiles_filter[CITY_FILTER_INDEX][1]; i++)
+				if ( is_tile_a_city_tile(map[x][y].tile) && is_tile_name_standard(map[x][y].gln))
 					found = 1;
 			if (found == 1)
 				map[x][y].shade |= PROBLEM_MASK;
@@ -495,6 +469,13 @@ int draw_new_gnd_transport() {
 }
 
 int ctrl_l_keycallback() {
+	if (tile_mode==1){
+		showMatrixMode=(showMatrixMode+1)%4;
+		setup_show_filters_info();
+		draw_tiles_matrix();
+		draw_map(map_bmp, map_x0, map_y0, tiles_high, tiles_wide);
+		return D_REDRAW;
+	}
 	drawGndTransport = (drawGndTransport + 1) % 2;
 	return draw_new_gnd_transport();
 
@@ -663,9 +644,7 @@ int ctrl_y_keycallback() {
 								break;
 						}
 					memset(&map[i][j], 0, sizeof(map[i][j]));
-					map[i][j].tile = tiles_for_bmp[(
-							k == max_colors_for_bmp ? k - 1 : k)][rand() % 3]
-							- 1;
+					map[i][j].tile = tiles_for_bmp[(k == max_colors_for_bmp ? k - 1 : k)][rand() % 3];
 					//the map point was build. Now delete all units, vic points, owner, etc
 					map[i][j].guidx = -1;
 					map[i][j].auidx = -1;
@@ -727,8 +706,16 @@ int draw_new_flag() {
 	return D_REDRAW;
 }
 int ctrl_h_keycallback() {
+
+	if (tile_mode==1) {
+		showHexMatrix = (showHexMatrix + 1) % 2;
+		setup_show_filters_info();
+		draw_map(map_bmp, map_x0, map_y0, tiles_high, tiles_wide);
+		return D_REDRAW;
+	}
 	showHex = (showHex + 1) % 2;
 	return draw_new_hex();
+
 }
 
 int draw_new_scenario_units() {
@@ -805,6 +792,8 @@ int ctrl_i_keycallback() {
 	drawGndTransport = 0;
 	showWeather = 0;
 	showHex = 1;
+	showHexMatrix = 1;
+	showMatrixMode=0;
 	graphical_overide = 0;
 	scenarioUnitsMode = 0;
 	displayAllUnits = 0;
@@ -814,6 +803,9 @@ int ctrl_i_keycallback() {
 	show_problems = 0;
 	//colorize_ocean=0;
 	colorize_names = 0;
+	//clear all filters for tiles matrix
+	memset(filter_number_current_ingroup,0,sizeof(filter_number_current_ingroup));
+    if (tile_mode==1) draw_tiles_matrix();
 	//setup_show_filters_info();
 	//draw_map(map_bmp,map_x0,map_y0,tiles_high,tiles_wide);
 	setup_menu_ticks();
@@ -989,21 +981,42 @@ int ctrl_g_keycallback() {
 	return D_REDRAW;
 }
 
-int check_coast(unsigned char tile, unsigned char filterType) {
+int check_terrain_mask(unsigned char tile, unsigned short mask) {
 	int i;
-	if (filterType == NO_FILTER_INDEX)
-		return 0;
 
-	for (i = tiles_filter[filterType][0]; i <= tiles_filter[filterType][1]; i++)
-		if (tiles_display[i] == tile)
+	for (i = 0; i < total_tiles; i++)
+		if ((FilterTiles_Max_Tiles[i] & mask) && tile == i) {
 			return 1;
+		}
 	return 0;
 }
 
-void gen_terrain(short tile_to_check, unsigned char terrain_type,
-		unsigned char pattern_array[],
+int check_terrain(unsigned char tile, unsigned char filterType) {
+	//int i;
 
-		unsigned char pattern_array_size, short pattern_tile[][3],
+	if (filterType == NO_FILTER_INDEX)
+		return 0;
+
+	return check_terrain_mask(tile,1 << filterType);
+
+	/*
+	for (i = 0; i < MAX_TILES_IN_PG; i++)
+		if ((FilterTiles_Max_Tiles[i] & mask) && tile == i) {
+			return 1;
+		}
+		*/
+	/*
+	for (i = tiles_filter[filterType][0]; i <= tiles_filter[filterType][1]; i++)
+		if (tiles_display[i] == tile)
+			return 1;
+	*/
+	return 0;
+}
+
+void gen_terrain(short tile_to_check,
+		unsigned char pattern_array_SE_CCW[],
+		unsigned char pattern_array_size,
+		short pattern_tile[][3],
 		unsigned char filterType) {
 
 	//short tempmap[MAX_MAP_X][MAX_MAP_Y];
@@ -1017,30 +1030,23 @@ void gen_terrain(short tile_to_check, unsigned char terrain_type,
 			if (map[x][y].tile == tile_to_check) {
 				mask = 0;
 
-				if ((map[x - 1][y - 1 + x % 2].tile == tile_to_check)
-						|| (check_coast(map[x - 1][y - 1 + x % 2].tile, filterType)))
+				if ((map[x - 1][y - 1 + x % 2].tile == tile_to_check) || (check_terrain(map[x - 1][y - 1 + x % 2].tile, filterType)))
 					mask += 0x20;
-				if ((map[x][y - 1].tile == tile_to_check)
-						|| (check_coast(map[x][y - 1].tile, filterType)))
+				if ((map[x][y - 1].tile == tile_to_check) || (check_terrain(map[x][y - 1].tile, filterType)))
 					mask += 0x10;
-				if ((map[x + 1][y - 1 + x % 2].tile == tile_to_check)
-						|| (check_coast(map[x + 1][y - 1 + x % 2].tile, filterType)))
+				if ((map[x + 1][y - 1 + x % 2].tile == tile_to_check) || (check_terrain(map[x + 1][y - 1 + x % 2].tile, filterType)))
 					mask += 0x08;
-
-				if ((map[x + 1][y + x % 2].tile == tile_to_check)
-						|| (check_coast(map[x + 1][y + x % 2].tile, filterType)))
+				if ((map[x + 1][y + x % 2].tile == tile_to_check) || (check_terrain(map[x + 1][y + x % 2].tile, filterType)))
 					mask += 0x04;
-				if ((map[x][y + 1].tile == tile_to_check)
-						|| (check_coast(map[x][y + 1].tile, filterType)))
+				if ((map[x][y + 1].tile == tile_to_check) || (check_terrain(map[x][y + 1].tile, filterType)))
 					mask += 0x02;
-				if ((map[x - 1][y + x % 2].tile == tile_to_check)
-						|| (check_coast(map[x - 1][y + x % 2].tile, filterType)))
+				if ((map[x - 1][y + x % 2].tile == tile_to_check) || (check_terrain(map[x - 1][y + x % 2].tile, filterType)))
 					mask += 0x01;
 
 				for (i = 0; i < pattern_array_size; i++)
-					if (mask == pattern_array[i])
+					if (mask == pattern_array_SE_CCW[i])
 						if (pattern_tile[i][0] != NOT_USED_TILE) {
-							tempmap[x][y] = pattern_tile[i][rand() % 3] - 1;
+							tempmap[x][y] = pattern_tile[i][rand() % 3];
 							break;
 						}
 			}
@@ -1078,15 +1084,15 @@ int generate_dialog(){
 				}
 
 				if ((generate_dlg[2].flags & D_SELECTED) == D_SELECTED)
-					gen_terrain(coast_check, coast_tt, coast_pattern, coast_size,
+					gen_terrain(coast_check, coast_pattern_SE_CCW, coast_size,
 							coast_pattern_tile, COAST_FILTER_INDEX); //coast
 
 				if ((generate_dlg[3].flags & D_SELECTED) == D_SELECTED)
-					gen_terrain(road_check, road_tt, road_pattern, road_size,
+					gen_terrain(road_check, road_pattern_SE_CCW, road_size,
 							road_pattern_tile, CITY_FILTER_INDEX); //road
 
 				if ((generate_dlg[4].flags & D_SELECTED) == D_SELECTED)
-					gen_terrain(river_check, river_tt, river_pattern, river_size,
+					gen_terrain(river_check, river_pattern_SE_CCW, river_size,
 							river_pattern_tile, NO_FILTER_INDEX); //river
 
 				draw_map(map_bmp, map_x0, map_y0, tiles_high, tiles_wide);

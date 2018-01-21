@@ -54,14 +54,14 @@ int load_classic_bin_tables(){
 
 		if (offset==-1) {
 			fclose(inf);
-			return ERROR_AG_PG_EXE_BASE+ERROR_FPGE_UNKNOWN_PANZER_EXE;
+			return ERROR_AG_PG_EXE_BASE+ERROR_FPGE_UNKNOWN_EXE;
 		}
 		fseek(inf,offset,SEEK_SET);
 
 		int blocks_read = fread(PgStaticWeatherTable,PG_WEATHER_BIN_TABLE_SIZE,1,inf);
 		if (blocks_read!=1){
 			fclose(inf);
-			return ERROR_AG_PG_EXE_BASE+ERROR_FPGE_WRONG_MOVE_BINTAB;
+			return ERROR_AG_PG_EXE_BASE+ERROR_FPGE_WRONG_WEATHER_BINTAB;
 		}
 
 		//movement table
@@ -76,7 +76,7 @@ int load_classic_bin_tables(){
 		blocks_read = fread(PgStaticMoveTable,PG_MOVE_BIN_TABLE_SIZE,1,inf);
 		if (blocks_read!=1){
 			fclose(inf);
-			return ERROR_AG_PG_EXE_BASE+ERROR_FPGE_WRONG_WEATHER_BINTAB;
+			return ERROR_AG_PG_EXE_BASE+ERROR_FPGE_WRONG_MOVE_BINTAB;
 		}
 		fclose(inf);
 
@@ -112,7 +112,7 @@ int load_pgf_bin_tables(){
 
 		if (offset==-1) {
 			fclose(inf);
-			return ERROR_PGFOREVER_EXE_BASE+ERROR_FPGE_UNKNOWN_PANZER_EXE;
+			return ERROR_PGFOREVER_EXE_BASE+ERROR_FPGE_UNKNOWN_EXE;
 		}
 		fseek(inf,offset,SEEK_SET);
 
@@ -123,7 +123,7 @@ int load_pgf_bin_tables(){
 		}
 		if (blocks_read!=PG_WEATHER_BIN_TABLE_SIZE){
 			fclose(inf);
-			return ERROR_PGFOREVER_EXE_BASE+ERROR_FPGE_WRONG_MOVE_BINTAB;
+			return ERROR_PGFOREVER_EXE_BASE+ERROR_FPGE_WRONG_WEATHER_BINTAB;
 		}
 
 		//movement table
@@ -140,10 +140,57 @@ int load_pgf_bin_tables(){
 		}
 		if (blocks_read!=PGF_MOVE_BIN_TABLE_SIZE){
 			fclose(inf);
-			return ERROR_PGFOREVER_EXE_BASE+ERROR_FPGE_WRONG_WEATHER_BINTAB;
+			return ERROR_PGFOREVER_EXE_BASE+ERROR_FPGE_WRONG_MOVE_BINTAB;
 		}
 		fclose(inf);
 
 		return 0;
 }
 
+int load_pacgen_bin_tables(){
+
+		char path[MAX_PATH];
+		FILE *inf;
+		//int error=0;
+		long offset=-1;
+
+		sprintf(path,"%s%s","..\\",exe_pacgen);
+		canonicalize_filename(path,path,MAX_PATH);
+		inf = fopen(path, "rb");
+		if (!inf){
+			return ERROR_PACGEN_EXE_BASE+ERROR_FPGE_FILE_NOT_FOUND;
+		}
+		fseek(inf, 0, SEEK_END);
+		long file_size = ftell(inf);
+
+		//Weather
+
+		//FPGE will understand only two ag.exe and one PG.exe and two panzer.exe sizes:
+		if (file_size==976896) offset=0xd4ff0; //pacgen.exe v1.2
+
+		if (offset==-1) {
+			fclose(inf);
+			return ERROR_PACGEN_EXE_BASE+ERROR_FPGE_UNKNOWN_EXE;
+		}
+		fseek(inf,offset,SEEK_SET);
+
+		int blocks_read = fread(PgStaticWeatherTable,PACGEN_WEATHER_BIN_TABLE_SIZE,1,inf);
+		if (blocks_read!=1){
+			fclose(inf);
+			return ERROR_AG_PG_EXE_BASE+ERROR_FPGE_WRONG_WEATHER_BINTAB;
+		}
+
+		//movement table
+		if (file_size==976896) offset=0xd4a68; //pacgen.exe v1.2
+
+		fseek(inf,offset,SEEK_SET);
+
+		blocks_read = fread(PgStaticMoveTable,PACGEN_MOVE_BIN_TABLE_SIZE,1,inf);
+		if (blocks_read!=1){
+			fclose(inf);
+			return ERROR_AG_PG_EXE_BASE+ERROR_FPGE_WRONG_MOVE_BINTAB;
+		}
+		fclose(inf);
+
+		return 0;
+}

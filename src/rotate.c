@@ -61,7 +61,7 @@ int rotate_map_dialog() {
 					}
 					//more coast
 					if (map[x][y].utr==1){
-						map[x][y].tile=tiles_for_bmp[6][0]; //clear
+						map[x][y].tile=clear_check; //clear
 					}
 				}
 				memcpy(tempmap+x+mapx*y,&map[x][y],sizeof(struct MAP));

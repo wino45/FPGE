@@ -11,5 +11,6 @@
 #define HELP_DLG_SIZE 4
 
 extern DIALOG help_dlg[HELP_DLG_SIZE];
+extern DIALOG help_dlg2[HELP_DLG_SIZE];
 
 #endif /* HELP_H_ */

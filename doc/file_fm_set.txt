@@ -146,7 +146,7 @@ ___  43 value "00"
  
  SCENSTAT.BIN
  40 bytes - 0,1 - on/off each scenario (40 scenarios)
- 40x14 bytes - name of the scnario
+ 40x14 bytes - name of the scenario
  40x160 bytes - description of the scenario
  
  -------pacific---
@@ -168,15 +168,14 @@ Each 37 bytes long record is one hex on map:
 
 ff 7f - name from SCCHINA.TST file, 0 first line
 00 - always 00 
-00 - unknown, spotted values :  1,5 city, 0 - most common - victory points awarder for conquer
+00 - unknown, spotted values :  1,5 city, 0 - most common - victory points awarder for conquer *10
 00 - unknown, spotted values : FF-lake, FE -river, FD-lake, 1- city
 00 00 00 00 00 00 - allways 6 zeros.
 00 - road connection, 0x01 N, 0x02 NE, 0x08 SE, 0x10 S, 0x20 SW, 0x80 NW
 02 - tile set number, set is from TIL.PFP 
 00 01 - tile number in set, from TIL.PFP
 04 - terrain type, use TERRAIN from from TXT.PFP
-ff - owner FF for no owner, other use NATIONS from TXT.PFP
-0E - owner of victory point- 00 standard
+ff - owner FF for no owner, other use NATIONS from TXT.PFP, 0E - owner of victory point- 00 standard
 00 00 00 00 00 00 - allways 6 zeros.
 02 - this hex is deploy hex 00 normal hex
 
@@ -216,7 +215,7 @@ Units:
 
 
 ------
-Pacific general eqipfile structure. Each record got 168 bytes
+Pacific general equipfile structure. Each record got 168 bytes
 PACGEN_EQUIP_REC_SIZE 168
 
 	BYTE class; //1

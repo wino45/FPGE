@@ -53,24 +53,26 @@ extern char target_type_name[4][6];
 extern unsigned char road_size;
 extern unsigned char road_tt;
 extern short road_check;
-extern unsigned char road_pattern[];
+extern unsigned char road_pattern_SE_CCW[];
 extern short road_pattern_tile[][3];
 
 extern unsigned char coast_size;
 extern unsigned char coast_tt;
 extern short coast_check;
-extern unsigned char coast_pattern[];
+extern unsigned char coast_pattern_SE_CCW[];
 extern short coast_pattern_tile[][3];
 
 extern unsigned char river_size;
 extern unsigned char river_tt;
 extern short river_check;
-extern unsigned char river_pattern[];
+extern unsigned char river_pattern_SE_CCW[];
 extern short river_pattern_tile[][3];
 
-extern unsigned char forest_size;
+extern short clear_check;
+
+extern unsigned char forest_pattern_size;
 extern short forest_tiles[];
-extern unsigned char forest_pattern[];
+extern unsigned char forest_pattern_SE_CCW[];
 
 extern char pg_class_names[CLASS_NUMBER][16];
 extern char country_names[MAX_COUNTRY][MAX_COUNTRY_NAME_SIZE];
@@ -83,7 +85,10 @@ extern char bmp_to_country[MAX_UICONS];
 extern char movement_type[MAX_MOV_TYPE][25];
 extern char utr_names[MAX_TERRAIN_TYPE][TERRAIN_TYPE_SIZE];
 extern char movement_terrain_names[MAX_TERRAIN_MOV_TYPES][TERRAIN_TYPE_SIZE];
-extern char weather_str[COL_PG_WEATHER_TYPES][10];
+extern char weather_str[MOVEMENT_TYPES_NO_COL][10];
+extern char pacgen_movement_terrain_names[50][128];
+extern char pacgen_movement_type[50][128];
+extern char pacgen_weather_zones[20][128];;
 extern char months_names[12][10];
 extern char weather_params[4][10];
 extern char weather_zones[4][20];
@@ -95,6 +100,7 @@ extern char weather_zones[4][20];
 extern unsigned char map_terrain_type_to_movement_terrain[];
 extern unsigned char set_head[123];
 extern unsigned short cp1250_to_utf[];
+extern unsigned short tiles_display_max_tiles[MAX_TILES];
 extern unsigned char tiles_display[MAX_TILES_IN_PG];
 extern unsigned short NData[MAX_TILES_IN_PG];
 extern unsigned short TTData[MAX_TILES_IN_PG];
@@ -102,15 +108,24 @@ extern short NData_Max_Tiles[MAX_TILES];
 extern short TTData_Max_Tiles[MAX_TILES];
 extern unsigned int FilterTiles_Max_Tiles[MAX_TILES];
 extern unsigned int FilterTiles[MAX_TILES_IN_PG];
+extern unsigned int MainCategoryTiles_Max_Tiles[MAX_TILES];
+extern unsigned int MainCategoryTiles[MAX_TILES_IN_PG];
+extern unsigned char RandomGroupTiles_Max_Tiles[MAX_TILES];
+extern unsigned char RandomGroupTiles[MAX_TILES_IN_PG];
 
-extern int tiles_filter[][2];
-extern short roads_tiles[];
-extern short tiles_ocean[];
-extern short tiles_river[];
+//extern int tiles_filter[][2];
+//extern short roads_tiles[];
+extern short roads_passive_tiles[];
+extern short ocean_tiles[];
+//extern short river_tiles[];
+
 extern unsigned char roads_passive_tiles_size;
-
 extern unsigned char roads_tiles_size;
-extern unsigned char roads_tiles_mask[];
+extern short ocean_tiles_size;
+//extern short river_tiles_size;
+
+//extern unsigned char roads_tiles_mask_RC[];
+//extern int roads_tiles_mask_N_CW[][6];;
 
 extern int stack_icons_mapping[2][2][CLASS_NUMBER];
 
@@ -120,8 +135,28 @@ extern int colors_for_bmp[][3];
 extern int max_colors_for_bmp;
 extern short tiles_for_bmp[][3];
 
-extern int dx_tab[];
-extern int dy_tab[][2];
-extern int dir_bit_mask[];
+struct tile_connection_info {
+ int tile;
+ char pattern_NNW_CW[7];
+ int corners_NNW_CW[6];
+ int bits_RC;
+};
+
+extern int max_river_conversions_patterns;
+extern struct tile_connection_info river_connection_info[];
+extern int pat_bits_NNE_CW[6];
+extern struct tile_connection_info road_connection_info[];
+
+extern int dx_tab_N_CW[];
+extern int dy_tab_N_CW[][2];
+extern int dir_bit_mask_RC[];
+extern int mask_conv_N_CW_to_SE_CCW[];
+
+extern int filter_number_ingroup[];
+extern int filter_number_current_ingroup[12];
+extern int filter_tt_ingroup[][MAX_TERRAIN_TYPE];
+
+void init_tables();
+void init_tables_post_load();
 
 #endif /* TABLES_H_ */

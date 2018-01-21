@@ -7,6 +7,7 @@
 #include <string.h>
 #include <time.h>
 
+
 #include "fpge.h"
 #include "maingui.h"
 #include "cli.h"
@@ -33,10 +34,11 @@
 #include "pg.h"
 #include "move.h"
 #include "bintables.h"
+#include "maputils.h"
 
 char MapInfoTxt[256];
 char AboutTxt1[256] = "Fred's Panzer General Editor";
-char AboutTxt2[256] = "Version 0.7.1";
+char AboutTxt2[256] = "Version 0.7.2";
 char AboutTxt3[256] = "Modified by Wino";
 char MapStatusTxt[256];
 char FilterStatusTxt[256];
@@ -127,6 +129,8 @@ int showCounter = 0; // STR -1,0,1,2,3 - [e],[s]trength,[x],no [c]ounters at all
 int drawGndTransport = 0;//yes/no - [l]
 int showWeather = 0;// 0,1,2 - w-n[o]rmal, [m]ud, [w]inter,
 int showHex = 1;//yes/no -h show hex gr[i]d
+int showHexMatrix = 1;//yes/no -h show hex grid in matrix
+int showMatrixMode = 0; //only for filtered mode, 0 -normal,1-columns,2-grid
 int scenarioUnitsMode = 0; //
 int displayAllUnits = 0;
 int displayUnitsOrder = 0;
@@ -140,6 +144,7 @@ int fpge_gui_edit_color;
 
 int graphical_overide = 0;
 int graphical_overide_hex = 0;
+int debug_tile_matrix = 0;
 
 int tiles_wide = (SCREEN_X - 80) / TILE_WIDTH;
 int tiles_high = (SCREEN_Y - TILE_HEIGHT / 2 - 54) / TILE_HEIGHT;
@@ -172,7 +177,7 @@ int pgf_map_number;
 int vslide_max; //max position is defined by size of map...in load
 int pix_pos, max_pix_x, max_pix_y;
 
-int total_tiles;
+int total_tiles;//total number of loaded titles
 int total_mtiles = 0;
 int total_uicons;//number of units icons
 int total_muicons;
@@ -183,7 +188,7 @@ int conversion_total_equip; //units on panzequip
 int total_flags;
 int total_countries;
 int total_mflags;
-int total_strength_counters; //NOT yet used execpt loading
+int total_strength_counters; //NOT yet used except loading
 
 struct VICTORY_HEXES victory_hexes[MAX_VICTORY_HEXES];
 struct DEPLOY_HEXES deploy_hexes[MAX_DEPLOY_HEXES];
@@ -514,7 +519,7 @@ void frg_select_click() {
 
 					//header
 					fwrite(&UCS2_header, sizeof(UCS2_header), 1, outf);
-					if (pgf_mode) {
+					if (pgf_mode  || pacgen_mode) {
 						sprintf(line, "# FPGE text map fragment (%d,%d) from '%s' scenario", x0, y0, block1_Name);
 					}else{
 						sprintf(line, "# FPGE text map fragment (%d,%d) from '%s' scenario", x0, y0, scn_short_description[getScenarioNumber() - 1]);
@@ -1360,79 +1365,38 @@ void rexp_click() {
  */
 
 int filter_roads(int x, int y) {
+	int i, t, neighbour_tile_idx;
+	int rc = map[x][y].rc, central_tile_idx;
 
-	int roads_tiles_mask_6[][6] = { { 0, 1, 1, 0, 0, 0 }, { 1, 0, 1, 0, 0, 0 }, { 0, 1, 0, 0, 1, 0 }, { 0, 0, 0, 1, 1, 0 },//first line
-			{ 0, 1, 0, 0, 0, 1 }, { 1, 0, 0, 0, 1, 0 }, { 0, 0, 1, 1, 0, 0 }, { 0, 0, 0, 1, 0, 1 }, { 0, 0, 1, 0, 1, 0 }, { 0, 1, 0, 1, 0, 0 }, { 1, 0, 0, 0, 0, 1 }, { 0, 0, 1, 0, 0, 1 }, { 1, 0, 0,
-					1, 0, 0 }, { 0, 1, 0, 0, 1, 0 }, { 0, 0, 1, 0, 1, 0 }, { 0, 1, 0, 0, 1, 0 },
-
-			{ 0, 1, 0, 0, 0, 1 }, { 1, 0, 0, 0, 1, 0 }, { 0, 1, 0, 1, 0, 0 }, { 1, 0, 0, 1, 0, 0 }, //second line
-			{ 0, 0, 1, 0, 1, 0 }, { 0, 1, 0, 0, 0, 1 }, { 0, 0, 0, 1, 0, 1 },
-
-			{ 0, 0, 1, 0, 1, 0 }, { 0, 0, 1, 0, 0, 1 }, { 0, 1, 0, 1, 0, 0 }, { 1, 0, 0, 1, 0, 0 },//third line
-			{ 0, 1, 0, 0, 1, 0 },
-
-			{ 0, 1, 0, 1, 0, 0 }, { 1, 0, 0, 1, 0, 0 }, { 0, 0, 1, 0, 1, 0 }, //forth line
-			{ 0, 0, 1, 0, 1, 0 }, { 0, 0, 1, 0, 0, 1 }, { 0, 1, 0, 1, 0, 0 }, { 1, 0, 0, 1, 0, 0 }, { 0, 1, 0, 0, 1, 0 }, { 0, 1, 0, 1, 0, 0 }, { 1, 0, 0, 1, 0, 0 }, { 0, 0, 1, 0, 1, 0 } };
-
-	int i, j, t, idx;
-	int rc = map[x][y].rc, c_idx;
-	//char bin_buf[10], bin_buf1[10];
-/*
-	if (x == 4 && y == 7)
-		for (j = 0; j < roads_tiles_size; j++) {
-			t = 0;
-			for (i = 0; i < 6; i++)
-				if (roads_tiles_mask_6[j][i]) {
-					t |= dir_bit_mask[i];
-					t |= dir_bit_mask[(i + 1) % 6];
-				}
-			//print_binary8(bin_buf,t);
-			//print_binary8(bin_buf1,roads_tiles_mask[j]);
-			//printf("%3d my=%02X table=%02X %s %s\n",roads_tiles[j],t,roads_tiles_mask[j],bin_buf,bin_buf1);
-		}
-*/
-	c_idx = -1;
 	//find road_tiles index
-	for (j = 0; j < roads_tiles_size; j++)
-		if (map[x][y].tile == roads_tiles[j]) {
-			c_idx = j;
-			break;
-		}
-	if (c_idx == -1)
+	central_tile_idx = get_road_tile_index(map[x][y].tile);
+	if (central_tile_idx == -1)
 		return 0; //trying to check non road tile, exit
 
 	for (i = 0; i < 6; i++) {
 		//printf("nr %d-(%d:%d)\n",i,x+dx_tab[i],y+dy_tab[i][x%2]);
 
-		if (rc & dir_bit_mask[i]) {
-			t = map[x + dx_tab[i]][y + dy_tab[i][x % 2]].tile;
+		if (rc & dir_bit_mask_RC[i]) {
+			t = map[x + dx_tab_N_CW[i]][y + dy_tab_N_CW[i][x % 2]].tile;
 
-			idx = -1;
-			//find road_tiles index
-			for (j = 0; j < roads_tiles_size; j++)
-				if (t == roads_tiles[j]) {
-					idx = j;
-					break;
-				}
-			if (idx == -1) {
+			neighbour_tile_idx = get_road_tile_index(t);
+
+			if (neighbour_tile_idx == -1) {
 				continue;
-			}//tile is not road tile, do nothing
-			//check
-			// A O   O A
-			// 0 X   X O
-			if ((roads_tiles_mask_6[c_idx][i] == 1 && roads_tiles_mask_6[idx][(i + 2) % 6] == 0 && roads_tiles_mask_6[c_idx][(i - 1 + 6) % 6] == 0)
+			} //tile is not road tile, do nothing
+			  //check
+			  // A O   O A
+			  // O X   X O
+			if ((      road_connection_info[central_tile_idx].corners_NNW_CW[i] == 1
+					&& road_connection_info[neighbour_tile_idx].corners_NNW_CW[(i + 2) % 6] == 0
+					&& road_connection_info[central_tile_idx].corners_NNW_CW[(i - 1 + 6) % 6] == 0)
 
-			|| (roads_tiles_mask_6[c_idx][(i - 1 + 6) % 6] == 1 && roads_tiles_mask_6[idx][(i - 3 + 6) % 6] == 0 && roads_tiles_mask_6[c_idx][i] == 0))
-			// this is wrong connection, clear it
-			{ /*
-			 printf("i%d c_idx%d t%d \n",i,t,c_idx);
-			 printf("%d %d %d \n",roads_tiles_mask[c_idx][i] ,roads_tiles_mask[idx][(i+2)%6],roads_tiles_mask[c_idx][(i-1+6)%6]);
-			 printf("%d %d %d \n",roads_tiles_mask[c_idx][(i-1+6)%6] ,roads_tiles_mask[idx][(i-3+6)%6],roads_tiles_mask[c_idx][i]);
-			 printf("%d %d %d \n",i ,(i+2)%6,(i-1+6)%6);
-			 printf("%d %d %d \n",(i-1+6)%6 ,(i-3+6)%6,i);
-			 */
-
-				rc &= ~dir_bit_mask[i];
+					|| (       road_connection_info[central_tile_idx].corners_NNW_CW[(i - 1 + 6) % 6] == 1
+							&& road_connection_info[neighbour_tile_idx].corners_NNW_CW[(i - 3 + 6) % 6] == 0
+							&& road_connection_info[central_tile_idx].corners_NNW_CW[i] == 0))
+					// this is wrong connection, clear it
+					{
+				rc &= ~dir_bit_mask_RC[i];
 			}
 		}
 	}
@@ -1460,51 +1424,39 @@ int find_one_way_road(int x, int y) {
 }
 
 int find_road_mask(int x, int y) {
-	int i, j, road_connections = 0, mask;
+	int road_connections = 0, mask;
 
-	for (i = 0; i < roads_tiles_size; ++i)
-		if (map[x][y].tile == roads_tiles[i]) {
-			//the tile is a road tile, check connections
-			mask = 0;
-			for (j = 0; j < roads_tiles_size + roads_passive_tiles_size; ++j)
-				if (map[x - 1][y - 1 + x % 2].tile == roads_tiles[j]) {
-					mask += 0x80;
-					break;
-				}
+	if (is_tile_road_tile(map[x][y].tile)) {
+		//the tile is a road tile, check connections
+		mask = 0;
 
-			for (j = 0; j < roads_tiles_size + roads_passive_tiles_size; ++j)
-				if (map[x][y - 1].tile == roads_tiles[j]) {
-					mask += 0x01;
-					break;
-				}
-
-			for (j = 0; j < roads_tiles_size + roads_passive_tiles_size; ++j)
-				if (map[x + 1][y - 1 + x % 2].tile == roads_tiles[j]) {
-					mask += 0x02;
-					break;
-				}
-
-			for (j = 0; j < roads_tiles_size + roads_passive_tiles_size; ++j)
-				if (map[x + 1][y + x % 2].tile == roads_tiles[j]) {
-					mask += 0x08;
-					break;
-				}
-
-			for (j = 0; j < roads_tiles_size + roads_passive_tiles_size; ++j)
-				if (map[x][y + 1].tile == roads_tiles[j]) {
-					mask += 0x10;
-					break;
-				}
-
-			for (j = 0; j < roads_tiles_size + roads_passive_tiles_size; ++j)
-				if (map[x - 1][y + x % 2].tile == roads_tiles[j]) {
-					mask += 0x20;
-					break;
-				}
-
-			road_connections = mask & roads_tiles_mask[i];
-			break;
+		if (is_tile_passive_or_road_tile(map[x - 1][y - 1 + x % 2].tile)) {
+			mask += 0x80;
 		}
+
+		if (is_tile_passive_or_road_tile(map[x][y - 1].tile)) {
+			mask += 0x01;
+		}
+
+		if (is_tile_passive_or_road_tile(map[x + 1][y - 1 + x % 2].tile)) {
+			mask += 0x02;
+		}
+
+		if (is_tile_passive_or_road_tile(map[x + 1][y + x % 2].tile)) {
+			mask += 0x08;
+		}
+
+		if (is_tile_passive_or_road_tile(map[x][y + 1].tile)) {
+			mask += 0x10;
+		}
+
+		if (is_tile_passive_or_road_tile(map[x - 1][y + x % 2].tile)) {
+			mask += 0x20;
+		}
+
+		road_connections = mask & road_connection_info[get_road_tile_index(map[x][y].tile)].bits_RC;
+		//road_connections = mask & roads_tiles_mask_RC[get_road_tile_index(map[x][y].tile)];
+	}
 	return road_connections;
 }
 
@@ -2123,11 +2075,15 @@ int d_btn_proc(int msg, DIALOG *d, int c) {
 	if ((msg == MSG_CLICK) || (msg == MSG_KEY)) {
 		//last_edit_op = edit_op;
 		if (tile_mode == 1) {
-			tile_cleanup();
-			//restore selected since tile_cleanup removes selected
-			main_dlg[dmTileBtnIdx].flags |= D_SELECTED;
+			if (&(main_dlg[dmHelpBtnIdx]) == d) {
+				return help_dialog(); //never gets selected
+			} else {
+				tile_cleanup();
+				//restore selected since tile_cleanup removes selected
+				main_dlg[dmTileBtnIdx].flags |= D_SELECTED;
 
-			draw_map(map_bmp, map_x0, map_y0, tiles_high, tiles_wide);
+				draw_map(map_bmp, map_x0, map_y0, tiles_high, tiles_wide);
+			}
 		} else {
 			edit_op = edit_none;
 			//idle_flag = 0;
@@ -2525,52 +2481,6 @@ int d_arrow_proc(int msg, DIALOG *d, int c) {
 	return d_bitmap_proc(msg, d, c);
 }
 
-int is_tile_river(short x, short y) {
-	int i;
-	for (i = 0; i < 26; i++) {
-		if (map[x][y].tile == tiles_river[i])
-			return 1;
-	}
-	return 0;
-}
-
-int is_tile_ocean(short x, short y) {
-	int i;
-	for (i = 0; i < 29; i++) {
-		if (map[x][y].tile == tiles_ocean[i])
-			return 1;
-	}
-	return 0;
-}
-
-int is_tile_name_water(short x, short y) {
-
-	if (is_tile_river(x, y))
-		return 1;
-	if (is_tile_ocean(x, y))
-		return 1;
-
-	/*
-	 if (strstr(gln_utf8[map[x][y].gln]," River")!=NULL) return 1;
-	 if (strstr(gln_utf8[map[x][y].gln]," Creek")!=NULL) return 1;
-	 if (strstr(gln_utf8[map[x][y].gln],"Lake")!=NULL) return 1;
-	 if (strstr(gln_utf8[map[x][y].gln],"Gulf")!=NULL) return 1;
-	 if (strstr(gln_utf8[map[x][y].gln],"Bay")!=NULL) return 1;
-	 if (strstr(gln_utf8[map[x][y].gln]," Straight")!=NULL) return 1;
-	 if (strstr(gln_utf8[map[x][y].gln]," Sea")!=NULL) return 1;
-	 if (strstr(gln_utf8[map[x][y].gln]," Swamp Run")!=NULL) return 1;
-	 */
-	return 0;
-}
-int is_tile_name_standard(int gln) {
-	int ret = 1;
-	if ((gln > 13) && (gln != 280) && (gln != 281) && (gln != 282) && (gln != 283))
-		ret = 0;
-	if (gln > total_names)
-		ret = 0;
-	return ret;
-}
-
 int str_bmp_offset(int idx) {
 	if (ag_mode) {
 		//is allied_aux ok ?
@@ -2668,9 +2578,10 @@ void exit_with_key(int error) {
 	exit(error);
 }
 
-void prepare_tiles_filters() {
-	int i, j;
+//void prepare_tiles_filters() {
+	//int i, j;
 
+	/*
 	for (j = 0; j < MAX_TILES_IN_PG; j++)
 		FilterTiles[j] = 0;
 
@@ -2706,14 +2617,15 @@ void prepare_tiles_filters() {
 	FilterTiles[148] &= ~(1 << 4);
 	FilterTiles[149] &= ~(1 << 4);
 	FilterTiles[150] &= ~(1 << 4);
+*/
 	/*
 	 for(j=0;j<MAX_TILES_IN_PG;j++){
 	 printf("0x%04x, ", FilterTiles[j]);
 	 if (j%8==7) printf("// 0x%02x\n",j+1);
 	 }
 	 printf("\n");
-	 */
-}
+*/
+//}
 
 int main(int argc, char *argv[]) {
 	int error, i, really_exit = 1;
@@ -3038,10 +2950,7 @@ int main(int argc, char *argv[]) {
 
 	//--------------------------------------------------
 
-	for(i=0;i<MAX_TILES;i++){
-		NData_Max_Tiles[i]=i<MAX_TILES_IN_PG? NData[i]:-1;
-		TTData_Max_Tiles[i]=i<MAX_TILES_IN_PG?TTData[i]:-1;
-	}
+	init_tables();
 	//this is my file
 	my_log("Loading tiles description...\n");
 	error = load_tiles_description();
@@ -3089,6 +2998,9 @@ int main(int argc, char *argv[]) {
 	if (pacgen_mode) {
 		my_log("Changing countries to PacGen.\n");
 		initialize_pacgen_countries_table();
+
+		my_log("Setting basic terrain names.\n");
+		initialize_pacgen_std_names();
 
 		my_log("Loading PacGen class to PG class '%s' file.\n",pac_cl2pg_cl);
 		error = load_pacgen_cl2pg_cl();
@@ -3176,6 +3088,13 @@ int main(int argc, char *argv[]) {
 			bin_tables_present = 1;
 		}
 	}
+	if (pacgen_mode) {
+		error = load_pacgen_bin_tables();
+		if (!error) {
+			my_log("Loaded weather and movement information from PACGEN exe.\n");
+			bin_tables_present = 1;
+		}
+	}
 	if (!bin_tables_present) {
 		my_log("Using default weather and movement information.\n");
 	}
@@ -3206,6 +3125,7 @@ int main(int argc, char *argv[]) {
 	//--------------------------------------
 	// end of data load, start scenario load
 	//--------------------------------------
+	init_tables_post_load();
 
 	if (argc > 1) {
 		min_scn = 0;
@@ -3395,9 +3315,10 @@ int main(int argc, char *argv[]) {
 	//move to 0,0
 	//position_dialog(d_map_frg,-d_map_frg[0].x,-d_map_frg[0].y);
 
-	prepare_tiles_filters();
-
+	//not longer needed but can be useful in future
+	//prepare_tiles_filters();
 	//test_cbuf();return 0;
+
 	//test_undo();return 0;
 
 	init_undo();
@@ -3410,6 +3331,13 @@ int main(int argc, char *argv[]) {
 
 	free_undo();
 	allegro_exit();
+/*
+	 for(i=0;i<roads_tiles_size;i++){
+	 printf("0x%02x, ", roads_tiles_mask[i]);
+	 if (i%8==7) printf("// 0x%02x\n",i+1);
+	 }
+	 printf("\n");
+*/
 	if (save_config())
 		my_log("Error in writing FPGE config file.\n");
 	else

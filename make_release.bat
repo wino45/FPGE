@@ -1,4 +1,4 @@
-set VERSION=071
+set VERSION=072
 
 del fpge%VERSION%.zip
 
@@ -6,6 +6,7 @@ copy /y upx.exe release\
 copy /y test\mapfrg.txt release\
 copy /y test\countries.txt release\
 copy /y test\icons.txt release\
+copy /y test\tiles.txt release\
 copy /y test\0str.bmp release\
 
 rem PzC conversion files examples

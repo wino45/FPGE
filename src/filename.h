@@ -30,6 +30,7 @@ extern char exe_ag[];
 extern char exe_pgwin[];
 extern char exe_panzer[];
 extern char exe_pgf[];
+extern char exe_pacgen[];
 
 //AG
 extern char ag_tileart[];
@@ -69,6 +70,7 @@ extern char pac_pfpdata[];
 extern char pac_til[];
 extern char pac_shp[];
 extern char pac_pal[];
+extern char pac_txt[];
 extern char pac_pacequip[];
 extern char pac_pacequip_txt[];
 

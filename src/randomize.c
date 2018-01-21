@@ -11,6 +11,7 @@
 #include "tables.h"
 #include "drawmap.h"
 #include "randomize.h"
+#include "callback.h"
 
 #define DX 16
 #define R_HEIGHT 16
@@ -37,7 +38,7 @@ DIALOG randomize_dlg[RANDOMIZE_DLG_SIZE]= {
 int is_forest_tile(short tile_to_check){
 	int found=0,i;
 
-	for(i=0;i<forest_size;i++)
+	for(i=0;i<forest_pattern_size;i++)
 		if (tile_to_check==forest_tiles[i]){
 			found=1+i;
 			break;
@@ -46,8 +47,8 @@ int is_forest_tile(short tile_to_check){
 	return found;
 }
 
-void forest_random(int idx, int len){
-	int x,y,i;
+void forest_random(){
+	int x,y;
 	short forest_matrix[][6] =
 	{
 	{138,136,138,145,136,147},
@@ -57,40 +58,44 @@ void forest_random(int idx, int len){
 	{145,146,137,147,146,138},
 	};
 	int tile_id;
-	int mask;
+	int mask_SE_CCW;
 
 	for (y = 0; y < mapy ; ++y)
-		for (x = 0; x < mapx ; ++x)
+		for (x = 0; x < mapx ; ++x){
+			if (check_terrain(map[x][y].tile, FOREST_FILTER_INDEX)) map[x][y].tile=forest_matrix[y%5][x%6];
+			/*
 			for (i = 0; i < len ; ++i){
 				if (tiles_display[idx+i]==map[x][y].tile){
 					map[x][y].tile=forest_matrix[y%5][x%6];
 					break; //i
 				}
+			*/
 			}
 
 	//fixing
 	for (y = 1; y < mapy - 1; ++y)
 		for (x = 1; x < mapx - 1; ++x) {
 			tile_id = is_forest_tile(map[x][y].tile);
+
 			if (tile_id) {
 
-				mask = 0;
+				mask_SE_CCW = 0;
 
 				if (is_forest_tile(map[x - 1][y - 1 + x % 2].tile))
-					mask += 0x20;
+					mask_SE_CCW += 0x20;
 				if (is_forest_tile(map[x][y - 1].tile))
-					mask += 0x10;
+					mask_SE_CCW += 0x10;
 				if (is_forest_tile(map[x + 1][y - 1 + x % 2].tile))
-					mask += 0x08;
+					mask_SE_CCW += 0x08;
 				if (is_forest_tile(map[x + 1][y + x % 2].tile))
-					mask += 0x04;
+					mask_SE_CCW += 0x04;
 				if (is_forest_tile(map[x][y + 1].tile))
-					mask += 0x02;
+					mask_SE_CCW += 0x02;
 				if (is_forest_tile(map[x - 1][y + x % 2].tile))
-					mask += 0x01;
+					mask_SE_CCW += 0x01;
 
-				if ((mask & forest_pattern[tile_id - 1])
-						!= forest_pattern[tile_id - 1]){
+				if ((mask_SE_CCW & forest_pattern_SE_CCW[tile_id - 1])
+						!= forest_pattern_SE_CCW[tile_id - 1]){
 					//we need to substitute 138
 					map[x][y].tile = 138;
 				}
@@ -101,19 +106,51 @@ void forest_random(int idx, int len){
 }
 
 
-void randomize_tiles(int idx, int len){
+void randomize_tiles(int group){
 	int x,y,i;
+	unsigned char current_random_tiles[MAX_TILES_IN_PG];
+	int current_len=0;
+	//int j;
+
+	memset(current_random_tiles,0,sizeof(current_random_tiles));
+
+	for(i=0;i<total_tiles;i++){
+		if(RandomGroupTiles_Max_Tiles[i]==group){
+			current_random_tiles[current_len]=i;
+			current_len++;
+		}
+	}
 
 	srand((unsigned int)time((time_t *)NULL));
 
-	for (y = 0; y < mapy ; ++y)
-		for (x = 0; x < mapx ; ++x)
-			for (i = 0; i < len ; ++i){
-				if (tiles_display[idx+i]==map[x][y].tile){
-					map[x][y].tile=tiles_display[idx+rand()%len];
+	for (y = 0; y < mapy; ++y)
+		for (x = 0; x < mapx; ++x) {
+			for (i = 0; i < current_len; ++i) {
+				if (current_random_tiles[i] == map[x][y].tile) {
+					map[x][y].tile = current_random_tiles[rand() % current_len];
 					break; //i
 				}
 			}
+
+			/*
+			 for (i = 0; i < len ; ++i){
+			 if (tiles_display[idx+i]==map[x][y].tile){
+			 map[x][y].tile=tiles_display[idx+rand()%len];
+			 break; //i
+			 }
+			 }
+			 */
+		}
+
+/*
+	 for(j=0;j<MAX_TILES_IN_PG;j++){
+	 printf("0x%02x, ", RandomGroupTiles[j]);
+	 if (j%8==7) printf("// 0x%02x\n",j+1);
+	 }
+	 printf("\n");
+*/
+
+
 }
 
 void randomize_patterns(int type){
@@ -218,27 +255,27 @@ int randomize_dialog() {
 		//printf("R\n");
 		if ((randomize_dlg[2].flags & D_SELECTED) == D_SELECTED) {
 			//printf("Rr\n");
-			randomize_tiles(117,6);
+			randomize_tiles(1);
 		}
 		if ((randomize_dlg[3].flags & D_SELECTED) == D_SELECTED) {
-			randomize_tiles(129,3);
+			randomize_tiles(2);
 		}
 		if ((randomize_dlg[4].flags & D_SELECTED) == D_SELECTED) {
-			randomize_tiles(135,9);
+			randomize_tiles(3);
 		}
 		if ((randomize_dlg[5].flags & D_SELECTED) == D_SELECTED) {
-			randomize_tiles(123,5);
+			randomize_tiles(4);
 		}
 		//forest
 		if ((randomize_dlg[6].flags & D_SELECTED) == D_SELECTED) {
-			forest_random(183,7);
+			forest_random();
 			//randomize_tiles(183,7);
 		}
 		if ((randomize_dlg[7].flags & D_SELECTED) == D_SELECTED) {
-			randomize_tiles(10*20+12,3);
+			randomize_tiles(5);
 		}
 		if ((randomize_dlg[8].flags & D_SELECTED) == D_SELECTED) {
-			randomize_tiles(8*20+19,4);
+			randomize_tiles(6);
 		}
 		if ((randomize_dlg[9].flags & D_SELECTED) == D_SELECTED) {
 			randomize_patterns(1);

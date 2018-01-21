@@ -110,6 +110,7 @@ void CLIHelp(char *VersionName)
     printf("  Use any of : c-make tiles with colors        n-do not color tiles.\n");
     printf("  Use any of : g-make tiles gray (default is green).\n");
     printf("  Use any of : u-do not make units icons.\n");
+    printf("-d Use tile matrix debug.\n");
     printf("-h display this help.\n");
 }
 
@@ -551,14 +552,14 @@ void checking_ocean(int no_log, int show_stats) {
 void listing_city_names() {
 	int x, y;
 	int found = 0;
-	int i;
+	//int i;
 
 	printf("Listing cities names...\n");
 	for (y = 1; y < mapy - 1; ++y)
 		for (x = 1; x < mapx - 1; ++x) {
 			found = 0;
-			for (i = tiles_filter[CITY_FILTER_INDEX][0]; i <= tiles_filter[CITY_FILTER_INDEX][1]; i++)
-				if (map[x][y].tile == tiles_display[i])
+			//for (i = tiles_filter[CITY_FILTER_INDEX][0]; i <= tiles_filter[CITY_FILTER_INDEX][1]; i++)
+				if (is_tile_a_city_tile(map[x][y].tile))
 					found = 1;
 			if (found)
 				printf("(%d,%d) %s\n", x, y, gln[map[x][y].gln]);
@@ -566,7 +567,7 @@ void listing_city_names() {
 }
 
 void check_city_names(int no_log) {
-	int x, y, i;
+	int x, y;
 	int found = 0;
 	int global_found = 0;
 
@@ -574,9 +575,8 @@ void check_city_names(int no_log) {
 	for (y = 1; y < mapy - 1; ++y)
 		for (x = 1; x < mapx - 1; ++x) {
 			found = 0;
-			for (i = tiles_filter[CITY_FILTER_INDEX][0]; i <= tiles_filter[CITY_FILTER_INDEX][1]; i++)
-				if ((map[x][y].tile == tiles_display[i])
-						&& (is_tile_name_standard(map[x][y].gln)))
+			//for (i = tiles_filter[CITY_FILTER_INDEX][0]; i <= tiles_filter[CITY_FILTER_INDEX][1]; i++)
+				if (is_tile_a_city_tile(map[x][y].tile) && is_tile_name_standard(map[x][y].gln) )
 					found = 1;
 
 			if (found) {
@@ -594,9 +594,8 @@ void check_city_names(int no_log) {
 	for (y = 1; y < mapy - 1; ++y)
 		for (x = 1; x < mapx - 1; ++x) {
 			found = 0;
-			for (i = tiles_filter[CITY_FILTER_INDEX][0]; i <= tiles_filter[CITY_FILTER_INDEX][1]; i++)
-				if ((map[x][y].tile == tiles_display[i])
-						&& map[x][y].own == 0 )
+			//for (i = tiles_filter[CITY_FILTER_INDEX][0]; i <= tiles_filter[CITY_FILTER_INDEX][1]; i++)
+				if (is_tile_a_city_tile(map[x][y].tile)	&& map[x][y].own == 0 )
 					found = 1;
 
 			if (found) {
@@ -758,13 +757,15 @@ int CountBits(int v){
 	return c;
 }
 
-int isRoadTile(int tileToCheck){
-	int i;
+int isRoadOrRiverTile(int tileToCheck){
+	//int i;
 
-	for(i=0;i<10;i++) //10 tiles to check
-		if (tiles_display[17+7*20+i]==tileToCheck) return 1;
+	return check_terrain_mask(tileToCheck,(1<<ROAD_FILTER_INDEX)+(1<<RIVER_FILTER_INDEX));
 
-	return 0;
+	//for(i=0;i<10;i++) //10 tiles to check
+	//	if (tiles_display[17+7*20+i]==tileToCheck) return 1;
+
+	//return 0;
 }
 
 
@@ -807,7 +808,7 @@ void checking_road_connections()
 	global_found=0;
 	for (y = 1; y < mapy - 1; ++y)
 		for (x = 1; x < mapx - 1; ++x)
-			if ( isRoadTile(map[x][y].tile) && CountBits(map[x][y].rc)<2 ){
+			if ( isRoadOrRiverTile(map[x][y].tile) && CountBits(map[x][y].rc)<2 ){
 				printf("B(%d,%d)\n", x, y);
 				global_found=1;
 			}
@@ -1325,6 +1326,9 @@ int cli_parsing(int argc, char *argv[]) {
 		}
 		param=argv[1][1];
 		switch (param) {
+			case 'd':
+				debug_tile_matrix=1;
+				break;
 			case 'B':
 				if (strlen(argv[1]) > 2) {
 					hide_empty = 1;
@@ -1593,31 +1597,32 @@ int cli_parsing(int argc, char *argv[]) {
 						switch (argv[1][i]) {
 						case 'o':
 							printf("Randomizing rough tiles...\n");
-							randomize_tiles(117,6);
+							randomize_tiles(1);
 							break;
 						case 'c':
 							printf("Randomizing clear tiles...\n");
-							randomize_tiles(129,3);
+							randomize_tiles(2);
 							break;
 						case 'd':
 							printf("Randomizing desert tiles...\n");
-							randomize_tiles(135,9);
+							randomize_tiles(3);
 							break;
 						case 'e':
 							printf("Randomizing rough desert tiles...\n");
-							randomize_tiles(123,5);
+							randomize_tiles(4);
 							break;
 						case 'f':
 							printf("Randomizing forests tiles...\n");
-							randomize_tiles(183,7);
+							forest_random();
+							//randomize_tiles(183,7);
 							break;
 						case 'b':
 							printf("Randomizing bocage tiles...\n");
-							randomize_tiles(10*20+12,3);
+							randomize_tiles(5);
 							break;
 						case 's':
 							printf("Randomizing swamp tiles...\n");
-							randomize_tiles(8*20+19,4);
+							randomize_tiles(6);
 							break;
 						case 'r':
 							printf("Randomizing roads patterns...\n");

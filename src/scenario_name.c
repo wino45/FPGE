@@ -13,7 +13,7 @@ void GetScenarioShortName(char *desc, int desc_size){
 	char tmp_line[128];
 
 	//Name
-	if (pgf_mode){
+	if (pgf_mode || pacgen_mode){
 	  snprintf(desc,desc_size,"%s",block1_Name);
 	}else{
 	  convert_from_cp1250_to_utf8(tmp_line,scn_short_description[getScenarioNumber()-1],SHORT_SCN_SIZE);
@@ -26,7 +26,7 @@ void GetScenarioDescription(char *desc, int desc_size){
 	char tmp_line[128];
 
 	//Name
-	if (pgf_mode){
+	if (pgf_mode || pacgen_mode){
 	  snprintf(desc,desc_size,"%s",block1_Description);
 	}else{
 	  convert_from_cp1250_to_utf8(tmp_line,scn_long_description[getScenarioNumber()-1],SHORT_SCN_SIZE);

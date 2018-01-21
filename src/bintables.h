@@ -10,5 +10,6 @@
 
 int load_classic_bin_tables();
 int load_pgf_bin_tables();
+int load_pacgen_bin_tables();
 
 #endif /* BINTABLES_H_ */

@@ -23,15 +23,16 @@
 DIALOG lgen_uicons_dlg[LG_U_DLG] =
 {
    /* (proc)        (x)  (y)  (w)  (h)  (fg)           (bg)        (key) (flags)     (d1) (d2)  (dp)                         (dp2) (dp3) */
-   { d_textbox_proc, 0,  0,  228, 124+16, GUI_FG_COLOR, GUI_BG_COLOR,   0,    0,          0,   0,   NULL,                        NULL, NULL },
+   { d_textbox_proc, 0,  0,  228, 124+16+16, GUI_FG_COLOR, GUI_BG_COLOR,   0,    0,          0,   0,   NULL,                        NULL, NULL },
    { d_text_proc,    12, 12, 176, 8,   GUI_FG_COLOR, GUI_BG_COLOR,   0,    0,          0,   0,   "Export unit icons to LGen", NULL, NULL },
    { d_edit_proc,    72, 28, 96,  8,   GUI_FG_COLOR, GUI_EDIT_COLOR, 0,    0,         11,   1,   "pg",                        NULL, NULL },
    { d_text_proc,    12, 28, 56,  8,   GUI_FG_COLOR, GUI_BG_COLOR,   0,    0,          0,   0,   "Domain",                    NULL, NULL },
    { d_radio_proc,   12, 48, 148, 12,  GUI_FG_COLOR, GUI_BG_COLOR,   'f',    D_SELECTED, 0,   0,   "&Flip icons",                NULL, NULL },
    { d_radio_proc,   12, 64, 148, 12,  GUI_FG_COLOR, GUI_BG_COLOR,   'n',    0,          0,   0,   "&No icons flip",             NULL, NULL },
-   { d_button_proc,  12, 92+16, 80,  20,  GUI_FG_COLOR, GUI_BG_COLOR,   'c',    D_EXIT,     0,   0,   "&Cancel",                    NULL, NULL },
-   { d_button_proc, 132, 92+16, 80,  20,  GUI_FG_COLOR, GUI_BG_COLOR,   'e',    D_EXIT,     0,   0,   "&Export",                    NULL, NULL },
+   { d_button_proc,  12, 92+16+16, 80,  20,  GUI_FG_COLOR, GUI_BG_COLOR,   'c',    D_EXIT,     0,   0,   "&Cancel",                    NULL, NULL },
+   { d_button_proc, 132, 92+16+16, 80,  20,  GUI_FG_COLOR, GUI_BG_COLOR,   'e',    D_EXIT,     0,   0,   "&Export",                    NULL, NULL },
    { d_check_proc,   12, 64+16+4, 148+20, 12,  GUI_FG_COLOR, GUI_BG_COLOR, 's',    0,          1,   0,   "&Skip not used icons",       NULL, NULL },
+   { d_check_proc,   12, 64+16+4+16, 148+20, 12,  GUI_FG_COLOR, GUI_BG_COLOR, 0,    0,          1,   0,   "Individual files",       NULL, NULL },
    { d_yield_proc, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
    { NULL,           0,   0,   0,   0,   0,   0,   0,    0,          0,   0,   NULL,                        NULL, NULL }
 };
@@ -91,6 +92,7 @@ char *target_types[] = {
     "hard",  "Hard",
     "air",   "Air",
     "naval", "Naval" };
+
 enum {
     INFANTRY = 0,
     TANK, RECON, ANTI_TANK,
@@ -101,6 +103,8 @@ enum {
     LAND_TRANS, AIR_TRANS, SEA_TRANS,
     UNIT_CLASS_COUNT
 };
+//17
+#define UNIT_CLASSES_COUNT 17
 char *unit_classes[] = {
     "inf",      "Infantry",         "infantry",
     "tank",     "Tank",             "low_entr_rate°tank",
@@ -121,7 +125,7 @@ char *unit_classes[] = {
     "airtrp",   "Air Transport",    "transporter°flying",
     "seatrp",   "Sea Transport",    "transporter°swimming",
 };
-int move_type_count = 8;
+#define MOVE_TYPE_COUNT 11
 char *move_types[] = {
     "tracked",     "Tracked",       "pg/tracked.wav",
     "halftracked", "Halftracked",   "pg/tracked.wav",
@@ -130,8 +134,15 @@ char *move_types[] = {
     "towed",       "Towed",         "pg/leg.wav",
     "air",         "Air",           "pg/air.wav",
     "naval",       "Naval",         "pg/sea.wav",
-    "allterrain",  "All Terrain",   "pg/wheeled.wav"
+    "allterrain",  "All Terrain",   "pg/wheeled.wav",
+    //PGF movement types
+    "amphitracked", "Amphibious Tracked",   "pg/tracked.wav",
+    "amphiallterrain",  "Amphibious AllTerrain",   "pg/wheeled.wav",
+    "mountain",  "Mountain",   "pg/leg.wav"
 };
+
+
+
 /*
 ====================================================================
 Unit entries are saved to this struct.
@@ -166,7 +177,7 @@ typedef struct {
     int  allowed_transport; //PW
 } PG_UnitEntry;
 
-int nation_count = 24;
+#define NATION_COUNT 24
 char *nations[] = {
     "aus", "Austria",       "0",
     "bel", "Belgia",        "1",
@@ -222,6 +233,13 @@ char *add_flags[] = {
     "X"
 };
 
+char *getNotSupported(int count, int max){
+	static char notSupportedBuf[256];
+
+	snprintf(notSupportedBuf,256,"NotSupported%d",count-max);
+	return notSupportedBuf;
+}
+
 
 void find_new_icon_numbers(){
 	int i,bmp_idx,j=0;
@@ -249,7 +267,7 @@ void units_write_classes( FILE *file )
         fprintf( file, "<%s\nname»%s\n>\n", target_types[i * 2], target_types[i * 2 + 1] );
     fprintf( file, ">\n" );
     fprintf( file, "<move_types\n" );
-    for ( i = 0; i < move_type_count; i++ )
+    for ( i = 0; i < MOVE_TYPE_COUNT; i++ )
         fprintf( file, "<%s\nname»%s\nsound»%s\n>\n",
                  move_types[i * 3], move_types[i * 3 + 1], move_types[i * 3 + 2] );
     fprintf( file, ">\n" );
@@ -376,6 +394,7 @@ Load PG unit entry from FPGE
 static int units_read_entry( int entry_numer, PG_UnitEntry *entry )
 {
 
+	if (entry_numer>total_equip) return 0;
 	strncpy(entry->name,equip[entry_numer],MAX_NAME_SIZE);
 	entry->class=equip[entry_numer][CLASS];
 	entry->atk_soft=equip[entry_numer][SA];
@@ -484,7 +503,6 @@ int units_convert_database(char *name, char *domain, int discard_not_used_icons)
     //if (pg_mode) //quick and dirty
     //	apply_unit_mods=1;
 
-
     /* open dest file */
 
         snprintf( path, MAX_PATH, "%s", name );
@@ -499,8 +517,7 @@ int units_convert_database(char *name, char *domain, int discard_not_used_icons)
     fprintf( dest_file, "@\n" ); /* only a new file needs this magic */
     /* domain */
     fprintf( dest_file, "domain»%s\n",domain );
-    fprintf( dest_file, "icons»%s\nicon_type»%s\n", name,
-                                        apply_unit_mods?"single":"fixed");
+    fprintf( dest_file, "icons»%s\nicon_type»%s\n", name,apply_unit_mods?"single":"fixed"); //?
     fprintf( dest_file, "strength_icons»%s_strength.bmp\n",domain );
     fprintf( dest_file, "strength_icon_width»16\nstrength_icon_height»12\n" );
     fprintf( dest_file, "attack_icon»%s_attack.bmp\n" ,domain);
@@ -513,8 +530,10 @@ int units_convert_database(char *name, char *domain, int discard_not_used_icons)
 
     /* convert */
     while ( entry_count-- > 0 ) {
+
         memset( &entry, 0, sizeof( PG_UnitEntry ) );
         equ_idx= total_equip-entry_count;
+        //print_dec(equ_idx);
         if ( !units_read_entry(  equ_idx, &entry ) ) {
             fprintf( stderr, "%s: unexpected end of file\n", path );
             goto failure;
@@ -559,17 +578,27 @@ int units_convert_database(char *name, char *domain, int discard_not_used_icons)
         /* get flags */
         sprintf( flags, unit_classes[entry.class * 3 + 2] );
 
-        	if (equip_flags[equ_idx]&EQUIPMENT_JET) strcat( flags, "°jet" );
-        	if (equip_flags[equ_idx]&EQUIPMENT_CAN_BRIDGE_RIVERS) strcat( flags, "°bridge_eng" );
-        	if (equip_flags[equ_idx]&EQUIPMENT_IGNORES_ENTRENCHMENT) strcat( flags, "°ignore_entr" );
+        if (equip_flags[equ_idx]&EQUIPMENT_JET) strcat( flags, "°jet" );
+        if (equip_flags[equ_idx]&EQUIPMENT_CAN_BRIDGE_RIVERS) strcat( flags, "°bridge_eng" );
+        if (equip_flags[equ_idx]&EQUIPMENT_IGNORES_ENTRENCHMENT) strcat( flags, "°ignore_entr" );
 
 	/* whatever is legged or towed may use ground/air transporter */
+        //PW
+        /*
         if ( entry.move > 0 && (entry.move_type == 3 || entry.move_type == 4) ){
         	if (entry.allowed_transport >2 ) strcat( flags, "°parachute" );
         	if (entry.allowed_transport >1 ) strcat( flags, "°air_trsp_ok" );
         	if (entry.allowed_transport >0 ) strcat( flags, "°ground_trsp_ok" );
 
         }
+        */
+        //AGW version
+		if ( entry.move < 5 && (entry.move_type == 3 || entry.move_type == 4 || entry.move_type == 10) )
+			strcat( flags, "°ground_trsp_ok" );
+		if ( entry.move < 5 && (entry.move_type == 3 || entry.move_type == 10) )
+			strcat( flags, "°air_trsp_ok" );
+		if ( entry.move > 1 && (entry.move_type == 4) )
+			strcat( flags, "°air_trsp_ok" );
 
         /* all artillery with range 1 has no attack_first */
         if (entry.class==4&&entry.range==1)
@@ -578,20 +607,21 @@ int units_convert_database(char *name, char *domain, int discard_not_used_icons)
             printf( "%s: overwrite flags to: artillery,suppr_fire\n",
                                                                 entry.name);
         }
+
         /* write entry */
         fprintf( dest_file, "<%i\n", id++ );
         string_replace_quote( entry.name, buf );
         if ( apply_unit_mods )
             fix_spelling_mistakes( buf );
+        //print_str(buf);
         fprintf( dest_file, "name»%s\n", buf );
-        fprintf( dest_file, "nation»%s\n", (entry.nation==-1)?"none":
-						nations[entry.nation * 3] );
-        fprintf( dest_file, "class»%s\n", unit_classes[entry.class * 3] );
-        fprintf( dest_file, "target_type»%s\n", target_types[entry.target_type * 2] );
+        fprintf( dest_file, "nation»%s\n", (entry.nation==-1)?"none":nations[entry.nation * 3] );
+        fprintf( dest_file, "class»%s\n", entry.class<UNIT_CLASSES_COUNT?unit_classes[entry.class * 3]:getNotSupported(entry.class,UNIT_CLASSES_COUNT));
+        fprintf( dest_file, "target_type»%s\n", entry.target_type<TARGET_TYPE_COUNT?target_types[entry.target_type * 2]:getNotSupported(entry.target_type,TARGET_TYPE_COUNT));
         fprintf( dest_file, "initiative»%i\n", entry.init );
         fprintf( dest_file, "spotting»%i\n", entry.spot );
         fprintf( dest_file, "movement»%i\n", entry.move );
-        fprintf( dest_file, "move_type»%s\n", move_types[entry.move_type * 3] );
+        fprintf( dest_file, "move_type»%s\n", entry.move_type<MOVE_TYPE_COUNT?move_types[entry.move_type * 3]:getNotSupported(entry.move_type,MOVE_TYPE_COUNT));
         fprintf( dest_file, "fuel»%i\n", entry.fuel );
         fprintf( dest_file, "range»%i\n", entry.range );
         fprintf( dest_file, "ammo»%i\n", entry.ammo );
@@ -1106,19 +1136,19 @@ int check_icon_true_size_right(int icon_idx) {
 	return right;
 }
 
-int isFlipNeeded(int idx){
+int isFlipNeeded(int icon_idx){
 	int flip=0,found=0,i,j,found_eqp_id=-1;
 	char buf[256]={""};
 	char * pch;
 
-	if(strcmp(icon_name_aux1[idx],"")!=0){
-		strncpy(buf,icon_name_aux1[idx],256);
+	if(strcmp(icon_name_aux1[icon_idx],"")!=0){
+		strncpy(buf,icon_name_aux1[icon_idx],256);
 		found=1;
 	}else{
 		// no icon_name_aux1 name, try to find icon in efile
 
 		for(j=0;j<total_equip;j++)
-			if ((int)equip[j][BMP]+(int)equip[j][BMP+1]*256 == idx){
+			if ((int)equip[j][BMP]+(int)equip[j][BMP+1]*256 == icon_idx){
 				strncpy(buf,equip[j],256);
 				found_eqp_id=j;
 				found=1;
@@ -1149,10 +1179,11 @@ int isFlipNeeded(int idx){
 	return flip;
 }
 
-int units_convert_bmps(char *name, int isFlipIcons, int discard_not_used_icons){
-	int icon_idx, sum=0, t,b,r,l,ysize,xsize,k, limit, bmp_idx,s=0;
+int units_convert_bmps(char *name, int isFlipIcons, int discard_not_used_icons, int individual_files){
+	int icon_idx,sum=0,t,b,r,l,ysize,xsize,k,limit,bmp_idx,s=0;
 	BITMAP *u_bmp;
 	int saved_icons[MAX_UICONS];
+	char name_individual[256];
 
 	if (discard_not_used_icons) {
 		find_new_icon_numbers();
@@ -1185,9 +1216,10 @@ int units_convert_bmps(char *name, int isFlipIcons, int discard_not_used_icons){
 		ysize=(b>t?b-t+3:3); //add 3 for real pictures, 3 if empty
 		sum += ysize;
 	}
-
-	u_bmp = create_bitmap(TILE_FULL_WIDTH, sum);
-	rectfill(u_bmp, 0, 0, TILE_FULL_WIDTH, sum, colors_to24bits(COLOR_BLACK)); // COLOR_BLACK is a transparent color for LGen
+	if (!individual_files){
+		u_bmp = create_bitmap(TILE_FULL_WIDTH, sum);
+		rectfill(u_bmp, 0, 0, TILE_FULL_WIDTH, sum, colors_to24bits(COLOR_BLACK)); // COLOR_BLACK is a transparent color for LGen
+	}
 	sum=0;
 	if (discard_not_used_icons) {
 		memset(saved_icons,0,sizeof(saved_icons));
@@ -1217,6 +1249,13 @@ int units_convert_bmps(char *name, int isFlipIcons, int discard_not_used_icons){
 		}
 		 */
 
+		if (individual_files){
+			snprintf(name_individual,256,"lg%04d.bmp",bmp_idx);
+			sum = 0;
+			u_bmp = create_bitmap(TILE_FULL_WIDTH, ysize);
+			rectfill(u_bmp, 0, 0, TILE_FULL_WIDTH, ysize, colors_to24bits(COLOR_BLACK)); // COLOR_BLACK is a transparent color for LGen
+		}
+
 		//doFlip=0;
 		if (isFlipIcons && isFlipNeeded(icon_idx)){
 			//doFlip=1;
@@ -1236,10 +1275,16 @@ int units_convert_bmps(char *name, int isFlipIcons, int discard_not_used_icons){
 		putpixel(u_bmp,xsize,sum,make_color_fpge(0,192,248));
 		putpixel(u_bmp,0,sum+ysize-1,make_color_fpge(0,192,248));
 
+		if (individual_files){
+			save_bmp(name_individual,u_bmp,NULL);
+			destroy_bitmap(u_bmp);
+		}
 		sum += ysize;
 	}
-	save_bmp(name,u_bmp,NULL);
-	destroy_bitmap(u_bmp);
+	if (!individual_files){
+		save_bmp(name,u_bmp,NULL);
+		destroy_bitmap(u_bmp);
+	}
 	return 0;
 }
 
@@ -1258,7 +1303,8 @@ int save_lgeneral_units_bmp(){
 		strncat(name,ext,128);
 		int doFlip = (lgen_uicons_dlg[4].flags&D_SELECTED)?1:0;
 		int change_icons = (lgen_uicons_dlg[8].flags&D_SELECTED)?1:0;
-		units_convert_bmps(name, doFlip, change_icons);
+		int individual_icons = (lgen_uicons_dlg[9].flags&D_SELECTED)?1:0;
+		units_convert_bmps(name, doFlip, change_icons,individual_icons);
 
 		snprintf(MapStatusTxt,256,"LGen %s saved.\nPick an Operation.",name);
 		main_dlg[dmMapStatusIdx].flags |= D_DIRTY;
@@ -1285,7 +1331,7 @@ int save_nations_db(char *name, char *target_name, char *domain){
     /* domain */
     fprintf( file, "domain»%s\n",domain );
     fprintf( file, "<nations\n" );
-    for ( i = 0; i < nation_count; i++ )
+    for ( i = 0; i < NATION_COUNT; i++ )
         fprintf( file, "<%s\nname»%s\nicon_id»%s\n>\n", nations[i * 3], nations[i * 3 + 1], nations[i * 3 + 2] );
     fprintf( file, ">\n" );
     fclose( file );
@@ -1296,10 +1342,10 @@ int save_nations_bmp(char *name){
     int i;
 	BITMAP *n_bmp;
 
-	n_bmp = create_bitmap(20, 13*nation_count);
-	rectfill(n_bmp, 0, 0, 20, 13*nation_count, colors_to24bits(COLOR_BLACK)); // COLOR_BLACK is a transparent color for LGen
+	n_bmp = create_bitmap(20, 13*NATION_COUNT);
+	rectfill(n_bmp, 0, 0, 20, 13*NATION_COUNT, colors_to24bits(COLOR_BLACK)); // COLOR_BLACK is a transparent color for LGen
 
-	for ( i = 0; i < nation_count; i++ )
+	for ( i = 0; i < NATION_COUNT; i++ )
 		masked_blit(flag_bmp[i],n_bmp,20,36,0,i*13,20,13);
 	save_bmp(name,n_bmp,NULL);
 	destroy_bitmap(n_bmp);

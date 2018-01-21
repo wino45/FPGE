@@ -8,6 +8,8 @@
 #ifndef DRAWMAP_H_
 #define DRAWMAP_H_
 
+void draw_tiles_matrix();
+
 void draw_map_shift(BITMAP *,int, int, int, int, int);
 void draw_map(BITMAP *,int,int,int,int);
 

@@ -746,7 +746,34 @@ Changelog for version 0.5.0: Jan 09, 2010
     * LGen: Implemented "Skip not used icons" in udb and pg.bmp export
     * Added number of columns and tiles size for units icons export dialog
   
-TODO:
+    0.7.2
+    * LGen: Added PGF movement types in UDB export and some checks while export
+    * LGen: Added export to LGen individual icons files
+    * PacGen: added target type conversion on load (pacgen submarine is now pg naval)
+    * PacGen: load terrain types names, movement types names and theaters names.
+    * PacGen: show movement and weather table from pacgen.exe, file size 976896 bytes.
+    * BUGFIX. CLI: Forest random with "-Rf" is using same random forest procedure as invoked from GUI
+    * Refactor to prepare for filtering using tiles.txt 4th column (GUI: alt-n, CLI: -C, -c impacted)
+    * Refactor randomize (GUI, CLI : forest, des, rough des, rough, swamp, boccace, clear)
+    * Added 3rd column in tiles.txt - hex pattern for "space" filter, added 11th optional column - random group
+    * Major refactor of tables, many areas are affected
+    * New format of "tiles.txt" file. See doc.
+    * Moved all rough tiles into clear group
+    * CLI: -d will invoke tile matrix debug mode intended as help in tiles.txt preparing
+    * ctrl-n, ctrl-a, ctrl-t and ctrl-d will display some information about tiles in tiles matrix debug mode
+    * PacGen: Added rc layer import in PacGen scenario/map import in non PacGen mode
+    * Added help window for tile matrix
+    * Changed some default terrain type for tiles to make better filtering. Added sometiles to different filter groups.
+    * Changed colors of the background and hex in tiles matrinx
+    * Tiles matrix now got four layouts : use ctrl-l to change
+    * LGen: AGW transport type code implemented
+    * PacGen: Terrain types name are used as default names in PacGen mode
+    * PacGen: Load scenario long and short descriptionn from X.des and X.tit files
+    * PacGen: Victory and deploy hexes are loaded during scenario import.
+    * PacGen: long and short nations names are read from TXT.PFP.
+    * PacGen: load equipment with -1 country when no bit is set.
+    * PacGen: when found equipment country is -1 set it to orginal country from scenario file.
+    * BUGFIX: spotting shading fixed
 
 Check:
 *
@@ -787,7 +814,7 @@ There is a package of 57 Jordi AG scenarios, each scenario in a uniquely named z
 - undo - basic, limited number of levels, tiles only
 - radius in terrain (?)
   Road generation:
-- threat end of map as road when making road connections
+- treat end of map as road when making road connections
 - road generation special case = road parallel to the city
 - road generation changes, Pepa's case: PacPG1, hexes (16,9) and (17,9)
 

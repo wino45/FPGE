@@ -467,7 +467,7 @@ int load_ag_nupl(){
 		if (file_size==2135040) offset=1845024; //pg.exe
 		if (offset==-1) {
 			fclose(inf);
-			return ERROR_AG_PG_EXE_BASE+ERROR_FPGE_UNKNOWN_PANZER_EXE;
+			return ERROR_AG_PG_EXE_BASE+ERROR_FPGE_UNKNOWN_EXE;
 		}
 		fseek(inf,offset,SEEK_SET);
 
@@ -527,7 +527,7 @@ int load_ag_scenario_desc(){
 		if (file_size==2135040) offset=1750688; //pg.exe
 		if (offset==-1) {
 			fclose(inf);
-			return ERROR_AG_PG_EXE_BASE+ERROR_FPGE_UNKNOWN_PANZER_EXE;
+			return ERROR_AG_PG_EXE_BASE+ERROR_FPGE_UNKNOWN_EXE;
 		}
 
 		for (n=0;n<MAX_SCENARIOS;n++){

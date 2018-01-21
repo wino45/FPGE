@@ -35,7 +35,7 @@ DIALOG pacgen_dlg[7+5+1-2]= {
 char pacgen_gln[MAX_NAMES][MAX_PG2_NAME_SIZE];
 int pacgen_gln_map[MAX_NAMES]; // map to gln ids, -1-not set,
 int total_pacgen_names;
-
+int pacgen_std_terrain_offset=-1;
 
 int count_per_set[NO_OF_PACGEN_TIL_CLASSES];
 int no_of_sets=NO_OF_PACGEN_TIL_CLASSES;
@@ -56,6 +56,7 @@ int pacgen_tt_to_pg_tile_no=NO_OF_PACGEN_TERRAIN_TYPES;
 
 unsigned char pacgen_class_2_pg_class[NO_OF_PACGEN_CLASSES]={0,1,2,3,4,5,6,7,15,12,13,14,12,13,11,8,9,10,16,17};
 unsigned char pacgen_move_2_pg_move[NO_OF_PACGEN_MOVE_TYPES]={0,1,2,3,4,5,6,6,7,6,6};
+unsigned char pacgen_target_type_2_pg_target_type[NO_OF_PACGEN_TARGET_TYPES]={0,1,2,3,3};
 
 //typedef BITMAP *bmp_array[MAX_TILES];
 
@@ -75,7 +76,7 @@ struct pacgen_equ {
 	BYTE class; //1
 	BYTE sa,ha,aa,na,sub_a; //6
 	BYTE gd,ad,assault_def,torpedo_def,depth_charge_def; //11
-	BYTE target_t; //12
+	BYTE target_type; //12
 	BYTE bomber_size; //13
 	BYTE uk1; //14 unknown
 	BYTE ini, range, spotting; //17
@@ -149,6 +150,35 @@ int import_pacgen_names_file(char *path) {
 	return 0;
 }
 
+int import_pacgen_string_file(char *path, char *dest_buffor, int buf_size) {
+
+	FILE *inf;
+	//int max_names_file_size = MAX_NAMES * MAX_PG2_NAME_SIZE;
+	//char *end_of_line;
+
+	inf = fopen(path, "rb");
+	if (inf == NULL) {
+		printf("Cannot open PacGen names file : %s\n", path);
+		return ERROR_PACGEN_SCENARIO_NAMES_LOAD_BASE + ERROR_FPGE_FILE_NOT_FOUND;
+	}
+
+	fseek(inf, 0, SEEK_END);
+	long file_size = ftell(inf);
+	fseek(inf, 0, SEEK_SET);
+
+	if (file_size > buf_size+1) {
+		printf("ERROR: Too big PacGen names file size %ld, expected at most %d. File : %s\n", file_size, buf_size, path);
+		fclose(inf);
+		return ERROR_PACGEN_SCENARIO_NAMES_LOAD_BASE + ERROR_FPGE_PG2_FILE_TOO_BIG;
+	}
+
+	fread(dest_buffor,file_size,1,inf);
+	dest_buffor[file_size]=0; //terminate strings
+	fclose(inf);
+	return 0;
+}
+
+
 struct carrier_str {
 	int unit_id;
 	int carrier_x,carrier_y;
@@ -194,12 +224,69 @@ int load_shp_from_pfp(char *name, int idx){
 	return 1;
 }
 
+
+int parse_txt_pfp(FILE *txt_pfp_inf, int txt_pfp_inf_off, int txt_pfp_inf_size, int group, char array[][128]){
+	char *buf, line[1024];
+	int ll,line_count=0,copied_line_count=0, cursor=0, line_cursor=0, group_count=0, group_state=0;
+
+	fseek(txt_pfp_inf,txt_pfp_inf_off,SEEK_SET);
+	buf= malloc(txt_pfp_inf_size);
+	fread(buf,txt_pfp_inf_size,1,txt_pfp_inf);
+	while(cursor<txt_pfp_inf_size){
+		//read one line
+		line_cursor=0;
+		while(buf[cursor]!=0x0d && cursor<txt_pfp_inf_size){
+			line[line_cursor]=buf[cursor];
+			line_cursor++;
+			cursor++;
+		}
+		//skip 0x0d
+		if (buf[cursor]==0x0d) cursor++;
+		//skip 0x0a
+		if (buf[cursor]==0x0a) cursor++;
+		//finish string
+		line[line_cursor]=0;
+
+		//strip comments
+		for(ll=0;ll<strlen(line);ll++)
+		  if (line[ll]==0x23) { line[ll]=0; break; }
+
+		if (strlen(line)){
+			if (group_state==0){
+				//not yet in group, now we are in group
+				group_state=1;
+				group_count++;
+			}
+
+			if(group_count==group) {
+				//printf("%d, >%s<\n",line_count, line);
+				strncpy(array[copied_line_count],line,128);
+				copied_line_count++;
+			}
+			line_count++;
+		}else{
+			if (group_state==1){
+				//first empty line after group == we are not in group
+				group_state=0;
+			}
+		}
+	}
+	//printf("%s",buf);
+
+	free(buf);
+	return line_count;
+}
+
+
+
+
 int load_pfpdata_idx(){
-	FILE *inf, *inf2, *inf3, *inf4;
-	char path[MAX_PATH]="..\\data\\";
-	char path2[MAX_PATH]="..\\data\\";
-	char path3[MAX_PATH]="..\\data\\";
-	char path4[MAX_PATH]="..\\data\\";
+	FILE *pfpdata_idx_inf, *til_pfp_inf, *shp_pfp_inf, *pal_pfp_inf, *txt_pfp_inf;
+	char path_idx[MAX_PATH]="..\\data\\";
+	char path_til[MAX_PATH]="..\\data\\";
+	char path_shp[MAX_PATH]="..\\data\\";
+	char path_pal[MAX_PATH]="..\\data\\";
+	char path_txt[MAX_PATH]="..\\data\\";
 	char head[10],head2[10], ftoken[10], token[10];
 	int x,y,i,j,k;
 	int idx=0,bidx=0,size,icon_addr;
@@ -217,35 +304,40 @@ int load_pfpdata_idx(){
 	 10,11,12,18,19,
 	 4,6};
 
-	strncat(path,pac_pfpdata,MAX_PATH);
-	strncat(path2,pac_til,MAX_PATH);
-	strncat(path3,pac_shp,MAX_PATH);
-	strncat(path4,pac_pal,MAX_PATH);
+	strncat(path_idx,pac_pfpdata,MAX_PATH);
+	strncat(path_til,pac_til,MAX_PATH);
+	strncat(path_shp,pac_shp,MAX_PATH);
+	strncat(path_pal,pac_pal,MAX_PATH);
+	strncat(path_txt,pac_txt,MAX_PATH);
 
 	memset(head,0,sizeof(head));
 	memset(head2,0,sizeof(head2));
 	memset(counts,0,sizeof(counts));
-	canonicalize_filename(path3,path3,MAX_PATH);
-	inf3=fopen(path3,"rb");
-	if (inf3!=NULL) {
-	canonicalize_filename(path2,path2,MAX_PATH);
-	inf2=fopen(path2,"rb");
-	if (inf2!=NULL) {
-		canonicalize_filename(path,path,MAX_PATH);
-		inf=fopen(path,"rb");
-		if (inf!=NULL) {
+
+	canonicalize_filename(path_txt,path_txt,MAX_PATH);
+	txt_pfp_inf=fopen(path_txt,"rb");
+		if (txt_pfp_inf!=NULL) {
+	canonicalize_filename(path_shp,path_shp,MAX_PATH);
+	shp_pfp_inf=fopen(path_shp,"rb");
+	if (shp_pfp_inf!=NULL) {
+	canonicalize_filename(path_til,path_til,MAX_PATH);
+	til_pfp_inf=fopen(path_til,"rb");
+	if (til_pfp_inf!=NULL) {
+		canonicalize_filename(path_idx,path_idx,MAX_PATH);
+		pfpdata_idx_inf=fopen(path_idx,"rb");
+		if (pfpdata_idx_inf!=NULL) {
 			memcpy(temp_pal,pgpal,sizeof(temp_pal));
 			memcpy(pgpal,pacgen_pal,sizeof(temp_pal));
 			total_tiles=0;
 			total_mtiles=0;
-			fseek(inf, 0, SEEK_END);
-			long file_size = ftell(inf);
-			fseek(inf, 4, SEEK_SET);
+			fseek(pfpdata_idx_inf, 0, SEEK_END);
+			long file_size = ftell(pfpdata_idx_inf);
+			fseek(pfpdata_idx_inf, 4, SEEK_SET);
 			//scan first & load palette
 			printf("Scanning for tiles.\n");
 			idx=0;
 			for(i=0;i<file_size/16;i++){
-				fread(&buff,16,1,inf);
+				fread(&buff,16,1,pfpdata_idx_inf);
 				strncpy(head,buff.name,8);
 				//printf("%d-%d\n",ext_idx[2].start,ext_idx[2].stop);
 				if (idx>=ext_idx[2].start && idx<ext_idx[2].stop)
@@ -258,21 +350,21 @@ int load_pfpdata_idx(){
 
 					if (k==no_of_sets) break;
 
-					fseek(inf2,buff.place,SEEK_SET);
-					fread(head2,4,1,inf2);
-					fread(&size,4,1,inf2);
+					fseek(til_pfp_inf,buff.place,SEEK_SET);
+					fread(head2,4,1,til_pfp_inf);
+					fread(&size,4,1,til_pfp_inf);
 					//printf("%s %d %d\n",&head[2],k,size);
 
 					counts[k]=size;
 					}
-				if (idx>=ext_idx[4].start && idx<ext_idx[4].stop){
+				if (idx>=ext_idx[4].start && idx<ext_idx[4].stop){//PAL
 					if ( strcmp(head,"DAY")==0 ){
 						printf("Loading DAY palette.\n");
-						canonicalize_filename(path4,path4,MAX_PATH);
-						inf4=fopen(path4,"rb");
-						if (inf4!=NULL){
-							fseek(inf4,buff.place,SEEK_SET);
-							fread(pgpal,256,4,inf4);
+						canonicalize_filename(path_pal,path_pal,MAX_PATH);
+						pal_pfp_inf=fopen(path_pal,"rb");
+						if (pal_pfp_inf!=NULL){
+							fseek(pal_pfp_inf,buff.place,SEEK_SET);
+							fread(pgpal,256,4,pal_pfp_inf);
 
 							unsigned char ctmp;
 							for(k=0;k<256;k++){
@@ -281,7 +373,7 @@ int load_pfpdata_idx(){
 								pgpal[k].b=ctmp;
 							}
 
-							fclose(inf4);
+							fclose(pal_pfp_inf);
 						}
 					}
 				}
@@ -296,9 +388,9 @@ int load_pfpdata_idx(){
 
 			//now read all bmps
 			idx=0;
-			fseek(inf, 4, SEEK_SET);
+			fseek(pfpdata_idx_inf, 4, SEEK_SET);
 			for(i=0;i<file_size/16;i++){
-				fread(&buff,16,1,inf);
+				fread(&buff,16,1,pfpdata_idx_inf);
 				strncpy(head,buff.name,8);
 				strncpy(head2,buff.name,8);
 				char * tok = strtok(head2, "_");
@@ -313,7 +405,7 @@ int load_pfpdata_idx(){
 
 				//printf("%s %s\n",tok,head);
 				//printf("%d-%d\n",ext_idx[2].start,ext_idx[2].stop);
-				if (idx>=ext_idx[2].start && idx<ext_idx[2].stop){
+				if (idx>=ext_idx[2].start && idx<ext_idx[2].stop){//TIL
 
 					//print this only once
 					if (strcmp(head,"T_CLR_DD")==0)
@@ -330,55 +422,55 @@ int load_pfpdata_idx(){
 
 						if (k==no_of_sets) break;
 
-						fseek(inf2,buff.place,SEEK_SET);
-							fread(head2,4,1,inf2);
-							fread(&size,4,1,inf2);
-					for(j=0;j<size;j++)
-					{
-						bidx=count_per_set[k]+j;
-						bmp=create_bitmap(TILE_FULL_WIDTH,TILE_HEIGHT);
-						for (y=0; y<TILE_HEIGHT; ++y)
-						 for (x=0; x<TILE_FULL_WIDTH; ++x)
-						   putpixel(bmp,x,y,fpge_mask_color);
+						fseek(til_pfp_inf,buff.place,SEEK_SET);
+						fread(head2,4,1,til_pfp_inf);
+						fread(&size,4,1,til_pfp_inf);
+						for(j=0;j<size;j++)
+						{
+							bidx=count_per_set[k]+j;
+							bmp=create_bitmap(TILE_FULL_WIDTH,TILE_HEIGHT);
+							for (y=0; y<TILE_HEIGHT; ++y)
+							 for (x=0; x<TILE_FULL_WIDTH; ++x)
+							   putpixel(bmp,x,y,fpge_mask_color);
 
-						fseek(inf2,buff.place+4+4+j*8,SEEK_SET);
+							fseek(til_pfp_inf,buff.place+4+4+j*8,SEEK_SET);
 
-						fread(&icon_addr,4,1,inf2);
-						icon_addr+=buff.place;
-						read_header(inf2,icon_addr);
+							fread(&icon_addr,4,1,til_pfp_inf);
+							icon_addr+=buff.place;
+							read_header(til_pfp_inf,icon_addr);
 
-						//printf("%d %d\n",header.lines, header.width);
+							//printf("%d %d\n",header.lines, header.width);
 
-						read_shp(bmp,inf2,icon_addr);
-						if (i_small){
-							if (strcmp(token,"LD")==0) {mtil_bmp[bidx]=bmp;total_mtiles++;}
-							if (strcmp(token,"LM")==0) mtil_bmp_mud[bidx]=bmp;
-							if (strcmp(token,"LS")==0) mtil_bmp_snow[bidx]=bmp;
-							if (strcmp(token,"DD")==0) dark_mtil_bmp[bidx]=bmp;
-							if (strcmp(token,"DM")==0) dark_mtil_bmp_mud[bidx]=bmp;
-							if (strcmp(token,"DS")==0) dark_mtil_bmp_snow[bidx]=bmp;
-						}else{
-							if (strcmp(token,"LD")==0) { til_bmp[bidx]=bmp;total_tiles++;}
-							if (strcmp(token,"LM")==0) til_bmp_mud[bidx]=bmp;
-							if (strcmp(token,"LS")==0) til_bmp_snow[bidx]=bmp;
-							if (strcmp(token,"DD")==0) dark_til_bmp[bidx]=bmp;
-							if (strcmp(token,"DM")==0) dark_til_bmp_mud[bidx]=bmp;
-							if (strcmp(token,"DS")==0) dark_til_bmp_snow[bidx]=bmp;
+							read_shp(bmp,til_pfp_inf,icon_addr);
+							if (i_small){
+								if (strcmp(token,"LD")==0) {mtil_bmp[bidx]=bmp;total_mtiles++;}
+								if (strcmp(token,"LM")==0) mtil_bmp_mud[bidx]=bmp;
+								if (strcmp(token,"LS")==0) mtil_bmp_snow[bidx]=bmp;
+								if (strcmp(token,"DD")==0) dark_mtil_bmp[bidx]=bmp;
+								if (strcmp(token,"DM")==0) dark_mtil_bmp_mud[bidx]=bmp;
+								if (strcmp(token,"DS")==0) dark_mtil_bmp_snow[bidx]=bmp;
+							}else{
+								if (strcmp(token,"LD")==0) { til_bmp[bidx]=bmp;total_tiles++;}
+								if (strcmp(token,"LM")==0) til_bmp_mud[bidx]=bmp;
+								if (strcmp(token,"LS")==0) til_bmp_snow[bidx]=bmp;
+								if (strcmp(token,"DD")==0) dark_til_bmp[bidx]=bmp;
+								if (strcmp(token,"DM")==0) dark_til_bmp_mud[bidx]=bmp;
+								if (strcmp(token,"DS")==0) dark_til_bmp_snow[bidx]=bmp;
+							}
 						}
-					}
-				}
+				}// end of TIL
 				if (idx>=ext_idx[1].start && idx<ext_idx[1].stop){ //SHP
 					if (strcmp(head,"UNITICON")==0){
 						printf("Loading UNITICON.\n");
 						total_uicons=0;
-						fseek(inf3,buff.place,SEEK_SET);
-						fread(head2,4,1,inf3);
-						fread(&size,4,1,inf3);
+						fseek(shp_pfp_inf,buff.place,SEEK_SET);
+						fread(head2,4,1,shp_pfp_inf);
+						fread(&size,4,1,shp_pfp_inf);
 						for(j=0;j<size;j++){
-							fseek(inf3,buff.place+4+4+j*8,SEEK_SET);
-							fread(&icon_addr,4,1,inf3);
+							fseek(shp_pfp_inf,buff.place+4+4+j*8,SEEK_SET);
+							fread(&icon_addr,4,1,shp_pfp_inf);
 							icon_addr+=buff.place;
-							read_header(inf3,icon_addr);
+							read_header(shp_pfp_inf,icon_addr);
 							int tempx=Max(header.width,TILE_FULL_WIDTH);
 							int tempy=Max(header.lines,TILE_HEIGHT);
 							//sometimes SHP files does not have 49x59 size but 49x181
@@ -386,7 +478,7 @@ int load_pfpdata_idx(){
 							for (y=0; y<tempy; ++y)
 							 for (x=0; x<tempx; ++x)
 							   putpixel(bmp,x,y,fpge_mask_color);
-							read_shp_ex(bmp,inf3,icon_addr,SHP_NO_SWAP_COLOR);
+							read_shp_ex(bmp,shp_pfp_inf,icon_addr,SHP_NO_SWAP_COLOR);
 
 							unit_bmp[j]=create_bitmap(TILE_FULL_WIDTH,TILE_HEIGHT);
 							if (tempx==TILE_FULL_WIDTH)
@@ -403,14 +495,14 @@ int load_pfpdata_idx(){
 					if (strcmp(head,"FLAGSLG")==0){
 						printf("Loading FLAGSLG.\n");
 						total_flags=0;
-						fseek(inf3,buff.place,SEEK_SET);
-						fread(head2,4,1,inf3);
-						fread(&size,4,1,inf3);
+						fseek(shp_pfp_inf,buff.place,SEEK_SET);
+						fread(head2,4,1,shp_pfp_inf);
+						fread(&size,4,1,shp_pfp_inf);
 						for(j=0;j<size;j++){
-							fseek(inf3,buff.place+4+4+j*8,SEEK_SET);
-							fread(&icon_addr,4,1,inf3);
+							fseek(shp_pfp_inf,buff.place+4+4+j*8,SEEK_SET);
+							fread(&icon_addr,4,1,shp_pfp_inf);
 							icon_addr+=buff.place;
-							read_header(inf3,icon_addr);
+							read_header(shp_pfp_inf,icon_addr);
 
 							bmp=create_bitmap(TILE_FULL_WIDTH,TILE_HEIGHT);
 							flag_bmp[j]=create_bitmap(TILE_FULL_WIDTH,TILE_HEIGHT);
@@ -420,7 +512,7 @@ int load_pfpdata_idx(){
 							   putpixel(bmp,x,y,fpge_mask_color);
 							   putpixel(flag_bmp[j],x,y,fpge_mask_color);
 							 }
-							read_shp_ex(bmp,inf3,icon_addr,SHP_NO_SWAP_COLOR);
+							read_shp_ex(bmp,shp_pfp_inf,icon_addr,SHP_NO_SWAP_COLOR);
 
 							//blit(bmp,flag_bmp[j],0,0,20,36,20,12);
 							//blit(bmp,flag_bmp[j],0,0,0,0,TILE_FULL_WIDTH,TILE_HEIGHT);
@@ -457,14 +549,14 @@ int load_pfpdata_idx(){
 						if (strcmp(token,"UL")==0) counter_idx=MAX_STRENGTH_IN_ROW*2;//allied
 						if (strcmp(token,"UL2")==0) counter_idx=MAX_STRENGTH_IN_ROW*3;//aux allied
 						if(counter_idx!=-1){
-							fseek(inf3,buff.place,SEEK_SET);
-							fread(head2,4,1,inf3);
-							fread(&size,4,1,inf3);
+							fseek(shp_pfp_inf,buff.place,SEEK_SET);
+							fread(head2,4,1,shp_pfp_inf);
+							fread(&size,4,1,shp_pfp_inf);
 							for(j=0;j<size;j++){
-								fseek(inf3,buff.place+4+4+j*8,SEEK_SET);
-								fread(&icon_addr,4,1,inf3);
+								fseek(shp_pfp_inf,buff.place+4+4+j*8,SEEK_SET);
+								fread(&icon_addr,4,1,shp_pfp_inf);
 								icon_addr+=buff.place;
-								read_header(inf3,icon_addr);
+								read_header(shp_pfp_inf,icon_addr);
 
 								bmp=create_bitmap(TILE_FULL_WIDTH,TILE_HEIGHT);
 								strength_bmp[counter_idx+j+1]=create_bitmap(TILE_FULL_WIDTH,TILE_HEIGHT);
@@ -474,7 +566,7 @@ int load_pfpdata_idx(){
 								   putpixel(bmp,x,y,fpge_mask_color);
 								   putpixel(strength_bmp[counter_idx+j+1],x,y,fpge_mask_color);
 								 }
-								read_shp_ex(bmp,inf3,icon_addr,SHP_NO_SWAP_COLOR);
+								read_shp_ex(bmp,shp_pfp_inf,icon_addr,SHP_NO_SWAP_COLOR);
 
 								blit(bmp,strength_bmp[counter_idx+j+1],0,0,0,0,TILE_FULL_WIDTH,TILE_HEIGHT);
 
@@ -501,15 +593,15 @@ int load_pfpdata_idx(){
 					if (strcmp(head,"STACKING")==0){
 						printf("Loading STACKING.\n");
 						total_sicons=0;
-						fseek(inf3,buff.place,SEEK_SET);
-						fread(head2,4,1,inf3);
-						fread(&size,4,1,inf3);
+						fseek(shp_pfp_inf,buff.place,SEEK_SET);
+						fread(head2,4,1,shp_pfp_inf);
+						fread(&size,4,1,shp_pfp_inf);
 						size=Min(size,(PACGEN_STACKICN_SIZE*2));
 						for(j=0;j<size;j++){
-							fseek(inf3,buff.place+4+4+j*8,SEEK_SET);
-							fread(&icon_addr,4,1,inf3);
+							fseek(shp_pfp_inf,buff.place+4+4+j*8,SEEK_SET);
+							fread(&icon_addr,4,1,shp_pfp_inf);
 							icon_addr+=buff.place;
-							read_header(inf3,icon_addr);
+							read_header(shp_pfp_inf,icon_addr);
 
 							dj=stackicn_mappings[j%PACGEN_STACKICN_SIZE];
 							//some special cases
@@ -527,7 +619,7 @@ int load_pfpdata_idx(){
 								   putpixel(bmp,x,y,fpge_mask_color);
 								   putpixel(stack_bmp[dj],x,y,fpge_mask_color);
 								 }
-								read_shp_ex(bmp,inf3,icon_addr,SHP_NO_SWAP_COLOR);
+								read_shp_ex(bmp,shp_pfp_inf,icon_addr,SHP_NO_SWAP_COLOR);
 
 								//we flip stack icons since PG got allied icons flipped, while pacgen not
 								if (j>=PACGEN_STACKICN_SIZE)
@@ -558,28 +650,73 @@ int load_pfpdata_idx(){
 								destroy_bitmap(bmp);
 								//printf("%d l=%d w=%d xs=%ld xe=%ld ys=%ld ye=%ld\n",j,header.lines, header.width, header.xstart, header.xend,header.ystart, header.yend);
 
-
 							}
 							//printf("%d\n",j);
 						}
 						//printf("total_sicons=%d\n",total_sicons);
 					}
 
+				}//end of SHP
 
+						if (idx >= ext_idx[0].start && idx < ext_idx[0].stop) { //TXT
+							char array[50][128];
+							int copied = 0;
+							int ll;
 
-				}
+							if (strcmp(head, "LATITUDE") == 0) {
+								//Battle Generator Latitude Names
+								printf("Loading LATITUDE.\n");
+
+								//copied=
+								parse_txt_pfp(txt_pfp_inf, buff.place, buff.size, 1, pacgen_weather_zones);
+
+							}
+							//country_names_short
+							if (strcmp(head, "NATIONS") == 0) {
+								printf("Loading NATIONS.\n");
+								copied = parse_txt_pfp(txt_pfp_inf, buff.place, buff.size, 1, array);
+								for (ll = 0; ll < copied; ll++) {
+									strncpy(country_names_short[ll + 1], array[ll], MAX_COUNTRY_SHORT_NAME_SIZE);
+									//printf("%s\n",array[ll]);
+								}
+							}
+							//country_names
+							if (strcmp(head, "BIGNATS") == 0) {
+								printf("Loading BIGNATS.\n");
+								copied = parse_txt_pfp(txt_pfp_inf, buff.place, buff.size, 1, array);
+								for (ll = 0; ll < copied; ll++) {
+									strncpy(country_names[ll + 1], array[ll], MAX_COUNTRY_NAME_SIZE);
+									//printf("%s\n",array[ll]);
+								}
+							}
+							//List of terrain types
+							if (strcmp(head, "TERRAIN") == 0) {
+								printf("Loading TERRAIN.\n");
+								parse_txt_pfp(txt_pfp_inf, buff.place, buff.size, 1, pacgen_movement_terrain_names);
+							}
+							//MISC, 4th group, 11 elements, Movement Modes - 11 items.
+							if (strcmp(head, "MISC") == 0) {
+								printf("Loading MISC.\n");
+								parse_txt_pfp(txt_pfp_inf, buff.place, buff.size, 4, pacgen_movement_type);
+							}
+
+						}
+
 
 				//printf("%d\n",idx);
 				idx++;
-			}
-			fclose(inf2);
-			fclose(inf);
+			}// end of pfpdata.idx scan
+			fclose(til_pfp_inf);
+			fclose(shp_pfp_inf);
+			fclose(txt_pfp_inf);
+			fclose(pfpdata_idx_inf);
 			memcpy(pgpal,temp_pal,sizeof(temp_pal));
 
 			return 0;
-		} //(inf!=NULL)
-	  } //(inf2!=NULL)
-	} //(inf3!=NULL)
+		} //(pfpdata_idx_inf!=NULL)
+	  } //(til_pfp_inf!=NULL)
+	} //(shp_pfp_inf!=NULL)
+	}//txt_pfp_inf!=NULL
 	return 1;
 }
 
@@ -587,11 +724,25 @@ void initialize_pacgen_countries_table(){
 	int i;
 
 	for(i=0;i<32;i++){
-		strncpy(country_names[i],pacgen_country_names[i],MAX_COUNTRY_NAME_SIZE);
-		strncpy(country_names_short[i],pacgen_country_names_short[i],MAX_COUNTRY_SHORT_NAME_SIZE);
+		//strncpy(country_names[i],pacgen_country_names[i],MAX_COUNTRY_NAME_SIZE);
+		//strncpy(country_names_short[i],pacgen_country_names_short[i],MAX_COUNTRY_SHORT_NAME_SIZE);
 		country_active[i]=1;
 	}
 }
+
+void initialize_pacgen_std_names(){
+	int i;
+
+	pacgen_std_terrain_offset=total_names;
+	//print_dec(pacgen_std_terrain_offset);
+	for(i=0;i<37;i++){
+		strncpy(gln[total_names], pacgen_movement_terrain_names[i], MAX_NAME_SIZE);
+		strncpy(gln_utf8[total_names], pacgen_movement_terrain_names[i], MAX_NAME_UTF_SIZE);
+		total_names++;
+		mapnames_changed = 1;
+	}
+}
+
 
 int import_pacgen_scenario() {
 	FILE *inf;
@@ -689,6 +840,15 @@ int import_pacgen_scenario() {
 				//print_str(path1);
 				import_pacgen_names_file(path1);
 
+				//now scenario title and description
+				replace_extension(path1,path,"tit",MAX_PATH); //tit for title
+				canonicalize_filename(path1,path1,MAX_PATH);
+				import_pacgen_string_file(path1, block1_Name,sizeof(block1_Name));
+
+				replace_extension(path1,path,"des",MAX_PATH); //des for description
+				canonicalize_filename(path1,path1,MAX_PATH);
+				import_pacgen_string_file(path1, block1_Description,sizeof(block1_Description));
+
 				for (i = 0; i < MAX_NAMES; i++)
 					pacgen_gln_map[i] = -1;
 
@@ -711,10 +871,17 @@ int import_pacgen_scenario() {
 							map[x][y].tile=count_per_set[rec_buff[15-1]+1]+rec_buff[15-3];
 							map[x][y].rc = rec_buff[15-4];
 							map[x][y].utr = TTData_Max_Tiles[pacgen_tt_to_pg_tile[rec_buff[15]]];
+							map[x][y].own = rec_buff[15+1]!=0xff?rec_buff[15+1]+1:0;
+							if (rec_buff[3]) map[x][y].vic=1;
+							map[x][y].deploy=rec_buff[15+8]?1:0;
 						}
-						else
+						else{
 							map[x][y].tile=pacgen_tt_to_pg_tile[rec_buff[15]];
-
+							map[x][y].rc = rec_buff[15-4];
+							map[x][y].own = rec_buff[15+1]!=0xff?rec_buff[15+1]+1:0;
+							if (rec_buff[3]) map[x][y].vic=1;
+							map[x][y].deploy=rec_buff[15+8]?1:0;
+						}
 						//printf("%d,",map[x][y].tile);
 						//if (x==mx-1)printf("\n");
 						if (pacgen_dlg[6].flags & D_SELECTED){
@@ -729,9 +896,24 @@ int import_pacgen_scenario() {
 									total_names++;
 									mapnames_changed = 1;
 
+
 									//print_str(pg2_gln[current_pg2_name]);
 								}
 								map[x][y].gln = pacgen_gln_map[current_pacgen_name];
+								/*
+								if(rec_buff[3]){
+								printf("(%02d,%2d) :",x,y);
+								for(i=0;i<37;i++)
+									printf("%02x,",rec_buff[i]);
+								printf("\n");
+								}
+								*/
+						}else{
+								if (current_pacgen_name == 0x7fff && pacgen_std_terrain_offset>-1){
+										//first names are just names of the terrain
+										//print_dec(rec_buff[15]);
+										map[x][y].gln = pacgen_std_terrain_offset+rec_buff[15];
+									}
 							}
 						}
 					}
@@ -795,8 +977,11 @@ int import_pacgen_scenario() {
 						}
 					}
 					//TODO
-					//for(i=0;i<sizeof(scenario_details_part2);i++) printf("%02x ", scenario_details_part2[i]);
-					//printf("\n");
+					for(i=0;i<75;i++) printf("%5d", scenario_details_part1[i]);
+					printf("\n");
+					for(i=0;i<91;i++) printf("%5d", scenario_details_part2[i]);
+					printf("\n");
+
 
 					//clean units numbers
 					clear_all_units();
@@ -814,6 +999,8 @@ int import_pacgen_scenario() {
 
 							seaair_id = (unsigned int)pacgen_scn_unit_buf[45]+
 									    (unsigned int)pacgen_scn_unit_buf[45+1]*256;
+
+							//32 max country in pacgen
 
 							if (pacgen_scn_unit_buf[55]>0 && unit_id !=0xffff){
 								/*
@@ -842,7 +1029,7 @@ int import_pacgen_scenario() {
 									sizeof(struct conversion_equipment),
 									compare_by_old_id_and_country
 									);
-								if (!found){
+							if (!found){
 									found=(struct conversion_equipment *)bsearch(
 																		&search,
 																		conversion_equip,
@@ -851,7 +1038,8 @@ int import_pacgen_scenario() {
 																		compare_by_old_id
 																		);
 
-									//if (found) printf("search again: name: %s old country: %d new country : %d oldID: %d newID: %d\n",search.name,search.country,found->country,search.old_id,found->new_id);
+									//if (found)
+									//	printf("search again: name: %s old country: %d new country : %d oldID: %d newID: %d\n",search.name,search.country,found->country,search.old_id,found->new_id);
 
 
 								}
@@ -912,8 +1100,13 @@ int import_pacgen_scenario() {
 									    unum = found->new_id;
 									    all_units[where_add_new].unum=unum;
 									   // all_units[where_add_new].orgtnum=atoi(tokens[2]);
-									    all_units[where_add_new].country=found->country;
-									   // all_units[where_add_new].auxtnum=atoi(tokens[3]);
+
+									    if (found->country!=-1)
+									    	all_units[where_add_new].country=found->country;
+									    else
+									    	all_units[where_add_new].country=pacgen_scn_unit_buf[40]+1;
+
+									    // all_units[where_add_new].auxtnum=atoi(tokens[3]);
 									    //error=sscanf(tokens[0],"(%d:%d)",&x,&y);
 
 									    x=pacgen_scn_unit_buf[51]+pacgen_scn_unit_buf[52]*256;
@@ -1133,7 +1326,8 @@ int load_pacgen_mt2pg_mt(){
 
 int load_pacgen_equip()
 {
-   int i,c,j,k,ax,pic_num;
+   int i,j,k,ax,pic_num;
+   unsigned int c;
    short no_of_equip;
    struct pacgen_equ pacgen_equip;
    char flipped[MAX_UICONS];
@@ -1187,7 +1381,9 @@ int load_pacgen_equip()
 			   //if (ax==3) printf("Code i=%d\n",i);
 
 			   //j=-2;
-			   for(j=0;j<32-1;j++)
+			   if (c==0) c=0x80000000;
+
+			   for(j=0;j<32;j++)
 				   if (c & (1<<j))
 					   {
 					   //if (i==667) printf("%d %d\n",total_equip,j+1);
@@ -1197,7 +1393,10 @@ int load_pacgen_equip()
 				   strncpy(equip[total_equip],name,19); //copy up to 19 chars
 				   convert_from_cp1250_to_utf8(equip_name_utf8[total_equip],equip[total_equip],20);
 				   //TODO: convert country
-				   equip_country[total_equip]=j+1;
+				   if (c==0x80000000)
+					   equip_country[total_equip]=-1;
+				   else
+					   equip_country[total_equip]=j+1;
 
 				   equip[total_equip][CLASS]=pacgen_class_2_pg_class[pacgen_equip.class];
 				   //special case for Armory efile "Coastal Battery" are in battle ship class due to design of efile,
@@ -1212,7 +1411,7 @@ int load_pacgen_equip()
 				   equip[total_equip][GD]=pacgen_equip.gd;
 				   equip[total_equip][AD]=pacgen_equip.ad;
 				   equip[total_equip][CD]=pacgen_equip.assault_def;
-				   equip[total_equip][TARGET_TYPE]=pacgen_equip.target_t;
+				   equip[total_equip][TARGET_TYPE]=pacgen_target_type_2_pg_target_type[pacgen_equip.target_type];
 				   equip[total_equip][INITIATIVE]=pacgen_equip.ini;
 				   equip[total_equip][RANGE]=pacgen_equip.range;
 				   equip[total_equip][SPOTTING]=pacgen_equip.spotting;
@@ -1268,18 +1467,18 @@ int load_pacgen_equip()
 
 			   if (c != 0 ){
 				   //total_equip-1 makes sense only when there was at least one new equipment
-			   pic_num=(int)equip[total_equip-1][BMP]+equip[total_equip-1][BMP+1]*256;
-			   //print_dec(pic_num);
-			   //flip icon when necessary, we do not want to flip it twice...
-			   if (ax==1 && flipped[pic_num]==0 && unit_bmp[pic_num]!=NULL){
-				   //print_str("flip");
-				   BITMAP *u_bmp_tmp=create_bitmap(TILE_FULL_WIDTH,TILE_HEIGHT);
-				   rectfill(u_bmp_tmp,0,0,TILE_FULL_WIDTH,TILE_HEIGHT,fpge_mask_color);
-				   draw_sprite_h_flip(u_bmp_tmp,unit_bmp[pic_num],0,0);
-				   destroy_bitmap(unit_bmp[pic_num]);
-				   unit_bmp[pic_num]=u_bmp_tmp;
-				   flipped[pic_num]=1;
-			   }
+				   pic_num=(int)equip[total_equip-1][BMP]+equip[total_equip-1][BMP+1]*256;
+				   //print_dec(pic_num);
+				   //flip icon when necessary, we do not want to flip it twice...
+				   if (ax==1 && flipped[pic_num]==0 && unit_bmp[pic_num]!=NULL){
+					   //print_str("flip");
+					   BITMAP *u_bmp_tmp=create_bitmap(TILE_FULL_WIDTH,TILE_HEIGHT);
+					   rectfill(u_bmp_tmp,0,0,TILE_FULL_WIDTH,TILE_HEIGHT,fpge_mask_color);
+					   draw_sprite_h_flip(u_bmp_tmp,unit_bmp[pic_num],0,0);
+					   destroy_bitmap(unit_bmp[pic_num]);
+					   unit_bmp[pic_num]=u_bmp_tmp;
+					   flipped[pic_num]=1;
+				   }
 			   }
 			   //printf("%s\n",name);
 
@@ -1289,6 +1488,10 @@ int load_pacgen_equip()
 
 		   //sort conversion table
 		   qsort(conversion_equip,conversion_total_equip,sizeof(struct conversion_equipment),compare_by_old_id_and_country);
+
+		   //print_dec(conversion_total_equip);
+		   //print_dec(total_equip);
+
 
 		   //all ok
 			fclose(inf2);

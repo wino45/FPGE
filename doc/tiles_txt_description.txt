@@ -1,0 +1,142 @@
+The tiles.txt file is used to provide additional information for the non standard tiles (non PGDOS).
+Thus FPGE can understand new tiles role in maps and integrate tile into FPGE internal algorithms.
+
+The tile.txt file got up to ten columns. They are described below from one to ten.
+
+* ID
+
+ID of the tile. It is 0 based and must be bigger or equal then 237. 237 is a number of tiles in PGDOS.
+The FPGE got all 237 standard categorized and they categories cannot be changed via this file.
+
+* Terrain type
+
+Default terrain type for this tile. For better tile filtering the following convention is used in some cases:
+
+//CLEAR
+ 0 - normal clear
+ 1 - coast - clear tiles with some border water
+ 2 - clear with road
+ 3 - not used
+
+//COAST
+ 4 - normal coast
+ 5 - tip cost-no coastline along hex border
+ 6 - river coast- coastline longhex border with river mouth
+
+//RIVER
+ 9 - source and mouth of the river
+10 - normal river
+11 - crossing with road
+
+* Filter mask
+
+This bit mask is used for sorting tiles in tiles matrix invoked by F1,F2,..F12 keys.
+You can place one tile in the many groups but you must define 'default group' -see description of this column.
+When only one group is set thse is no need to set 'default group' column.
+
+Groups: 0x001 -first group (F1), 0x002- second, 0x004- third, etc. You can combine many groups, eg 0x003 is both group one and two (0x001+0x002=0x003). 
+You can use hex calculator to compute this sum when needed.
+There are 12 filter groups. The 0x0800 is the biggest possible value.
+
+0x001 - coast
+0x002 - city/port
+0x004 - mountains
+0x008 - clear/rough/airport
+0x010 - desert
+0x020 - road
+0x030 - river
+0x040 - swamp
+0x100 - forest
+0x200 - fort
+0x400 - bocage
+0x800 - escarpment
+
+* Name ID
+
+Default name ID for this tile. 
+
+* Mask
+
+This column is used as pattern for "Tools=>Make tiles" tools.
+Only tiles having 'default group' equal "coast", "road", "river" groups can have mask column.
+The valid format is :
+6 chars, only 'O' or 'X' chars are valid. X=Yes, O=No, Example: XXOOOO or XOXOXX
+The meaning of X is:
+coast: special ocean tile is present (tile ID 73)
+river: special river tile is present (tile ID 52)
+road: special road tile is present (tile ID 69)
+
+The 6 char sequence is :
+1 char is North
+2 char is North-East
+3 char is South-East
+4 char is South
+5 char is South-West
+6 char is North-West
+
+So, XXOOOX is North, North-East, North-West.
+
+Example:
+Coast tile ID 1 got buildin pattern XOXXXX, so when tile at X,Y is 73 and all tiles N, SE, S, SW, NW of X,Y are 73 then X,Y tile will be substituted with tile 1.
+
+* Road
+
+Definition of roads in the tile. Use exactly six 'X' or 'O' chars. You must define corners of the hex here not hex sides as in 'Mask' !
+Used in automatic road layer generation.
+
+1 char is North-North-East corner
+2 char is East corner
+3 char is South-South-East corner
+4 char is South-South-West corner
+5 char is West corner
+6 char is North-North-West corner
+
+Example:
+Tile 37 got OXXOOO, while tile 47 got XOXOOO
+
+* River
+
+Same meaning as road column but for river connections. Used in Panzer Coprs map export only.
+
+* Flag
+
+Thsi column can have only two possible values:
+O - ocean tile that should be named as ocean, eg coast tiles with terrain type 4,5,6. 
+R - passive road tile: airport or city or port. Used in automatic road layer generation.
+
+* Default group
+
+When 'Filter mask' column got more then one bit set use this column to mark primary filter group. Use integer value:
+1-coast
+2-city/port
+3-mountains
+...
+12-escarpment
+
+* Rnd group
+
+Optional column used during tiles randomizaton. There are 6 groups: 
+ 1-rough
+ 2-clear
+ 3-desert
+ 4-rough desert
+ 5-bocage
+ 6-swamp
+
+Forests tiles are found using "Filter" 0x0100 and randomized via pattern and then fixed:
+each tile in 0x100 filter group is substituted by forest pattern tile, then some combinations of tiles on forest border are changed.
+
+Some examples of the newly defined tiles. Mind TABs in examples rows below.
+
+No patterns or mask, just ocean tile marker:
+237	5	0x01	2				O
+Mask for coast tile generation
+238	4	0x01	2	XXXOXX			O
+River pattern and default group defined
+271	9	0x41	4			OOOOOX		1
+River pattern, ocean tile marker and default group defined
+282	6	0x41	2			OOOOXO	O	1
+Road and river patters and default group defined
+318	11	0x60	4		OXOXOO	OOXOOX		6
+Road passive tile marker
+319	8	0x02	3				R	

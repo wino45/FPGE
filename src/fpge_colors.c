@@ -186,6 +186,7 @@ void prepare_dialogs(){
 	dialog_to24bits(main_dlg,sizeof(main_dlg)/sizeof(*main_dlg));
 	dialog_to24bits(findname_dlg,sizeof(findname_dlg)/sizeof(*findname_dlg));
 	dialog_to24bits(help_dlg,sizeof(help_dlg)/sizeof(*help_dlg));
+	dialog_to24bits(help_dlg2,sizeof(help_dlg2)/sizeof(*help_dlg2));
 	dialog_to24bits(searchreplace_dlg,sizeof(searchreplace_dlg)/sizeof(*searchreplace_dlg));
 	dialog_to24bits(senario_dlg,sizeof(senario_dlg)/sizeof(*senario_dlg));
 	dialog_to24bits(terrain_dlg,sizeof(terrain_dlg)/sizeof(*terrain_dlg));

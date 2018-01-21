@@ -135,18 +135,83 @@ void make_hexes() {
 	line(problem_hex_bmp,15,0,45,0,colors_to24bits(PROBLEM_HEX_COLOR));
 	//second line
 	line(problem_hex_bmp,1,24,16,0,colors_to24bits(PROBLEM_HEX_COLOR));
-	line(problem_hex_bmp,45,1,59,25,colors_to24bits(PROBLEM_HEX_COLOR));
-	line(problem_hex_bmp,15,1,44,1,colors_to24bits(PROBLEM_HEX_COLOR));
+	line(problem_hex_bmp,44,0,58,24,colors_to24bits(PROBLEM_HEX_COLOR));
+	line(problem_hex_bmp,15,1,45,1,colors_to24bits(PROBLEM_HEX_COLOR));
 	// bottom part
-	line(problem_hex_bmp,0,24,15,50,colors_to24bits(PROBLEM_HEX_COLOR));
-	line(problem_hex_bmp,45,50,60,24,colors_to24bits(PROBLEM_HEX_COLOR));
-	line(problem_hex_bmp,15,50,45,50,colors_to24bits(PROBLEM_HEX_COLOR));
-	//second line
-	line(problem_hex_bmp,1,24,16,49,colors_to24bits(PROBLEM_HEX_COLOR));
+	line(problem_hex_bmp,0,25,15,49,colors_to24bits(PROBLEM_HEX_COLOR));
 	line(problem_hex_bmp,45,49,59,25,colors_to24bits(PROBLEM_HEX_COLOR));
-	line(problem_hex_bmp,15,49,44,49,colors_to24bits(PROBLEM_HEX_COLOR));
+	line(problem_hex_bmp,15,49,45,49,colors_to24bits(PROBLEM_HEX_COLOR));
+	//second line
+	line(problem_hex_bmp,1,25,16,49,colors_to24bits(PROBLEM_HEX_COLOR));
+	line(problem_hex_bmp,44,49,58,25,colors_to24bits(PROBLEM_HEX_COLOR));
+	line(problem_hex_bmp,15,48,45,48,colors_to24bits(PROBLEM_HEX_COLOR));
 
 }
+
+
+void draw_tiles_matrix() {
+	int i, mx, my, j = 0;
+	short tile;
+
+	if (filter_tiles && showMatrixMode>1) j=1; //2,3
+	//clear
+	for (mx = 0; mx < matrix_x; mx++)
+		for (my = 0; my < matrix_y; my++)
+			map[mx][my].tile = BLACK_TILE;
+
+	//draw
+	for (i = 0; i < matrix_x * matrix_y; ++i) {
+		tile = BLACK_TILE;
+		if (filter_tiles) {
+			if (FilterTiles_Max_Tiles[tiles_display_max_tiles[i]] & (1 << filter_last)){
+				if (filter_number_current_ingroup[filter_last]>1){
+					if (TTData_Max_Tiles[tiles_display_max_tiles[i]]==filter_tt_ingroup[filter_last][filter_number_current_ingroup[filter_last]-2]){
+						tile = tiles_display_max_tiles[i];
+					}
+				}else{
+					tile = tiles_display_max_tiles[i];
+				}
+			}
+		} else {
+			if (i < total_tiles)
+				tile = tiles_display_max_tiles[i];
+		}
+		/*
+		if (i < MAX_TILES_IN_PG) {
+			if (filter_tiles) {
+				//if ((i >= filter_start) && (i <= filter_stop))
+				if (FilterTiles_Max_Tiles[tiles_display[i]] & (1 << filter_last))
+					tile = tiles_display[i];
+			} else {
+				tile = tiles_display[i];
+			}
+		} else {
+			//draw tile only when filter is off
+			if (i < total_tiles)
+				if (!filter_tiles)
+					tile = i;
+		}
+		*/
+
+		mx = j % (matrix_x);
+		my = j / (matrix_x);
+		if (tile != BLACK_TILE && j<matrix_x*matrix_y) {
+			map[mx][my].tile = tile;
+
+			j++;
+			if (filter_tiles) {
+				if (showMatrixMode > 1)
+					j++; //2,3
+				if (showMatrixMode == 3 && j % 20 == 1)
+					j += 20; //1
+				if (showMatrixMode == 1 && j % 20 == 0)
+					j += 20; //3
+			}
+		}
+	}
+}
+
+
 void draw_map(BITMAP *map_to_draw,int x0, int y0, int tiles_high, int tiles_wide){
 	draw_map_shift(map_to_draw,x0,y0,tiles_high,tiles_wide,0);
 }
@@ -231,13 +296,14 @@ int get_label_value(int idx) {
 
 void draw_map_shift(BITMAP *map_to_draw,int x0, int y0, int tiles_high, int tiles_wide, int shift)
 {
-  int x,y,xs,ys,idx,sidx,value,cc,sim,is_air_unit_show;
+  int x,y,xs,ys,idx,sidx,value,cc,sim,is_air_unit_show,rc;
   int seq=0,eq=0;
   int clr, gidx,aidx,geq,aeq;
   int clr2;
   int bmp_num, line_color, str_bmp_off;
   int shift_x=0, shift_y=0;
   BITMAP *tile_to_draw;
+  int i;
 
   if (shift){
 	  shift_x=map_shift_x(shift);
@@ -248,7 +314,10 @@ void draw_map_shift(BITMAP *map_to_draw,int x0, int y0, int tiles_high, int tile
   if (colorize_names==1) do_colorize_all();
 
   //blank all
-  rectfill(map_to_draw,0,0,map_to_draw->w,map_to_draw->h,colors_to24bits(MAP_COLOR));
+  //FPGE_SCREEN_COLOR
+  clr=MAP_COLOR;
+  if (tile_mode==1) clr=FPGE_SCREEN_COLOR;
+  rectfill(map_to_draw,0,0,map_to_draw->w,map_to_draw->h,colors_to24bits(clr));
   //blank off the edges
 
   /*
@@ -310,8 +379,8 @@ void draw_map_shift(BITMAP *map_to_draw,int x0, int y0, int tiles_high, int tile
    } //end of draw til info
 
 	clr=HEX_COLOR;
-	clr2=(edit_op==edit_tile)?COLOR_PURPLE:-1;
-	if ((showHex)||(edit_op==edit_tile))
+	clr2=(edit_op==edit_tile)?MAP_COLOR:-1;
+	if ((showHex && edit_op!=edit_tile)||(showHexMatrix && edit_op==edit_tile))
 	for (y=y0-1; y<y0+tiles_high+1; ++y)
 	   for (x=x0-1; x<x0+tiles_wide+1; ++x)
 	   {
@@ -539,38 +608,37 @@ void draw_map_shift(BITMAP *map_to_draw,int x0, int y0, int tiles_high, int tile
 
 
 	 // draw names
-	 if (edit_op!=edit_tile)
-	 if ((drawNames)||(drawAllNames)||(drawTerrain))
-	 for (y=y0-1; y<y0+tiles_high+1; ++y)
-        for (x=x0-1; x<x0+tiles_wide+1; ++x)
-         if (x>=0 && x<mapx && y>=0 && y<mapy)
-         {
-			char buf[256];
-			xs=(x-x0)*TILE_WIDTH+shift_x;
-			ys=(y-y0)*TILE_HEIGHT+shift_y;
-			if ((x)%2) ys+=TILE_HEIGHT/2;
+	if (edit_op != edit_tile)
+		if ((drawNames) || (drawAllNames) || (drawTerrain))
+			for (y = y0 - 1; y < y0 + tiles_high + 1; ++y)
+				for (x = x0 - 1; x < x0 + tiles_wide + 1; ++x)
+					if (x >= 0 && x < mapx && y >= 0 && y < mapy) {
+						char buf[256];
+						xs = (x - x0) * TILE_WIDTH + shift_x;
+						ys = (y - y0) * TILE_HEIGHT + shift_y;
+						if ((x) % 2)
+							ys += TILE_HEIGHT / 2;
 
-			if ((drawAllNames) || (drawNames)) {
+						if ((drawAllNames) || (drawNames)) {
 							if ((!showFilter) || (map[x][y].gln == filterName)) {
 								//text_mode(251); // bordo
-								int bg_color=COLOR_BLACK; //black
-								int fg_color=COLOR_WHITE; //white
+								int bg_color = COLOR_BLACK; //black
+								int fg_color = COLOR_WHITE; //white
 
 								if (is_tile_river(x, y))
-									bg_color=COLOR_BLUE; // blue if water hex
-								else{
-								if (is_tile_ocean(x, y)){
-									if (colorize_names==2){
-										bg_color= colorize_PG[gln_to_color[map[x][y].gln]];
+									bg_color = COLOR_BLUE; // blue if water hex
+								else {
+									if (is_tile_ocean(x, y)) {
+										if (colorize_names == 2) {
+											bg_color = colorize_PG[gln_to_color[map[x][y].gln]];
+										} else
+											bg_color = COLOR_BLUE; // blue if water hex
 									}
-									else
-									bg_color=COLOR_BLUE; // blue if water hex
 								}
-								}
-								if (colorize_names==1)
-									bg_color= colorize_PG[gln_to_color[map[x][y].gln]];
-								if (bg_color==14 || bg_color==15) //yellow or white
-									fg_color=COLOR_BLACK;
+								if (colorize_names == 1)
+									bg_color = colorize_PG[gln_to_color[map[x][y].gln]];
+								if (bg_color == 14 || bg_color == 15) //yellow or white
+									fg_color = COLOR_BLACK;
 
 								switch (showDecimal) {
 								case 0:
@@ -584,32 +652,35 @@ void draw_map_shift(BITMAP *map_to_draw,int x0, int y0, int tiles_high, int tile
 									break;
 								}
 								if (is_tile_name_show(x, y))
-									textout_centre_ex(map_to_draw, font, buf, xs
-											+ TILE_FULL_WIDTH / 2, ys + 2, colors_to24bits(fg_color), colors_to24bits(bg_color));
+									textout_centre_ex(map_to_draw, font, buf, xs + TILE_FULL_WIDTH / 2, ys + 2, colors_to24bits(fg_color), colors_to24bits(bg_color));
 							}
 						}
-			if(drawTerrain){
-				if ((!showFilter)||(map[x][y].utr==filterTerrain)) {
-				//text_mode(COLOR_BLUE); //blue
-					int fg_color=COLOR_WHITE;
-					int bg_color=COLOR_BLUE;
-				switch (showDecimal) {
-					case 0: sprintf(buf,"%d",map[x][y].utr); break;
-					case 1:	sprintf(buf,"%X",map[x][y].utr); break;
-					case 2:
-						if (map[x][y].utr>=0 && map[x][y].utr < MAX_TERRAIN_TYPE)
-							sprintf(buf,"%s",utr_names[map[x][y].utr]);
-						else{
-							//fg_color=COLOR_BLACK;
-							bg_color=COLOR_RED;
-							sprintf(buf,"%s","WRONG !");
+						if (drawTerrain) {
+							if ((!showFilter) || (map[x][y].utr == filterTerrain)) {
+								//text_mode(COLOR_BLUE); //blue
+								int fg_color = COLOR_WHITE;
+								int bg_color = COLOR_BLUE;
+								switch (showDecimal) {
+								case 0:
+									sprintf(buf, "%d", map[x][y].utr);
+									break;
+								case 1:
+									sprintf(buf, "%X", map[x][y].utr);
+									break;
+								case 2:
+									if (map[x][y].utr >= 0 && map[x][y].utr < MAX_TERRAIN_TYPE)
+										sprintf(buf, "%s", utr_names[map[x][y].utr]);
+									else {
+										//fg_color=COLOR_BLACK;
+										bg_color = COLOR_RED;
+										sprintf(buf, "%s", "WRONG !");
+									}
+									break;
+								}
+								textout_centre_ex(map_to_draw, font, buf, xs + TILE_FULL_WIDTH / 2, ys + 2 + 10, colors_to24bits(fg_color), colors_to24bits(bg_color));
+							}
 						}
-					break;
-				}
-				textout_centre_ex(map_to_draw,font,buf,xs+TILE_FULL_WIDTH/2,ys+2+10,colors_to24bits(fg_color),colors_to24bits(bg_color));
-				}
-			}
-		 }
+					}
 	 //move
 	if (edit_op == move_mode) {
 		//print_str("move_mode");
@@ -620,7 +691,7 @@ void draw_map_shift(BITMAP *map_to_draw,int x0, int y0, int tiles_high, int tile
 		for (y = y0 - 1; y < y0 + tiles_high + 1; ++y)
 			for (x = x0 - 1; x < x0 + tiles_wide + 1; ++x)
 				if (x >= 0 && x < mapx && y >= 0 && y < mapy) {
-					if (move_points_t[x][y] < MOVE_NOT_CHECKED) {
+					if (move_points_transport_RC[x][y] < MOVE_NOT_CHECKED) {
 
 						xs=(x-x0)*TILE_WIDTH+shift_x;
 						ys=(y-y0)*TILE_HEIGHT+shift_y;
@@ -628,7 +699,7 @@ void draw_map_shift(BITMAP *map_to_draw,int x0, int y0, int tiles_high, int tile
 						fg_color = COLOR_PURPLE;
 						bg_color = COLOR_WHITE;
 
-						sprintf(buf, "%d", move_points_t[x][y]);
+						sprintf(buf, "%d", move_points_transport_RC[x][y]);
 						textout_centre_ex(map_to_draw, font, buf,
 								xs + TILE_FULL_WIDTH / 2,
 								ys + 2 + 10,
@@ -636,13 +707,13 @@ void draw_map_shift(BITMAP *map_to_draw,int x0, int y0, int tiles_high, int tile
 								colors_to24bits(bg_color));
 
 						 line_color = colors_to24bits(fg_color);
-						 if (move_directions_t[x][y]&0x01) line(map_to_draw,xs+TILE_FULL_WIDTH/2,ys+TILE_HEIGHT/2,xs+TILE_FULL_WIDTH/2,ys,line_color);
-						 if (move_directions_t[x][y]&0x02) line(map_to_draw,xs+TILE_FULL_WIDTH/2,ys+TILE_HEIGHT/2,xs+(float)TILE_FULL_WIDTH/2.0*1.7,ys+TILE_HEIGHT/4,line_color);
-						 if (move_directions_t[x][y]&0x08) line(map_to_draw,xs+TILE_FULL_WIDTH/2,ys+TILE_HEIGHT/2,xs+(float)TILE_FULL_WIDTH/2.0*1.7,ys-1+(-(float)TILE_HEIGHT/4.0+TILE_HEIGHT),line_color);
+						 if (move_directions_transport_RC[x][y]&0x01) line(map_to_draw,xs+TILE_FULL_WIDTH/2,ys+TILE_HEIGHT/2,xs+TILE_FULL_WIDTH/2,ys,line_color);
+						 if (move_directions_transport_RC[x][y]&0x02) line(map_to_draw,xs+TILE_FULL_WIDTH/2,ys+TILE_HEIGHT/2,xs+(float)TILE_FULL_WIDTH/2.0*1.7,ys+TILE_HEIGHT/4,line_color);
+						 if (move_directions_transport_RC[x][y]&0x08) line(map_to_draw,xs+TILE_FULL_WIDTH/2,ys+TILE_HEIGHT/2,xs+(float)TILE_FULL_WIDTH/2.0*1.7,ys-1+(-(float)TILE_HEIGHT/4.0+TILE_HEIGHT),line_color);
 
-						 if (move_directions_t[x][y]&0x10) line(map_to_draw,xs+TILE_FULL_WIDTH/2,ys+TILE_HEIGHT/2,xs+TILE_FULL_WIDTH/2,ys+TILE_HEIGHT,line_color);
-						 if (move_directions_t[x][y]&0x20) line(map_to_draw,xs+TILE_FULL_WIDTH/2,ys+TILE_HEIGHT/2,xs+(float)TILE_FULL_WIDTH/2.0*0.3,ys-1+(-(float)TILE_HEIGHT/4.0+TILE_HEIGHT),line_color);
-						 if (move_directions_t[x][y]&0x80) line(map_to_draw,xs+TILE_FULL_WIDTH/2,ys+TILE_HEIGHT/2,xs+(float)TILE_FULL_WIDTH/2.0*0.3,ys+TILE_HEIGHT/4,line_color);
+						 if (move_directions_transport_RC[x][y]&0x10) line(map_to_draw,xs+TILE_FULL_WIDTH/2,ys+TILE_HEIGHT/2,xs+TILE_FULL_WIDTH/2,ys+TILE_HEIGHT,line_color);
+						 if (move_directions_transport_RC[x][y]&0x20) line(map_to_draw,xs+TILE_FULL_WIDTH/2,ys+TILE_HEIGHT/2,xs+(float)TILE_FULL_WIDTH/2.0*0.3,ys-1+(-(float)TILE_HEIGHT/4.0+TILE_HEIGHT),line_color);
+						 if (move_directions_transport_RC[x][y]&0x80) line(map_to_draw,xs+TILE_FULL_WIDTH/2,ys+TILE_HEIGHT/2,xs+(float)TILE_FULL_WIDTH/2.0*0.3,ys+TILE_HEIGHT/4,line_color);
 				}
 					if (move_points[x][y] < MOVE_NOT_CHECKED ) {
 						xs=(x-x0)*TILE_WIDTH+shift_x;
@@ -659,16 +730,242 @@ void draw_map_shift(BITMAP *map_to_draw,int x0, int y0, int tiles_high, int tile
 								colors_to24bits(bg_color));
 
 						 line_color = colors_to24bits(fg_color);
-		  				 if (move_directions[x][y]&0x01) line(map_to_draw,xs+TILE_FULL_WIDTH/2,ys+TILE_HEIGHT/2,xs+TILE_FULL_WIDTH/2,ys,line_color);
-		  				 if (move_directions[x][y]&0x02) line(map_to_draw,xs+TILE_FULL_WIDTH/2,ys+TILE_HEIGHT/2,xs+(float)TILE_FULL_WIDTH/2.0*1.7,ys+TILE_HEIGHT/4,line_color);
-		  				 if (move_directions[x][y]&0x08) line(map_to_draw,xs+TILE_FULL_WIDTH/2,ys+TILE_HEIGHT/2,xs+(float)TILE_FULL_WIDTH/2.0*1.7,ys-1+(-(float)TILE_HEIGHT/4.0+TILE_HEIGHT),line_color);
+		  				 if (move_directions_RC[x][y]&0x01) line(map_to_draw,xs+TILE_FULL_WIDTH/2,ys+TILE_HEIGHT/2,xs+TILE_FULL_WIDTH/2,ys,line_color);
+		  				 if (move_directions_RC[x][y]&0x02) line(map_to_draw,xs+TILE_FULL_WIDTH/2,ys+TILE_HEIGHT/2,xs+(float)TILE_FULL_WIDTH/2.0*1.7,ys+TILE_HEIGHT/4,line_color);
+		  				 if (move_directions_RC[x][y]&0x08) line(map_to_draw,xs+TILE_FULL_WIDTH/2,ys+TILE_HEIGHT/2,xs+(float)TILE_FULL_WIDTH/2.0*1.7,ys-1+(-(float)TILE_HEIGHT/4.0+TILE_HEIGHT),line_color);
 
-		  				 if (move_directions[x][y]&0x10) line(map_to_draw,xs+TILE_FULL_WIDTH/2,ys+TILE_HEIGHT/2,xs+TILE_FULL_WIDTH/2,ys+TILE_HEIGHT,line_color);
-		  				 if (move_directions[x][y]&0x20) line(map_to_draw,xs+TILE_FULL_WIDTH/2,ys+TILE_HEIGHT/2,xs+(float)TILE_FULL_WIDTH/2.0*0.3,ys-1+(-(float)TILE_HEIGHT/4.0+TILE_HEIGHT),line_color);
-		  				 if (move_directions[x][y]&0x80) line(map_to_draw,xs+TILE_FULL_WIDTH/2,ys+TILE_HEIGHT/2,xs+(float)TILE_FULL_WIDTH/2.0*0.3,ys+TILE_HEIGHT/4,line_color);
+		  				 if (move_directions_RC[x][y]&0x10) line(map_to_draw,xs+TILE_FULL_WIDTH/2,ys+TILE_HEIGHT/2,xs+TILE_FULL_WIDTH/2,ys+TILE_HEIGHT,line_color);
+		  				 if (move_directions_RC[x][y]&0x20) line(map_to_draw,xs+TILE_FULL_WIDTH/2,ys+TILE_HEIGHT/2,xs+(float)TILE_FULL_WIDTH/2.0*0.3,ys-1+(-(float)TILE_HEIGHT/4.0+TILE_HEIGHT),line_color);
+		  				 if (move_directions_RC[x][y]&0x80) line(map_to_draw,xs+TILE_FULL_WIDTH/2,ys+TILE_HEIGHT/2,xs+(float)TILE_FULL_WIDTH/2.0*0.3,ys+TILE_HEIGHT/4,line_color);
 					}
 
 				}
 	} //move_mode
+
+	if (edit_op == edit_tile && debug_tile_matrix) {
+		char buf[256];
+
+		for (y = y0 - 1; y < y0 + tiles_high + 1; ++y)
+			for (x = x0 - 1; x < x0 + tiles_wide + 1; ++x)
+				if (x >= 0 && x < mapx && y >= 0 && y < mapy && map[x][y].tile!=BLACK_TILE) {
+
+					xs = (x - x0) * TILE_WIDTH + shift_x;
+					ys = (y - y0) * TILE_HEIGHT + shift_y;
+					if ((x) % 2)
+						ys += TILE_HEIGHT / 2;
+
+					if (drawRoads) {
+						if ( (FilterTiles_Max_Tiles[map[x][y].tile] & (1 << ROAD_FILTER_INDEX)) && ( showDecimal == 0 ) ) {
+							line_color = colors_to24bits(LINE_COLOR);
+							rc = 0;
+							for (i = 0; i < roads_tiles_size; i++)
+								if (road_connection_info[i].tile == map[x][y].tile) {
+									//rc = roads_tiles_mask_RC[i];
+									rc =road_connection_info[i].bits_RC;
+
+									if (rc & 0x01)
+										line(map_to_draw, xs + TILE_FULL_WIDTH / 2, ys + TILE_HEIGHT / 2, xs + TILE_FULL_WIDTH / 2, ys, line_color);
+									if (rc & 0x02)
+										line(map_to_draw, xs + TILE_FULL_WIDTH / 2, ys + TILE_HEIGHT / 2, xs + (float) TILE_FULL_WIDTH / 2.0 * 1.7, ys + TILE_HEIGHT / 4, line_color);
+									if (rc & 0x08)
+										line(map_to_draw, xs + TILE_FULL_WIDTH / 2, ys + TILE_HEIGHT / 2, xs + (float) TILE_FULL_WIDTH / 2.0 * 1.7, ys - 1 + (-(float) TILE_HEIGHT / 4.0 + TILE_HEIGHT), line_color);
+									if (rc & 0x10)
+										line(map_to_draw, xs + TILE_FULL_WIDTH / 2, ys + TILE_HEIGHT / 2, xs + TILE_FULL_WIDTH / 2, ys + TILE_HEIGHT, line_color);
+									if (rc & 0x20)
+										line(map_to_draw, xs + TILE_FULL_WIDTH / 2, ys + TILE_HEIGHT / 2, xs + (float) TILE_FULL_WIDTH / 2.0 * 0.3, ys - 1 + (-(float) TILE_HEIGHT / 4.0 + TILE_HEIGHT), line_color);
+									if (rc & 0x80)
+										line(map_to_draw, xs + TILE_FULL_WIDTH / 2, ys + TILE_HEIGHT / 2, xs + (float) TILE_FULL_WIDTH / 2.0 * 0.3, ys + TILE_HEIGHT / 4, line_color);
+									break;
+								}
+						}
+						if ((FilterTiles_Max_Tiles[map[x][y].tile] & (1 << RIVER_FILTER_INDEX)) && ( showDecimal ==1)) {
+							line_color = colors_to24bits(COLOR_BLUE);
+							rc = 0;
+							for (i = 0; i < max_river_conversions_patterns; i++)
+								if (river_connection_info[i].tile == map[x][y].tile) {
+									rc = river_connection_info[i].bits_RC;
+
+									if (rc & 0x01)
+										line(map_to_draw, xs + TILE_FULL_WIDTH / 2, ys + TILE_HEIGHT / 2, xs + TILE_FULL_WIDTH / 2, ys, line_color);
+									if (rc & 0x02)
+										line(map_to_draw, xs + TILE_FULL_WIDTH / 2, ys + TILE_HEIGHT / 2, xs + (float) TILE_FULL_WIDTH / 2.0 * 1.7, ys + TILE_HEIGHT / 4, line_color);
+									if (rc & 0x08)
+										line(map_to_draw, xs + TILE_FULL_WIDTH / 2, ys + TILE_HEIGHT / 2, xs + (float) TILE_FULL_WIDTH / 2.0 * 1.7, ys - 1 + (-(float) TILE_HEIGHT / 4.0 + TILE_HEIGHT), line_color);
+									if (rc & 0x10)
+										line(map_to_draw, xs + TILE_FULL_WIDTH / 2, ys + TILE_HEIGHT / 2, xs + TILE_FULL_WIDTH / 2, ys + TILE_HEIGHT, line_color);
+									if (rc & 0x20)
+										line(map_to_draw, xs + TILE_FULL_WIDTH / 2, ys + TILE_HEIGHT / 2, xs + (float) TILE_FULL_WIDTH / 2.0 * 0.3, ys - 1 + (-(float) TILE_HEIGHT / 4.0 + TILE_HEIGHT), line_color);
+									if (rc & 0x80)
+										line(map_to_draw, xs + TILE_FULL_WIDTH / 2, ys + TILE_HEIGHT / 2, xs + (float) TILE_FULL_WIDTH / 2.0 * 0.3, ys + TILE_HEIGHT / 4, line_color);
+									break;
+
+								}
+						}
+
+						//road and decimal==2 = patterns
+						if (showDecimal == 2) {
+							int pattern=0;
+
+							//draw also patterns
+							if (FilterTiles_Max_Tiles[map[x][y].tile] & (1 << ROAD_FILTER_INDEX)){
+								//search for road pattern
+								for(i=0;i<road_size;i++){
+									if (road_pattern_tile[i][0]==map[x][y].tile || road_pattern_tile[i][1]==map[x][y].tile || road_pattern_tile[i][2]==map[x][y].tile){
+										pattern=road_pattern_SE_CCW[i];
+										break;
+									}
+								}
+							}
+
+							if (FilterTiles_Max_Tiles[map[x][y].tile] & (1 << COAST_FILTER_INDEX)){
+								//search for road pattern
+								for(i=0;i<coast_size;i++){
+									if (coast_pattern_tile[i][0]==map[x][y].tile || coast_pattern_tile[i][1]==map[x][y].tile || coast_pattern_tile[i][2]==map[x][y].tile){
+										pattern=coast_pattern_SE_CCW[i];
+										break;
+									}
+								}
+							}
+
+							if (FilterTiles_Max_Tiles[map[x][y].tile] & (1 << RIVER_FILTER_INDEX)){
+								//search for road pattern
+								for(i=0;i<river_size;i++){
+									if (river_pattern_tile[i][0]==map[x][y].tile || river_pattern_tile[i][1]==map[x][y].tile || river_pattern_tile[i][2]==map[x][y].tile){
+										pattern=river_pattern_SE_CCW[i];
+										break;
+									}
+								}
+							}
+
+							if(pattern){
+								line_color = colors_to24bits(PROBLEM_HEX_COLOR);
+
+								// SE_CCW
+								int dx=3;
+								int dy=2;
+								if (pattern & 0x01){
+									line(map_to_draw,xs + 0+dx ,ys + 24,xs + 15+dx,ys + 49-dy,line_color);
+									line(map_to_draw,xs + 1+dx ,ys + 24,xs + 16+dx,ys + 49-dy,line_color);
+								}
+								if (pattern & 0x02) {
+									line(map_to_draw, xs + 15, ys + 50-dx, xs + 45, ys + 50-dx, line_color);
+									line(map_to_draw, xs + 15, ys + 49-dx, xs + 44, ys + 49-dx, line_color);
+								}
+								if (pattern & 0x04) {
+									line(map_to_draw, xs + 45-dx, ys + 50-dy, xs + 60-dx, ys + 24, line_color);
+									line(map_to_draw, xs + 44-dx, ys + 50-dy, xs + 59-dx, ys + 24, line_color);
+								}
+								if (pattern & 0x08) {
+									line(map_to_draw, xs + 45-dx, ys + 0+dy, xs + 60-dx, ys + 24, line_color);
+									line(map_to_draw, xs + 44-dx, ys + 0+dy, xs + 59-dx, ys + 24, line_color);
+								}
+								if (pattern & 0x10) {
+									line(map_to_draw, xs + 15, ys + 0+dx, xs + 45, ys + 0+dx, line_color);
+									line(map_to_draw, xs + 15, ys + 1+dx, xs + 44, ys + 1+dx, line_color);
+								}
+								if (pattern & 0x20) {
+									line(map_to_draw, xs + 0+dx, ys + 24, xs + 15+dx, ys + 0+dy, line_color);
+									line(map_to_draw, xs + 1+dx, ys + 24, xs + 16+dx, ys + 0+dy, line_color);
+								}
+							}
+						}
+					} //draw roads
+					if (drawNames) {
+
+						int bg_color = COLOR_BLACK; //black
+						int fg_color = COLOR_WHITE; //white
+						int gln = NData_Max_Tiles[map[x][y].tile];
+
+						switch (showDecimal) {
+						case 0:
+							sprintf(buf, "%d", gln);
+							break;
+						case 1:
+							sprintf(buf, "%X", gln);
+							break;
+						case 2:
+							sprintf(buf, "%s", gln_utf8[gln]);
+							break;
+						}
+							textout_centre_ex(map_to_draw, font, buf, xs + TILE_FULL_WIDTH / 2, ys + 2, colors_to24bits(fg_color), colors_to24bits(bg_color));
+					}
+
+					if (drawAllNames) {
+						int bg_color = COLOR_BLACK; //black
+						int fg_color = COLOR_WHITE; //white
+						int tile = map[x][y].tile;
+
+						switch (colorize_names) {
+						case 0:
+							switch (showDecimal) {
+							case 0:
+							case 2:
+								sprintf(buf, "%d", tile);
+								break;
+							case 1:
+								sprintf(buf, "%X", tile);
+								break;
+							}
+							break;
+						case 1:
+							sprintf(buf, "%04x", FilterTiles_Max_Tiles[tile]);
+							break;
+						case 2:
+							sprintf(buf, "%04x", MainCategoryTiles_Max_Tiles[tile]);
+							break;
+						}
+						textout_centre_ex(map_to_draw, font, buf, xs + TILE_FULL_WIDTH / 2, ys + 2+20, colors_to24bits(fg_color), colors_to24bits(bg_color));
+
+						if (colorize_names == 0){
+							for (i = 0; i < ocean_tiles_size; i++){
+								if (ocean_tiles[i]==map[x][y].tile){
+									strncpy(buf,"O",256);
+									textout_centre_ex(map_to_draw, font, buf, xs + TILE_FULL_WIDTH / 2, ys + 2+30, colors_to24bits(fg_color), colors_to24bits(bg_color));
+									break;
+								}
+							}
+						}
+						if (colorize_names == 1) {
+							for (i = 0; i < roads_passive_tiles_size; i++) {
+								if (roads_passive_tiles[i] == map[x][y].tile) {
+									strncpy(buf, "R", 256);
+									textout_centre_ex(map_to_draw, font, buf, xs + TILE_FULL_WIDTH / 2, ys + 2 + 30, colors_to24bits(fg_color), colors_to24bits(bg_color));
+									break;
+								}
+							}
+						}
+					}
+
+					if (drawTerrain) {
+
+						//text_mode(COLOR_BLUE); //blue
+						int fg_color = COLOR_WHITE;
+						int bg_color = COLOR_BLUE;
+						int utr = TTData_Max_Tiles[map[x][y].tile];
+
+						switch (showDecimal) {
+						case 0:
+							sprintf(buf, "%d", utr);
+							break;
+						case 1:
+							sprintf(buf, "%X", utr);
+							break;
+						case 2:
+							if (utr >= 0 && utr < MAX_TERRAIN_TYPE)
+								sprintf(buf, "%s", utr_names[utr]);
+							else {
+								bg_color = COLOR_RED;
+								sprintf(buf, "%s", "WRONG !");
+							}
+							break;
+						}
+						textout_centre_ex(map_to_draw, font, buf, xs + TILE_FULL_WIDTH / 2, ys + 2 + 10, colors_to24bits(fg_color), colors_to24bits(bg_color));
+
+
+					}
+
+
+				}
+	} //edit_op == edit_tile
 
 }

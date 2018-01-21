@@ -12,6 +12,7 @@
 #define NO_OF_PACGEN_TERRAIN_TYPES 37
 #define NO_OF_PACGEN_CLASSES 20
 #define NO_OF_PACGEN_MOVE_TYPES 11
+#define NO_OF_PACGEN_TARGET_TYPES 5
 
 #define LOAD_PACGEN_MODE_TT2TILES 0
 #define LOAD_PACGEN_CLASSES 1
@@ -40,5 +41,6 @@ int load_pacgen_mt2pg_mt();
 
 int load_pacgen_equip();
 void initialize_pacgen_countries_table();
+void initialize_pacgen_std_names();
 
 #endif /* PACGEN_H_ */

@@ -30,6 +30,8 @@ int ctrl_x_keycallback();
 int ctrl_e_keycallback();
 int ctrl_b_keycallback();
 int ctrl_g_keycallback();
+int check_terrain_mask(unsigned char , unsigned short );
+int check_terrain(unsigned char , unsigned char );
 int ctrl_alt_m_keycallback();
 int generate_dialog();
 void do_fix_roads();
@@ -96,7 +98,6 @@ int f10_keycallback();
 int f11_keycallback();
 int f12_keycallback();
 
-void draw_tiles_matrix();
 void position_gui_elements(int , int );
 void mark_road_problems();
 void mark_city_problems();

@@ -135,7 +135,7 @@ void draw_road_connections(BITMAP *map_to_draw, int xs,int ys, int rc){
 
 int d_start_proc(int msg, DIALOG *d, int c)
 {
-	int mask,idx,idx1;
+	int mask_RC,idx,idx1;
 	BITMAP *tile_to_draw;
 
    if (msg==MSG_START)
@@ -186,18 +186,18 @@ int d_start_proc(int msg, DIALOG *d, int c)
 		terrain_dlg[tdMatchMatchIdxCheck].flags&=~D_SELECTED;
 		
 	 if (tdRoadEditIdxCheck){
-		mask=atoi(tdRDStr);
-		if ((mask&0x01)==0x01) 	terrain_dlg[tdRoadNCheck].flags|=D_SELECTED; else
+		mask_RC=atoi(tdRDStr);
+		if ((mask_RC&0x01)==0x01) 	terrain_dlg[tdRoadNCheck].flags|=D_SELECTED; else
 								terrain_dlg[tdRoadNCheck].flags&=~D_SELECTED;
-		if ((mask&0x80)==0x80) 	terrain_dlg[tdRoadNWCheck].flags|=D_SELECTED; else
+		if ((mask_RC&0x80)==0x80) 	terrain_dlg[tdRoadNWCheck].flags|=D_SELECTED; else
 								terrain_dlg[tdRoadNWCheck].flags&=~D_SELECTED;
-		if ((mask&0x02)==0x02) 	terrain_dlg[tdRoadNECheck].flags|=D_SELECTED; else
+		if ((mask_RC&0x02)==0x02) 	terrain_dlg[tdRoadNECheck].flags|=D_SELECTED; else
 								terrain_dlg[tdRoadNECheck].flags&=~D_SELECTED;
-		if ((mask&0x20)==0x20) 	terrain_dlg[tdRoadSWCheck].flags|=D_SELECTED; else
+		if ((mask_RC&0x20)==0x20) 	terrain_dlg[tdRoadSWCheck].flags|=D_SELECTED; else
 								terrain_dlg[tdRoadSWCheck].flags&=~D_SELECTED;
-		if ((mask&0x08)==0x08) 	terrain_dlg[tdRoadSECheck].flags|=D_SELECTED; else
+		if ((mask_RC&0x08)==0x08) 	terrain_dlg[tdRoadSECheck].flags|=D_SELECTED; else
 								terrain_dlg[tdRoadSECheck].flags&=~D_SELECTED;
-		if ((mask&0x10)==0x10) 	terrain_dlg[tdRoadSCheck].flags|=D_SELECTED; else
+		if ((mask_RC&0x10)==0x10) 	terrain_dlg[tdRoadSCheck].flags|=D_SELECTED; else
 								terrain_dlg[tdRoadSCheck].flags&=~D_SELECTED;
 
 		}
@@ -346,19 +346,19 @@ int d_coreT_proc(int msg, DIALOG *d, int c)
 
 int d_roadB_proc(int msg, DIALOG *d, int c)
 {
-    int road=0;
+    int road_RC=0;
 
 	if ((msg==MSG_CLICK)||(msg==MSG_KEY))
 	{
 		// toggle
 		//terrain_dlg[tdRoadButton].flags^=D_SELECTED;
-		road =   ((terrain_dlg[tdRoadNCheck].flags&D_SELECTED)==D_SELECTED?0x01:0);
-		road += ((terrain_dlg[tdRoadNWCheck].flags&D_SELECTED)==D_SELECTED?0x80:0);
-		road += ((terrain_dlg[tdRoadNECheck].flags&D_SELECTED)==D_SELECTED?0x02:0);
-		road += ((terrain_dlg[tdRoadSWCheck].flags&D_SELECTED)==D_SELECTED?0x20:0);
-		road += ((terrain_dlg[tdRoadSECheck].flags&D_SELECTED)==D_SELECTED?0x08:0);
-		road += (( terrain_dlg[tdRoadSCheck].flags&D_SELECTED)==D_SELECTED?0x10:0);
-		sprintf(tdRDStr,"%d",road);
+		road_RC =  ((terrain_dlg[ tdRoadNCheck].flags&D_SELECTED)==D_SELECTED?0x01:0);
+		road_RC += ((terrain_dlg[tdRoadNWCheck].flags&D_SELECTED)==D_SELECTED?0x80:0);
+		road_RC += ((terrain_dlg[tdRoadNECheck].flags&D_SELECTED)==D_SELECTED?0x02:0);
+		road_RC += ((terrain_dlg[tdRoadSWCheck].flags&D_SELECTED)==D_SELECTED?0x20:0);
+		road_RC += ((terrain_dlg[tdRoadSECheck].flags&D_SELECTED)==D_SELECTED?0x08:0);
+		road_RC += (( terrain_dlg[tdRoadSCheck].flags&D_SELECTED)==D_SELECTED?0x10:0);
+		sprintf(tdRDStr,"%d",road_RC);
 		terrain_dlg[tdRoadEditIdx].dp = tdRDStr;
 		terrain_dlg[tdRoadEditIdx].flags |= D_DIRTY;
 		//terrain_dlg[tdRoadEditIdx].flags |= D_DIRTY;

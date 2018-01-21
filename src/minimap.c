@@ -467,6 +467,7 @@ void set_in_radius(int x, int y, int r, int value)
 }
 
 int isOwnerRight(enum UTYPES checkMe, int isAlliedExpected){
+	/*
 	if (isAlliedExpected == 0) {
 		if (checkMe != allied_core)
 			return 1;
@@ -479,6 +480,9 @@ int isOwnerRight(enum UTYPES checkMe, int isAlliedExpected){
 		else
 			return 0;
 	}
+	*/
+	if (isAlliedExpected && (checkMe==allied_core || checkMe==allied_aux) ) return 1;
+	if (!isAlliedExpected && (checkMe==axis_core || checkMe==axis_aux) ) return 1;
 	return 0;
 }
 

@@ -10,12 +10,14 @@
 #define HD_X  1
 #define HD_Y  1
 #define HD_LINES   38
+#define HD_LINES2   25
 #define HD_COLUMNS 63
 
 #define HD_LH  16
 
 #define HD_DX  (HD_COLUMNS * 8)
 #define HD_DY  (HD_LINES*HD_LH-HD_LH/2)
+#define HD_DY2  (HD_LINES2*HD_LH-HD_LH/2)
 #define HD_LINE1  HD_Y+10
 /*
 int d_button_proc_with_idle(int msg, DIALOG *d, int c){
@@ -77,6 +79,50 @@ DIALOG help_dlg[HELP_DLG_SIZE]={
 },
 // 1
 { d_button_proc, HD_X + HD_DX / 2 - 96 / 2, HD_Y + HD_DY - HD_LH- 6, 96, 15, HD_FG_COLOR, HD_BG_COLOR, 'd', D_EXIT, 0,0, "&Done", 0, 0 },
+//Last
+{d_yield_proc,0,0,0,0,0,0,0,0,0,0,0,0,0},
+{NULL},
+};
+
+DIALOG help_dlg2[HELP_DLG_SIZE]={
+// 0
+{
+  d_textbox_proc,
+     HD_X,HD_Y,
+	 HD_DX, //width
+	 HD_DY2, //height
+     HD_FG_COLOR,HD_SCREEN_COLOR,
+     0,
+     0,
+     0,0,
+     "F1..F12  - press to filter tiles by category, then filter by default terrain type\n\n"
+	 "F1  - coast\n\n"
+	 "F2  - city/port\n\n"
+	 "F3  - mountains\n\n"
+	 "F4  - clear/rough/airport\n\n"
+	 "F5  - desert\n\n"
+	 "F6  - road\n\n"
+	 "F7  - river\n\n"
+	 "F8  - swamp\n\n"
+	 "F9  - forest\n\n"
+	 "F10 - fort\n\n"
+	 "F11 - bocage\n\n"
+	 "F12 - escarpment\n\n"
+	 "ctrl-h show/hide hex grid on tile matrix\n\n"
+     "ctrl-l change tile matrix layout\n\n"
+     "In tile matrix debug mode (CLI: -d)\n\n"
+     "ctrl-a - tile ID and ocean(O), group filter and passive road(R), main group filter information\n\n"
+     "Use ctrl-d to change display mode for:\n\n"
+     "ctrl-r - road, river information, tile generation mask\n\n"
+     "ctrl-t - tile default terrain type\n\n"
+     "ctrl-n - tile default name\n\n"
+
+
+     //"\n\n"
+	 ,0,0
+},
+// 1
+{ d_button_proc, HD_X + HD_DX / 2 - 96 / 2, HD_Y + HD_DY2 - HD_LH- 6, 96, 15, HD_FG_COLOR, HD_BG_COLOR, 'd', D_EXIT, 0,0, "&Done", 0, 0 },
 //Last
 {d_yield_proc,0,0,0,0,0,0,0,0,0,0,0,0,0},
 {NULL},

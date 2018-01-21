@@ -12,8 +12,8 @@
 
 extern DIALOG randomize_dlg[RANDOMIZE_DLG_SIZE];
 
-void forest_random(int idx, int len);
-void randomize_tiles(int idx, int len);
+void forest_random();
+void randomize_tiles(int);
 int randomize_dialog();
 void randomize_patterns(int type);
 

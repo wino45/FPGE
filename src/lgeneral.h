@@ -8,7 +8,7 @@
 #ifndef LGENERAL_H_
 #define LGENERAL_H_
 
-#define LG_U_DLG 11
+#define LG_U_DLG 12
 extern DIALOG lgen_uicons_dlg[LG_U_DLG];
 
 #define LG_EQP_DLG 9

@@ -19,8 +19,8 @@
 #define MAX_VICTORY_CON 10
 #define PRESTIGE_ALLOTMENTS_NUMBER 38
 
-extern unsigned char block1_Name[];
-extern unsigned char block1_Description[];
+extern unsigned char block1_Name[256];
+extern unsigned char block1_Description[1024];
 extern unsigned char block1_Max_Unit_Strength[];
 extern unsigned char block1_Max_Unit_Experience[];
 

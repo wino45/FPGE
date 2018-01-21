@@ -22,7 +22,7 @@
 #undef min
 #undef max
 
-
+#define print_hex(var)  printf("%s=%04x\n",#var,var)
 #define print_dec(var)  printf("%s=%d\n",#var,var)
 #define print_ldec(var)  printf("%s=%ld\n",#var,var)
 #define print_str(var)  printf("%s=%s\n",#var,var)
@@ -41,7 +41,7 @@
 //#define MAX_TILES 256  //maximum number of map tile icons
 #define MAX_TILES 8192  //maximum number of map tile icons
 
-#define MAX_UICONS 5000 //maximum number of unit icons
+#define MAX_UICONS 6000 //maximum number of unit icons
 #define MAX_MUICONS 2  //allways 2 for strategic map
 #define MAX_UNITS 5000  //maximum number of units in equipment file
 #define MAX_FLAGS 512   //actually PG uses 48, we need 512 to handle 256 flags due to graphics loading code
@@ -88,14 +88,14 @@
 #define MAP_SET   0x51
 #define MAP_LAYERS_START   123
 
-#define MAX_ROAD_PATTERN  9
-#define MAX_COAST_PATTERN 22
-#define MAX_RIVER_PATTERN 12
-#define MAX_COAST_TILE (16 * 3 + 1)
+#define MAX_PATTERN_SIZE  128
 
 #define NO_FILTER_INDEX -1
 #define COAST_FILTER_INDEX 0
 #define CITY_FILTER_INDEX 1
+#define ROAD_FILTER_INDEX 5
+#define RIVER_FILTER_INDEX 6
+#define FOREST_FILTER_INDEX 8
 
 #define UNKNOWN_UTR_NAME 39
 
@@ -119,9 +119,10 @@
 #define MAX_MOV_TYPE 25
 #define RADIO_PG_MOV_TYPES 8
 #define RADIO_PGF_MOV_TYPES 11
-#define MAX_TERRAIN_MOV_TYPES 25
+#define MAX_TERRAIN_MOV_TYPES 50
 #define ROW_PG_TERRAIN_MOV_TYPES 12
-#define COL_PG_WEATHER_TYPES 3
+#define ROW_PACGEN_TERRAIN_MOV_TYPES 37
+#define MOVEMENT_TYPES_NO_COL 3
 #define MAX_COLUMNS_DYNDLG 10
 
 #define PGF_MOV_TYPES 11
@@ -204,7 +205,7 @@
 
 #define NEUTRAL_HEX_COLOR 256-16+3
 #define DEPLOY_HEX_COLOR 255
-#define BLACK_HEX_COLOR 255
+#define BLACK_HEX_COLOR 8
 #define PROBLEM_HEX_COLOR 122
 
 #define BLACK_TILE (MAX_TILES+1)
@@ -302,7 +303,7 @@ int get_v_slide_max();
 #define GD    25 //ground defence
 #define AD    26 //air defence
 #define CD    27 //close defence
-#define TARGET_TYPE    28 //target type 0-soft,1-hard,2-air,3-naval
+#define TARGET_TYPE    28 //target type 0-soft,1-hard,2-air,3-naval,[4-submarine-PacGen]
 #define AAF   29   //1 for tac bombers who can attack
 #define INITIATIVE   31 //initiative
 #define RANGE   32 //range
@@ -598,11 +599,14 @@ extern int showCounter;
 extern int drawGndTransport;
 extern int showWeather;
 extern int showHex;
+extern int showHexMatrix;
+extern int showMatrixMode;
 extern int graphical_overide;
 extern int scenarioUnitsMode;
 extern int displayAllUnits;
 extern int displayUnitsOrder;
 extern int graphical_overide_hex; //special hex display
+extern int debug_tile_matrix;
 extern int show_ranges;
 extern int show_problems;
 extern int colorize_names;
@@ -677,6 +681,7 @@ int is_tile_river(short x, short y);
 int is_tile_ocean(short x, short y);
 int is_tile_name_water(short x, short y);
 int is_tile_name_standard(int gln);
+int is_tile_a_city_tile(int tile);
 int load_scenario_dialog();
 
 void do_place_status();

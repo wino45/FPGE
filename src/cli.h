@@ -12,6 +12,8 @@
 //extern unsigned char rc[MAX_MAP_X][MAX_MAP_Y];
 extern unsigned char tiles_temp[MAX_TILES];
 
+int CountBits(int v);
+
 int make_mini_tiles();
 int prepare_mini_tiles();
 int cli_parsing(int argc, char *argv[]);

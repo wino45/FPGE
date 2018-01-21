@@ -325,7 +325,7 @@ int d_clr_proc(int msg,DIALOG *d,int c)
 		senario_dlg[sdShortDescIdx].dp = ShortDescStr;
 		senario_dlg[sdLongDescIdx].dp = LongDesStr;
 
-		if (pgf_mode) {
+		if (pgf_mode || pacgen_mode) {
 			strncpy(ShortDescStr,block1_Name, SCENARIO_STR_SIZE);
 			strncpy(LongDesStr,block1_Description, SCENARIO_DES_STR_SIZE);
 		} else {
@@ -510,9 +510,15 @@ int d_clr_proc(int msg,DIALOG *d,int c)
    }else{
 	   senario_dlg[sdGenAIPBtnIdx].flags |=D_HIDDEN;
 	   senario_dlg[sdGenPfCBtnIdx].flags |=D_HIDDEN;
-	   senario_dlg[sdCurAlldAuxIdx].flags |=D_HIDDEN;
-	   senario_dlg[sdMaxAlldAuxIdx].flags |=D_HIDDEN;
-	   senario_dlg[sdMaxAlldAuxLabelIdx].flags |=D_HIDDEN;
+	   if (pacgen_mode){
+		   senario_dlg[sdCurAlldAuxIdx].flags &= ~D_HIDDEN;
+		   senario_dlg[sdMaxAlldAuxIdx].flags &= ~D_HIDDEN;
+		   senario_dlg[sdMaxAlldAuxLabelIdx].flags &= ~D_HIDDEN;
+	   }else{
+		   senario_dlg[sdCurAlldAuxIdx].flags |=D_HIDDEN;
+		   senario_dlg[sdMaxAlldAuxIdx].flags |=D_HIDDEN;
+		   senario_dlg[sdMaxAlldAuxLabelIdx].flags |=D_HIDDEN;
+	   }
 	   senario_dlg[sdAxisVCButtonIdx].flags |=D_HIDDEN;
 	   senario_dlg[sdAlliedVCButtonIdx].flags |=D_HIDDEN;
 	   senario_dlg[sdClassButtonIdx].flags |=D_HIDDEN;

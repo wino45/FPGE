@@ -333,29 +333,9 @@ int weather_table[4][13][3]={
 }
 };
 
-//--------RIVERS-----------------
-struct river_pzc {
- int tile;
- char pattern[7];
- int corners[6];
- int bits;
-};
 
-#define MAX_RIVER_CONVERSIONS_PATTERNS 30
 
-struct river_pzc river_conversion_patterns[MAX_RIVER_CONVERSIONS_PATTERNS] = {
-{30 ,"001001"},{32 ,"100010"},{40 ,"100100"},{41 ,"010100"},
-{60 ,"001010"},{70 ,"010001"},{223,"001001"},{224,"100100"},
-{225,"100010"},{226,"010010"},{54 ,"100010"},{55 ,"000110"},
-{61 ,"011000"},{62 ,"000101"},{63 ,"101000"},{64 ,"010010"},
-{65 ,"010001"},{71 ,"100100"},{72 ,"001001"},{227,"010100"},
-{162,"001001"},{165,"001001"},{229,"000010"},{228,"010000"},
-{52 ,"000001"},{53 ,"001000"},{50 ,"001000"},{42 ,"100000"},
-{51 ,"000001"},{31 ,"000100"} };
-
-int pat_bits[6] = { 1+2, 2+8, 8+16, 16+32, 32+128, 128+1 };
-
-unsigned char rrc[MAX_MAP_X][MAX_MAP_Y];
+unsigned char temp_rc[MAX_MAP_X][MAX_MAP_Y];
 
 //--------NAMES-----------------
 int gln_to_pzcn[MAX_NAMES];
@@ -515,31 +495,16 @@ void init_pzc_conversion_names(){
 	pzcn_to_gln_no=STD_NAMES_PZC; //first 16 names are defaults
 }
 
-void init_tables(){
+void init_pzc_tables(){
 	int x,y;
+	int i;
 
 	if (initialization_done) return;
 
 	initialization_done=1;
-
-	int i,j;
-	for (i=0;i<MAX_RIVER_CONVERSIONS_PATTERNS;i++){
-		int bits=0;
-		for (j=0;j<6;j++){
-			if (river_conversion_patterns[i].pattern[j]=='1') {
-				river_conversion_patterns[i].corners[j]=1;
-				bits|=pat_bits[j];
-			}
-			else river_conversion_patterns[i].corners[j]=0;
-		}
-		river_conversion_patterns[i].bits=bits;
-	}
-
 	for (y = 1; y < mapy - 1; ++y)
 		for (x = 1; x < mapx - 1; ++x)
-			rrc[x][y]=0;
-
-
+			temp_rc[x][y]=0;
 
 	//units
 	for (i=0;i<MAX_UNITS;i++){
@@ -561,31 +526,31 @@ int x,y,i;
 //first step, set all possible bits, clear if empty
 for (y = 1; y < mapy - 1; ++y)
 	for (x = 1; x < mapx - 1; ++x) {
-		rrc[x][y]=0;
-		for (i = 0; i < MAX_RIVER_CONVERSIONS_PATTERNS; ++i)
-			if (map[x][y].tile == river_conversion_patterns[i].tile) {
-				rrc[x][y]=river_conversion_patterns[i].bits;
+		temp_rc[x][y]=0;
+		for (i = 0; i < max_river_conversions_patterns; ++i)
+			if (map[x][y].tile == river_connection_info[i].tile) {
+				temp_rc[x][y]=river_connection_info[i].bits_RC;
 				break;
 			}
 	}
-//one way
+//clear one way
 for (y = 1; y < mapy - 1; ++y)
 	for (x = 1; x < mapx - 1; ++x) {
-	int rc=rrc[x][y];
+	int rc=temp_rc[x][y];
 
-	if (rrc[x][y] > 0) {
+	if (temp_rc[x][y] > 0) {
 
-		if ((rrc[x][y] & 0x80) && !(rrc[x - 1][y - 1 + x % 2] & 0x08))
+		if ((temp_rc[x][y] & 0x80) && !(temp_rc[x - 1][y - 1 + x % 2] & 0x08))
 			rc &= ~0x80;
-		if ((rrc[x][y] & 0x01) && !(rrc[x][y - 1] & 0x10))
+		if ((temp_rc[x][y] & 0x01) && !(temp_rc[x][y - 1] & 0x10))
 			rc &= ~0x01;
-		if ((rrc[x][y] & 0x02) && !(rrc[x + 1][y - 1 + x % 2] & 0x20))
+		if ((temp_rc[x][y] & 0x02) && !(temp_rc[x + 1][y - 1 + x % 2] & 0x20))
 			rc &= ~0x02;
-		if ((rrc[x][y] & 0x08) && !(rrc[x + 1][y + x % 2] & 0x80))
+		if ((temp_rc[x][y] & 0x08) && !(temp_rc[x + 1][y + x % 2] & 0x80))
 			rc &= ~0x08;
-		if ((rrc[x][y] & 0x10) && !(rrc[x][y + 1] & 0x01))
+		if ((temp_rc[x][y] & 0x10) && !(temp_rc[x][y + 1] & 0x01))
 			rc &= ~0x10;
-		if ((rrc[x][y] & 0x20) && !(rrc[x - 1][y + x % 2] & 0x02))
+		if ((temp_rc[x][y] & 0x20) && !(temp_rc[x - 1][y + x % 2] & 0x02))
 			rc &= ~0x20;
 		//printf("rrc[][]=%d rc=%d\n",rrc[x][y],rc);
 	}
@@ -594,7 +559,7 @@ for (y = 1; y < mapy - 1; ++y)
 //
 for (y = 1; y < mapy - 1; ++y)
 	for (x = 1; x < mapx - 1; ++x){
-		rrc[x][y]=tempmap[x][y];
+		temp_rc[x][y]=tempmap[x][y];
 	}
 }
 
@@ -679,7 +644,7 @@ int save_pzscn(){
 	 int pclouds,prain,psnow;
      FILE *outf;
 
-     init_tables();
+     init_pzc_tables();
      init_pzc_conversion_names(); //always init names
 
      int result= load_pzc_equipment(LOAD_FILE, pzc_equip_file);
@@ -732,7 +697,7 @@ int save_pzscn(){
 		if (get_new_id(tmp,-1)) need_to_save=1;
 	 }
 	  //Name
-	  if (pgf_mode)
+	  if (pgf_mode || pacgen_mode)
 		  sprintf(scenario_name,"%s",block1_Name);
 	  else{
 		  convert_from_cp1250_to_utf8(tmp_line,scn_short_description[getScenarioNumber()-1],SHORT_SCN_SIZE);
@@ -752,7 +717,7 @@ int save_pzscn(){
 	tmp=15; //file format version. Patch 1.01/1.02
 	fwrite(&tmp,4,1,outf);
 
-	  if (pgf_mode){
+	  if (pgf_mode || pacgen_mode){
 		  //scenario name
 		  strncpy(line,block1_Name,1024);
 		  save_pzc_string(outf,line);
@@ -937,7 +902,7 @@ int save_pzscn(){
 			}
 
 			hexDataHex[16*3-4]=map[x][y].rc;
-			hexDataHex[16*3-4*3]=rrc[x][y];
+			hexDataHex[16*3-4*3]=temp_rc[x][y];
 			if (pgnation_to_pzcnation[map[x][y].own] != -1){
 				hexDataHex[16*3+8]=pgnation_to_pzcnation[map[x][y].own];
 				for(i=0;i<3;i++) hexDataHex[16*3+8+1+i]=0;
@@ -1241,7 +1206,7 @@ int save_pzeqp(){
 		return D_O_K;
 	}
 
-	init_tables();
+	init_pzc_tables();
 	load_conversion_tables();
 
     strncpy(line,"# ID	Short Name	Class	Cost	Max Ammo	Max Fuel	"

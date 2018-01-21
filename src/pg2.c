@@ -751,7 +751,7 @@ int import_pg2_map_file(char *path, int convert_terrain_type, int convert_roads_
 					}
 
 					if (generate_tiles)
-						map[x][y].tile = tiles_for_bmp[k][rand() % 3] - 1;
+						map[x][y].tile = tiles_for_bmp[k][rand() % 3];
 
 					if (convert_terrain_type)
 						map[x][y].utr = pg2tt_to_pgtt[rec_buff.tt];
@@ -908,7 +908,7 @@ int import_pg2_scenario_file(char *path, int convert_terrain_type, int convert_r
 	//print_str(pg2_gln[*(uint16_t *)(buf + 1+2+1)]);
 
 	setScenarioNameRaw(pg2_gln[*(uint16_t *)(buf + 1+2+1)]);
-	if (pgf_mode) {
+	if (pgf_mode || pacgen_mode) {
 		//scenario name
 		strncpy(block1_Name, pg2_gln[*(uint16_t *) (buf + 1 + 2 + 1)],256);
 		//scenario description
@@ -1588,7 +1588,7 @@ int parse_pg2_cam_file(char *path, int out_format){
 			convert_txt_to_brf(path2, out_format);
 		}
 		//print_str(&buf[8+80+2+80+2+40]);
-		//tactital victory
+		//tactictal victory
 		strlwr(&buf[8+80+2+80+2+80+2+40]);
 		replace_filename(path2,path,&buf[8+80+2+80+2+80+2+40],1024);
 		if (is_file_existing(path2)){
