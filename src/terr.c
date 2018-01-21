@@ -21,6 +21,9 @@ char tdTNStrMatch[8]="0";
 char tdGLNStrMatch[8]="0";
 char tdSDStrMatch[8]="0";
 
+char tdRadiusStr[8]="0";
+char tdProbStr[8]="100";
+
 char td_name_str[MAX_NAME_UTF_SIZE]="";
 char td_tt_name[TERRAIN_TYPE_SIZE]="";
 
@@ -41,7 +44,9 @@ int tdLastNameID=-5;
 int tdLastTTID=-5;
 int tdLastRoad=-5;
 
-int GUI_fill_default_tt = 0; //
+int GUI_fill_default_tt = 0; //add default tt and name when placing tile
+int GUI_use_brush = 0; //use brush
+int GUI_only_on_clear = 0; //put tiles only on clear terrain
 
 #define TD_X  1
 #define TD_Y  1
@@ -92,6 +97,85 @@ int GUI_fill_default_tt = 0; //
 #define tdNameLabel      tdNameButton+3
 #define tdTTLabel        tdNameLabel+1
 #define tdFillDefaults   tdTTLabel+3
+#define tdUseBrushIdx    tdFillDefaults+1
+#define tdRadiusStrIdx   tdUseBrushIdx+2
+#define tdProbStrIdx   	 tdRadiusStrIdx+2
+#define tdOnlyClearIdx   tdProbStrIdx+1
+
+int d_start_proc(int msg, DIALOG *d, int c);
+int d_coreT_proc(int msg, DIALOG *d, int c);
+int d_roadB_proc(int msg, DIALOG *d, int c);
+int d_nameB_proc(int msg, DIALOG *d, int c);
+int d_default_tt_proc(int msg, DIALOG *d, int c);
+int d_only_clear_proc(int msg, DIALOG *d, int c);
+int d_use_brush_proc(int msg, DIALOG *d, int c);
+int d_defaults_proc(int msg, DIALOG *d, int c);
+
+DIALOG terrain_dlg[TERRAIN_DLG_SIZE]={
+{ d_start_proc, TD_X - 70, TD_Y, 160 + 75 + 55, 150 + TD_LH * 9+8, TD_FG_COLOR, TD_SCREEN_COLOR, 0, 0, 0, 0, 0, 0, 0 }, // 0
+{ d_button_proc, TD_X + 50 + 45 + 80 - 70, 4+TD_Y + 120 - 18 + 40 + (3+5) * TD_LH, TD_BTN, 15, TD_FG_COLOR, TD_BG_COLOR, 'd', D_EXIT, 0, 0, (void *) "&Done", 0, 0 },// 1
+//edits and labels
+{ d_text_proc, TD_X + TD_X0, TD_LINE1 + 0 * TD_LH, 50, 15, TD_FG_COLOR, TD_SCREEN_COLOR, 0, 0, 0, 0, (void *) "T&ype", 0, 0 },//2
+{ d_edit_proc, TD_X + TD_X1, TD_LINE1 + 0 * TD_LH, 50, 15, TD_FG_COLOR, TD_EDIT_COLOR, 0, 0, 6, 0, 0, 0, 0 },//3 Terrain Type Edit
+{ d_text_proc, TD_X + TD_X0, TD_LINE1 + 1 * TD_LH, 50, 15, TD_FG_COLOR, TD_SCREEN_COLOR, 0, 0, 0, 0, (void *) "R&oad", 0, 0 },//4
+{ d_edit_proc, TD_X + TD_X1, TD_LINE1 + 1 * TD_LH, 50, 15, TD_FG_COLOR, TD_EDIT_COLOR, 0, 0, 4, 0, 0, 0, 0 },//5 Road Type Edit
+{ d_text_proc, TD_X + TD_X0, TD_LINE1 + 2 * TD_LH, 50, 15, TD_FG_COLOR, TD_SCREEN_COLOR, 0, 0, 0, 0, (void *) "&Tile#", 0, 0 },
+{ d_edit_proc, TD_X + TD_X1, TD_LINE1 + 2 * TD_LH, 50, 15, TD_FG_COLOR, TD_EDIT_COLOR, 0, 0, 4, 0, 0, 0, 0 },//7 Tile Number Edit
+{ d_text_proc, TD_X + TD_X0, TD_LINE1 + 3 * TD_LH, 50, 15, TD_FG_COLOR, TD_SCREEN_COLOR, 0, 0, 0, 0, (void *) "N&ame", 0, 0 },//9 Name Edit
+{ d_edit_proc, TD_X + TD_X1, TD_LINE1 + 3 * TD_LH, 50, 15, TD_FG_COLOR, TD_EDIT_COLOR, 0, 0, 4, 0, 0, 0, 0 },
+{ d_text_proc, TD_X + TD_X0, TD_LINE1 + 4 * TD_LH, 50, 15, TD_FG_COLOR, TD_SCREEN_COLOR, 0, 0, 0, 0, (void *) "&Side", 0, 0 },//10
+{ d_edit_proc, TD_X + TD_X1, TD_LINE1 + 4 * TD_LH, 50, 15, TD_FG_COLOR, TD_EDIT_COLOR, 0, 0, 4, 0, 0, 0, 0 },//11 Side Edit
+//check boxes
+{ d_coreT_proc, TD_X + TD_X2, TD_LINE1 + 0 * TD_LH, TD_BOX_X, 10, TD_FG_COLOR, TD_BG_COLOR, 'y', 0, 1, 0, (void *) "", 0, 0 },
+{ d_coreT_proc, TD_X + TD_X2, TD_LINE1 + 1 * TD_LH, TD_BOX_X,10, TD_FG_COLOR, TD_BG_COLOR, 'o', 0, 1, 0, (void *) "", 0, 0 },
+{ d_coreT_proc, TD_X + TD_X2, TD_LINE1 + 2 * TD_LH, TD_BOX_X, 10, TD_FG_COLOR, TD_BG_COLOR, 't', 0, 1, 0, (void *) "",0, 0 },
+{ d_coreT_proc, TD_X + TD_X2, TD_LINE1 + 3 * TD_LH, TD_BOX_X, 10, TD_FG_COLOR, TD_BG_COLOR, 'a', 0, 1, 0, (void *) "", 0, 0 },
+{ d_coreT_proc, TD_X + TD_X2, TD_LINE1 + 4 * TD_LH, TD_BOX_X, 10, TD_FG_COLOR, TD_BG_COLOR, 's', 0, 1, 0, (void *) "", 0, 0 },
+// match edits
+{ d_edit_proc, TD_X + TD_X3, TD_LINE1 + 0 * TD_LH, 50, 15, TD_FG_COLOR, TD_EDIT_COLOR, 0, 0, 4, 0, 0, 0, 0 },
+{ d_edit_proc, TD_X + TD_X3, TD_LINE1 + 1 * TD_LH, 50, 15, TD_FG_COLOR,	TD_EDIT_COLOR, 0, 0, 4, 0, 0, 0, 0 },
+{ d_edit_proc, TD_X + TD_X3, TD_LINE1 + 2 * TD_LH, 50, 15, TD_FG_COLOR, TD_EDIT_COLOR, 0, 0, 4, 0, 0, 0, 0 },
+{ d_edit_proc, TD_X + TD_X3, TD_LINE1 + 3 * TD_LH, 50, 15, TD_FG_COLOR, TD_EDIT_COLOR, 0, 0, 4, 0, 0, 0, 0 },
+{ d_edit_proc, TD_X + TD_X3, TD_LINE1 + 4 * TD_LH, 50, 15, TD_FG_COLOR, TD_EDIT_COLOR, 0, 0, 4, 0, 0, 0, 0 },
+// second check boxes
+{ d_coreT_proc, TD_X + TD_X4, TD_LINE1 + 0 * TD_LH, TD_BOX_X, 10, TD_FG_COLOR, TD_BG_COLOR, 0, 0, 1, 0, (void *) "", 0, 0 },
+{ d_coreT_proc, TD_X + TD_X4, TD_LINE1 + 1 * TD_LH, TD_BOX_X, 10, TD_FG_COLOR, TD_BG_COLOR, 0, 0, 1, 0, (void *) "", 0, 0 },
+{ d_coreT_proc, TD_X + TD_X4, TD_LINE1 + 2 * TD_LH, TD_BOX_X, 10, TD_FG_COLOR, TD_BG_COLOR, 0, 0, 1, 0, (void *) "", 0, 0 },
+{ d_coreT_proc, TD_X + TD_X4, TD_LINE1 + 3 * TD_LH, TD_BOX_X, 10, TD_FG_COLOR, TD_BG_COLOR, 0, 0, 1, 0, (void *) "", 0, 0 },
+{ d_coreT_proc, TD_X + TD_X4, TD_LINE1 + 4 * TD_LH, TD_BOX_X, 10, TD_FG_COLOR, TD_BG_COLOR, 0, 0, 1, 0, (void *) "", 0, 0 },
+{ d_coreT_proc, TD_X + TD_X4, TD_LINE1 - 1 * TD_LH, TD_BOX_X, 10, TD_FG_COLOR, TD_BG_COLOR, 0, 0, 1, 0, (void *) "", 0, 0 },
+//roads check boxes
+{ d_check_proc, TD_X + 25 + 30 - 16, TD_LINE1 + 8 * TD_LH, 12 + 1 * 8, 14, TD_FG_COLOR, TD_BG_COLOR, 0, 0, 0, 0, (void *) "N", 0, 0 },
+{ d_check_proc, TD_X + 25 - 16, TD_LINE1 + 9 * TD_LH, 12 + 2 * 8, 14, TD_FG_COLOR, TD_BG_COLOR, 0, 0, 0, 0, (void *) "NW", 0, 0 },
+{ d_check_proc, TD_X + 25 + 42 - 16, TD_LINE1 + 9 * TD_LH, 12 + 2 * 8, 14, TD_FG_COLOR, TD_BG_COLOR, 0, 0, 0, 0, (void *) "NE", 0, 0 },
+{ d_check_proc, TD_X + 25 - 16, TD_LINE1 + 10 * TD_LH, 12 + 2 * 8, 14, TD_FG_COLOR, TD_BG_COLOR, 0, 0, 0, 0, (void *) "SW", 0, 0 },
+{ d_check_proc, TD_X + 25 + 42 - 16, TD_LINE1 + 10 * TD_LH, 12 + 2 * 8, 14, TD_FG_COLOR, TD_BG_COLOR, 0, 0, 0, 0, (void *) "SE", 0, 0 },
+{ d_check_proc, TD_X + 25 + 30 - 16, TD_LINE1 + 11 * TD_LH, 12 + 1 * 8, 14, TD_FG_COLOR, TD_BG_COLOR, 0, 0, 0, 0, (void *) "S", 0, 0 },
+//buttons
+{ d_roadB_proc, TD_X + 50 + 45 + 80 - 70, TD_Y + 120 - 18 + 20 + 4 * TD_LH, TD_BTN, 15, TD_FG_COLOR, TD_BG_COLOR, 'r', 0, 0, 0, (void *) "Make &road", 0, 0 }, 		//28
+{ d_nameB_proc, TD_X + 50 + 45 + 80 - 70, TD_Y + 120 - 18 + 3 * TD_LH, TD_BTN, 15, TD_FG_COLOR, TD_BG_COLOR, 'n', 0, 0, 0, (void *) "&Name", 0, 0 },		//29
+//labels
+{ d_text_proc ,	TD_X+TD_X1,TD_LINE1-1*TD_LH,50,15,TD_FG_COLOR,TD_SCREEN_COLOR,	0 ,	    0 ,	0 ,	0 ,	 (void *)"Set to" },
+{ d_text_proc ,	TD_X+TD_X3,TD_LINE1-1*TD_LH,50,15,TD_FG_COLOR,TD_SCREEN_COLOR,	0 ,	    0 ,	0 ,	0 ,	 (void *)"Match" },
+{ d_text_proc ,	TD_X+TD_X0,TD_LINE1+6*TD_LH,MAX_NAME_SIZE*8,15,TD_FG_COLOR,TD_SCREEN_COLOR,	0 ,	    0 ,	0 ,	0 ,	 (void *)"" },
+{ d_text_proc ,	TD_X+TD_X0,TD_LINE1+7*TD_LH,TERRAIN_TYPE_SIZE*8,15,TD_FG_COLOR,TD_SCREEN_COLOR,	0 ,	    0 ,	0 ,	0 ,	 (void *)"" },
+{ d_text_proc ,	TD_X-70+8,TD_LINE1+6*TD_LH,MAX_NAME_SIZE*8,15,TD_FG_COLOR,TD_SCREEN_COLOR,	0 ,	    0 ,	0 ,	0 ,	 (void *)"Name:" },
+{ d_text_proc ,	TD_X-70+8,TD_LINE1+7*TD_LH,MAX_NAME_SIZE*8,15,TD_FG_COLOR,TD_SCREEN_COLOR,	0 ,	    0 ,	0 ,	0 ,	 (void *)"Terrain:" },
+
+{ d_default_tt_proc, TD_X-70+8, TD_LINE1 + 12 * TD_LH, 12 + 25 * 8, 16, TD_FG_COLOR, TD_BG_COLOR, 0, 0, 1, 0, (void *) "Add default name and type", 0, 0 },
+{ d_use_brush_proc, TD_X-70+8, TD_LINE1+4+ 13 * TD_LH, 12 + 9 * 8, 16, TD_FG_COLOR, TD_BG_COLOR, 'u', 0, 1, 0, (void *) "&Use brush", 0, 0 },
+{ d_text_proc ,	TD_X-70+24  +8*15,TD_LINE1 + 13 * TD_LH+8,50,15,TD_FG_COLOR,TD_SCREEN_COLOR,	0 ,	    0 ,	0 ,	0 ,	 (void *)"Radius" },
+{ d_edit_proc,  TD_X+32+16  +8*15,TD_LINE1 + 13 * TD_LH+8,32, 15, TD_FG_COLOR, TD_EDIT_COLOR, 0, 0, 4, 0, 0, 0, 0 },
+{ d_text_proc ,	TD_X-70+24  +8*15,4+TD_LINE1 + 14 * TD_LH+8,50,15,TD_FG_COLOR,TD_SCREEN_COLOR,	0 ,	    0 ,	0 ,	0 ,	 (void *)"Probability" },
+{ d_edit_proc,  TD_X+32+16  +8*15,4+TD_LINE1 + 14 * TD_LH+8,32, 15, TD_FG_COLOR, TD_EDIT_COLOR, 0, 0, 4, 0, 0, 0, 0 },
+{ d_only_clear_proc, TD_X-70+8, 4+TD_LINE1 + 14 * TD_LH+4, 12 + 13 * 8, 16, TD_FG_COLOR, TD_BG_COLOR, 'c', 0, 1, 0, (void *) "Only on &clear", 0, 0 },
+{ d_defaults_proc, TD_X-70+8, 4+TD_Y + 120 - 18 + 40 + (3+5) * TD_LH, TD_BTN, 15, TD_FG_COLOR, TD_BG_COLOR, 'e', 0, 0, 0, (void *) "D&efaults", 0, 0 },// 1
+
+{d_yield_proc,0,0,0,0,0,0,0,0,0,0,0,0,0},
+//Last
+{NULL},
+
+};
 
 void update_name_label() {
 	int idx;
@@ -132,14 +216,9 @@ void draw_road_connections(BITMAP *map_to_draw, int xs,int ys, int rc){
 	 if (rc&0x80) line(map_to_draw,xs+TILE_FULL_WIDTH/2,ys+TILE_HEIGHT/2,xs+(float)TILE_FULL_WIDTH/2.0*0.3,ys+TILE_HEIGHT/4,line_color);
 }
 
+void clear_all(){
+	int mask_RC;
 
-int d_start_proc(int msg, DIALOG *d, int c)
-{
-	int mask_RC,idx,idx1;
-	BITMAP *tile_to_draw;
-
-   if (msg==MSG_START)
-   {
 	 tdLastTileID=-5;
 	 tdLastNameID=-5;
 	 tdLastTTID=-5;
@@ -157,6 +236,9 @@ int d_start_proc(int msg, DIALOG *d, int c)
      terrain_dlg[tdNameMatchIdx].dp=tdGLNStrMatch;
      terrain_dlg[tdSideMatchIdx].dp=tdSDStrMatch;
 	 
+     terrain_dlg[tdRadiusStrIdx].dp=tdRadiusStr;
+     terrain_dlg[tdProbStrIdx].dp=tdProbStr;
+
      terrain_dlg[tdNameLabel].dp=td_name_str;
      terrain_dlg[tdTTLabel].dp=td_tt_name;
 
@@ -207,8 +289,29 @@ int d_start_proc(int msg, DIALOG *d, int c)
 	 else
 		 terrain_dlg[tdFillDefaults].flags&=~D_SELECTED;
 
-	    update_name_label();
-	    update_terrain_label();
+	 if (GUI_use_brush)
+		 terrain_dlg[tdUseBrushIdx].flags|=D_SELECTED;
+	 else
+		 terrain_dlg[tdUseBrushIdx].flags&=~D_SELECTED;
+
+	 if (GUI_only_on_clear)
+		 terrain_dlg[tdOnlyClearIdx].flags|=D_SELECTED;
+	 else
+		 terrain_dlg[tdOnlyClearIdx].flags&=~D_SELECTED;
+
+	 update_name_label();
+	 update_terrain_label();
+}
+
+
+int d_start_proc(int msg, DIALOG *d, int c)
+{
+	int idx,idx1;
+	BITMAP *tile_to_draw;
+
+   if (msg==MSG_START)
+   {
+	   clear_all();
    }
 
    if (msg==MSG_DRAW){
@@ -221,7 +324,6 @@ int d_start_proc(int msg, DIALOG *d, int c)
    if (msg==MSG_IDLE ){
 	   idx =atoi(tdTNStr);
 	   idx1 =atoi(tdRDStr);
-
 
 	   if (idx!=tdLastTileID || idx1!=tdLastRoad){
 		   //printf("msg=%d idx=%d t=%d\n",msg,idx,tdLastTileID);
@@ -271,9 +373,6 @@ int d_start_proc(int msg, DIALOG *d, int c)
 		   update_terrain_label();
 		   tdLastTTID=idx;
 	   }
-
-
-
    }
 
    return d_textbox_proc(msg,d,c);
@@ -370,8 +469,6 @@ int d_roadB_proc(int msg, DIALOG *d, int c)
 }
 
 int do_findname_dlg(){
-
-
 	centre_dialog(findname_dlg);
 	do_dialog(findname_dlg,-1);
 	return D_REDRAW;
@@ -406,61 +503,72 @@ int d_default_tt_proc(int msg, DIALOG *d, int c)
 	return d_check_proc(msg,d,c);
 }
 
-DIALOG terrain_dlg[TERRAIN_DLG_SIZE]={
+int d_use_brush_proc(int msg, DIALOG *d, int c)
+{
+	if ((msg==MSG_CLICK)||(msg==MSG_KEY))
+	{
+		d_check_proc(msg,d,c);
+		if ( (terrain_dlg[tdUseBrushIdx].flags&D_SELECTED)==D_SELECTED )
+			GUI_use_brush=1;
+		else
+			GUI_use_brush=0;
+		return D_O_K;
+	}
+	return d_check_proc(msg,d,c);
+}
 
-{ d_start_proc, TD_X - 70, TD_Y, 160 + 75 + 70, 150 + TD_LH * 5, TD_FG_COLOR, TD_SCREEN_COLOR, 0, 0, 0, 0, 0, 0, 0 }, // 0
-{ d_button_proc, TD_X + 50 + 45 + 80 - 70, TD_Y + 120 - 18 + 40 + 3 * TD_LH, TD_BTN, 15, TD_FG_COLOR, TD_BG_COLOR, 'd', D_EXIT, 0, 0, (void *) "&Done", 0, 0 },// 1
-//edits and labels
-{ d_text_proc, TD_X + TD_X0, TD_LINE1 + 0 * TD_LH, 50, 15, TD_FG_COLOR, TD_SCREEN_COLOR, 0, 0, 0, 0, (void *) "T&ype", 0, 0 },//2
-{ d_edit_proc, TD_X + TD_X1, TD_LINE1 + 0 * TD_LH, 50, 15, TD_FG_COLOR, TD_EDIT_COLOR, 0, 0, 6, 0, 0, 0, 0 },//3 Terrain Type Edit
-{ d_text_proc, TD_X + TD_X0, TD_LINE1 + 1 * TD_LH, 50, 15, TD_FG_COLOR, TD_SCREEN_COLOR, 0, 0, 0, 0, (void *) "R&oad", 0, 0 },//4
-{ d_edit_proc, TD_X + TD_X1, TD_LINE1 + 1 * TD_LH, 50, 15, TD_FG_COLOR, TD_EDIT_COLOR, 0, 0, 4, 0, 0, 0, 0 },//5 Road Type Edit
-{ d_text_proc, TD_X + TD_X0, TD_LINE1 + 2 * TD_LH, 50, 15, TD_FG_COLOR, TD_SCREEN_COLOR, 0, 0, 0, 0, (void *) "&Tile#", 0, 0 },
-{ d_edit_proc, TD_X + TD_X1, TD_LINE1 + 2 * TD_LH, 50, 15, TD_FG_COLOR, TD_EDIT_COLOR, 0, 0, 4, 0, 0, 0, 0 },//7 Tile Number Edit
-{ d_text_proc, TD_X + TD_X0, TD_LINE1 + 3 * TD_LH, 50, 15, TD_FG_COLOR, TD_SCREEN_COLOR, 0, 0, 0, 0, (void *) "N&ame", 0, 0 },//9 Name Edit
-{ d_edit_proc, TD_X + TD_X1, TD_LINE1 + 3 * TD_LH, 50, 15, TD_FG_COLOR, TD_EDIT_COLOR, 0, 0, 4, 0, 0, 0, 0 },
-{ d_text_proc, TD_X + TD_X0, TD_LINE1 + 4 * TD_LH, 50, 15, TD_FG_COLOR, TD_SCREEN_COLOR, 0, 0, 0, 0, (void *) "&Side", 0, 0 },//10
-{ d_edit_proc, TD_X + TD_X1, TD_LINE1 + 4 * TD_LH, 50, 15, TD_FG_COLOR, TD_EDIT_COLOR, 0, 0, 4, 0, 0, 0, 0 },//11 Side Edit
-//check boxes
-{ d_coreT_proc, TD_X + TD_X2, TD_LINE1 + 0 * TD_LH, TD_BOX_X, 10, TD_FG_COLOR, TD_BG_COLOR, 'y', 0, 1, 0, (void *) "", 0, 0 },
-{ d_coreT_proc, TD_X + TD_X2, TD_LINE1 + 1 * TD_LH, TD_BOX_X,10, TD_FG_COLOR, TD_BG_COLOR, 'o', 0, 1, 0, (void *) "", 0, 0 },
-{ d_coreT_proc, TD_X + TD_X2, TD_LINE1 + 2 * TD_LH, TD_BOX_X, 10, TD_FG_COLOR, TD_BG_COLOR, 't', 0, 1, 0, (void *) "",0, 0 },
-{ d_coreT_proc, TD_X + TD_X2, TD_LINE1 + 3 * TD_LH, TD_BOX_X, 10, TD_FG_COLOR, TD_BG_COLOR, 'a', 0, 1, 0, (void *) "", 0, 0 },
-{ d_coreT_proc, TD_X + TD_X2, TD_LINE1 + 4 * TD_LH, TD_BOX_X, 10, TD_FG_COLOR, TD_BG_COLOR, 's', 0, 1, 0, (void *) "", 0, 0 },
-// match edits
-{ d_edit_proc, TD_X + TD_X3, TD_LINE1 + 0 * TD_LH, 50, 15, TD_FG_COLOR, TD_EDIT_COLOR, 0, 0, 4, 0, 0, 0, 0 },
-{ d_edit_proc, TD_X + TD_X3, TD_LINE1 + 1 * TD_LH, 50, 15, TD_FG_COLOR,	TD_EDIT_COLOR, 0, 0, 4, 0, 0, 0, 0 },
-{ d_edit_proc, TD_X + TD_X3, TD_LINE1 + 2 * TD_LH, 50, 15, TD_FG_COLOR, TD_EDIT_COLOR, 0, 0, 4, 0, 0, 0, 0 },
-{ d_edit_proc, TD_X + TD_X3, TD_LINE1 + 3 * TD_LH, 50, 15, TD_FG_COLOR, TD_EDIT_COLOR, 0, 0, 4, 0, 0, 0, 0 },
-{ d_edit_proc, TD_X + TD_X3, TD_LINE1 + 4 * TD_LH, 50, 15, TD_FG_COLOR, TD_EDIT_COLOR, 0, 0, 4, 0, 0, 0, 0 },
-// second check boxes
-{ d_coreT_proc, TD_X + TD_X4, TD_LINE1 + 0 * TD_LH, TD_BOX_X, 10, TD_FG_COLOR, TD_BG_COLOR, 0, 0, 1, 0, (void *) "", 0, 0 },
-{ d_coreT_proc, TD_X + TD_X4, TD_LINE1 + 1 * TD_LH, TD_BOX_X, 10, TD_FG_COLOR, TD_BG_COLOR, 0, 0, 1, 0, (void *) "", 0, 0 },
-{ d_coreT_proc, TD_X + TD_X4, TD_LINE1 + 2 * TD_LH, TD_BOX_X, 10, TD_FG_COLOR, TD_BG_COLOR, 0, 0, 1, 0, (void *) "", 0, 0 },
-{ d_coreT_proc, TD_X + TD_X4, TD_LINE1 + 3 * TD_LH, TD_BOX_X, 10, TD_FG_COLOR, TD_BG_COLOR, 0, 0, 1, 0, (void *) "", 0, 0 },
-{ d_coreT_proc, TD_X + TD_X4, TD_LINE1 + 4 * TD_LH, TD_BOX_X, 10, TD_FG_COLOR, TD_BG_COLOR, 0, 0, 1, 0, (void *) "", 0, 0 },
-{ d_coreT_proc, TD_X + TD_X4, TD_LINE1 - 1 * TD_LH, TD_BOX_X, 10, TD_FG_COLOR, TD_BG_COLOR, 0, 0, 1, 0, (void *) "", 0, 0 },
-//roads check boxes
-{ d_check_proc, TD_X + 25 + 30 - 16, TD_LINE1 + 8 * TD_LH, 12 + 1 * 8, 14, TD_FG_COLOR, TD_BG_COLOR, 0, 0, 0, 0, (void *) "N", 0, 0 },
-{ d_check_proc, TD_X + 25 - 16, TD_LINE1 + 9 * TD_LH, 12 + 2 * 8, 14, TD_FG_COLOR, TD_BG_COLOR, 0, 0, 0, 0, (void *) "NW", 0, 0 },
-{ d_check_proc, TD_X + 25 + 42 - 16, TD_LINE1 + 9 * TD_LH, 12 + 2 * 8, 14, TD_FG_COLOR, TD_BG_COLOR, 0, 0, 0, 0, (void *) "NE", 0, 0 },
-{ d_check_proc, TD_X + 25 - 16, TD_LINE1 + 10 * TD_LH, 12 + 2 * 8, 14, TD_FG_COLOR, TD_BG_COLOR, 0, 0, 0, 0, (void *) "SW", 0, 0 },
-{ d_check_proc, TD_X + 25 + 42 - 16, TD_LINE1 + 10 * TD_LH, 12 + 2 * 8, 14, TD_FG_COLOR, TD_BG_COLOR, 0, 0, 0, 0, (void *) "SE", 0, 0 },
-{ d_check_proc, TD_X + 25 + 30 - 16, TD_LINE1 + 11 * TD_LH, 12 + 1 * 8, 14, TD_FG_COLOR, TD_BG_COLOR, 0, 0, 0, 0, (void *) "S", 0, 0 },
-//buttons
-{ d_roadB_proc, TD_X + 50 + 45 + 80 - 70, TD_Y + 120 - 18 + 20 + 3 * TD_LH, TD_BTN, 15, TD_FG_COLOR, TD_BG_COLOR, 'r', 0, 0, 0, (void *) "Make &road", 0, 0 }, 		//28
-{ d_nameB_proc, TD_X + 50 + 45 + 80 - 70, TD_Y + 120 - 18 + 3 * TD_LH, TD_BTN, 15, TD_FG_COLOR, TD_BG_COLOR, 'n', 0, 0, 0, (void *) "&Name", 0, 0 },		//29
-//labels
-{ d_text_proc ,	TD_X+TD_X1,TD_LINE1-1*TD_LH,50,15,TD_FG_COLOR,TD_SCREEN_COLOR,	0 ,	    0 ,	0 ,	0 ,	 (void *)"Set to" },
-{ d_text_proc ,	TD_X+TD_X3,TD_LINE1-1*TD_LH,50,15,TD_FG_COLOR,TD_SCREEN_COLOR,	0 ,	    0 ,	0 ,	0 ,	 (void *)"Match" },
-{ d_text_proc ,	TD_X+TD_X0,TD_LINE1+6*TD_LH,MAX_NAME_SIZE*8,15,TD_FG_COLOR,TD_SCREEN_COLOR,	0 ,	    0 ,	0 ,	0 ,	 (void *)"" },
-{ d_text_proc ,	TD_X+TD_X0,TD_LINE1+7*TD_LH,TERRAIN_TYPE_SIZE*8,15,TD_FG_COLOR,TD_SCREEN_COLOR,	0 ,	    0 ,	0 ,	0 ,	 (void *)"" },
-{ d_text_proc ,	TD_X-70+8,TD_LINE1+6*TD_LH,MAX_NAME_SIZE*8,15,TD_FG_COLOR,TD_SCREEN_COLOR,	0 ,	    0 ,	0 ,	0 ,	 (void *)"Name:" },
-{ d_text_proc ,	TD_X-70+8,TD_LINE1+7*TD_LH,MAX_NAME_SIZE*8,15,TD_FG_COLOR,TD_SCREEN_COLOR,	0 ,	    0 ,	0 ,	0 ,	 (void *)"Terrain:" },
+int d_only_clear_proc(int msg, DIALOG *d, int c)
+{
+	if ((msg==MSG_CLICK)||(msg==MSG_KEY))
+	{
+		d_check_proc(msg,d,c);
+		if ( (terrain_dlg[tdOnlyClearIdx].flags&D_SELECTED)==D_SELECTED )
+			GUI_only_on_clear=1;
+		else
+			GUI_only_on_clear=0;
+		return D_O_K;
+	}
+	return d_check_proc(msg,d,c);
+}
 
-{ d_default_tt_proc, TD_X-70+8, TD_LINE1 + 12 * TD_LH, 12 + 25 * 8, 16, TD_FG_COLOR, TD_BG_COLOR, 0, 0, 1, 0, (void *) "Add default name and type", 0, 0 },
-{d_yield_proc,0,0,0,0,0,0,0,0,0,0,0,0,0},
-//Last
-{NULL},
+int d_defaults_proc(int msg, DIALOG *d, int c)
+{
+	if ((msg==MSG_CLICK)||(msg==MSG_KEY))
+	{
+		GUI_fill_default_tt=0;
+		GUI_only_on_clear=0;
+		GUI_use_brush=0;
 
-};
+		strncpy(tdTTStr,"0",8);
+		strncpy(tdRDStr,"0",8);
+		strncpy(tdTNStr,"0",8);
+		strncpy(tdGLNStr,"0",8);;
+		strncpy(tdSDStr,"0",8);
+		strncpy(tdTTStrMatch,"0",8);
+		strncpy(tdRDStrMatch,"0",8);
+		strncpy(tdTNStrMatch,"0",8);
+		strncpy(tdGLNStrMatch,"0",8);
+		strncpy(tdSDStrMatch,"0",8);
+
+		tdTTStrOn=1;
+		tdRDStrOn=1;
+		tdTNStrOn=1;
+		tdGLNStrOn=1;
+		tdSDStrOn=1;
+		tdTTStrMatchOn=0;
+		tdRDStrMatchOn=0;
+		tdTNStrMatchOn=0;
+		tdGLNStrMatchOn=0;
+		tdSDStrMatchOn=0;
+
+		tdMatchMatchOn=0;
+
+		strncpy(tdRadiusStr,"0",8);
+		strncpy(tdProbStr,"100",8);
+		d_start_proc(MSG_DRAW,d,0);
+		clear_all();
+		broadcast_dialog_message(MSG_DRAW,0);
+		return D_O_K;
+	}
+	return d_button_proc(msg,d,c);
+}

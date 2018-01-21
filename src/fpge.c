@@ -38,7 +38,7 @@
 
 char MapInfoTxt[256];
 char AboutTxt1[256] = "Fred's Panzer General Editor";
-char AboutTxt2[256] = "Version 0.7.3";
+char AboutTxt2[256] = "Version 0.7.4";
 char AboutTxt3[256] = "Modified by Wino";
 char MapStatusTxt[256];
 char FilterStatusTxt[256];
@@ -134,14 +134,24 @@ int drawGndTransport = 0;//yes/no - [l]
 int showWeather = 0;// 0,1,2 - w-n[o]rmal, [m]ud, [w]inter,
 int showHex = 1;//yes/no -h show hex gr[i]d
 int showHexMatrix = 1;//yes/no -h show hex grid in matrix
+int showHexColor = 0;//GRAY, WHITE, BLACK, RED, GREEN, BLUE
+int showHexMatrixColor = 0;//almost same colors as showHexColor
 int showMatrixMode = 0; //only for filtered mode, 0 -normal,1-columns,2-grid
+int sortMatrixMode = 0; //0-sorted by terrain type, 1 - sorted by tile id
 int scenarioUnitsMode = 0; //
 int displayAllUnits = 0;
 int displayUnitsOrder = 0;
 int show_ranges = 2;
 int show_problems = 0; //0-do not show,1-river
 int show_debug_problems = 0; //0-do not show
-int colorize_names = 0;
+int colorizeNames = 0;
+int mapShiftMode = 0;
+int drawRoadsDebug=0;
+int showDecimalDebug=0;
+int drawNamesDebug=0;
+int drawAllNamesDebug=0;
+int colorizeNamesDebug=0;
+int drawTerrainDebug=0;
 
 int fpge_gui_fg_color;
 int fpge_gui_bg_color;
@@ -149,7 +159,7 @@ int fpge_gui_edit_color;
 
 int graphical_overide = 0;
 int graphical_overide_hex = 0;
-int debug_tile_matrix = 0;
+int debug_tile_matrix = 1;
 
 int tiles_wide = (SCREEN_X - 80) / TILE_WIDTH;
 int tiles_high = (SCREEN_Y - TILE_HEIGHT / 2 - 54) / TILE_HEIGHT;
@@ -448,6 +458,7 @@ void victory_click() {
 	strncat(MapStatusTxt, "Left Click to add\nRight Click to remove",256);
 	draw_map(map_bmp, map_x0, map_y0, tiles_high, tiles_wide);
 	main_dlg[dmMapBmpIdx].flags |= D_DIRTY;
+	main_dlg[dmMapStatusIdx].flags |= D_DIRTY;
 	//broadcast_dialog_message(MSG_DRAW, 0);
 
 }
@@ -748,6 +759,7 @@ void deploy_click() {
 	strncat(MapStatusTxt, "Left Click to add\nRight Click to remove",256);
 	draw_map(map_bmp, map_x0, map_y0, tiles_high, tiles_wide);
 	main_dlg[dmMapBmpIdx].flags |= D_DIRTY;
+	main_dlg[dmMapStatusIdx].flags |= D_DIRTY;
 	//broadcast_dialog_message(MSG_DRAW, 0);
 }
 
@@ -828,7 +840,7 @@ void do_place_status() {
 	strncat(MapStatusTxt, line2,64);
 }
 
-void place_click() {
+void place_unit_click() {
 	int idx = -1, x, y, where_add_new;
 	enum {
 		none, air, ground
@@ -1026,10 +1038,10 @@ void pick_msg() {
 }
 
 void tile_make_matrix() {
-	int i;
+	int i, totalTiles = total_tiles+3; //3 magic tiles
 
 	matrix_x = STD_MATRIX_MAX_X;
-	matrix_y = (int) (total_tiles / matrix_x) + ((total_tiles % matrix_x) > 0);
+	matrix_y = (int) ( totalTiles / matrix_x) + ((totalTiles % matrix_x) > 0);
 
 	edit_op = edit_tile;
 
@@ -1099,7 +1111,9 @@ void tile_click() {
 	//edit_op=none;
 	main_dlg[dmTileBtnIdx].flags &= ~D_SELECTED;
 	d_btn_proc(MSG_DRAW, &(main_dlg[dmTileBtnIdx]), 0);
-	if (map_mouse_x < matrix_x && map_mouse_y < matrix_y) {
+	if (map_mouse_x < matrix_x && map_mouse_y < matrix_y ) {
+		if (map[map_mouse_x][map_mouse_y].tile ==BLACK_TILE)
+			return; //do nothing
 		idx = map[map_mouse_x][map_mouse_y].tile;
 		sprintf(tdTNStr, "%d", idx);
 
@@ -1132,6 +1146,9 @@ void tile_click() {
 }
 
 void copyToTerrain(int x, int y) {
+
+	if (x<0 || x>=mapx || y<0 || y>=mapy) return; //out of map
+
 	if (tdMatchMatchOn) {
 		if (tdTTStrOn) {
 			if (tdTTStrMatchOn) {
@@ -1189,6 +1206,7 @@ void terrain_click() {
 
 	x = map_mouse_x;
 	y = map_mouse_y;
+	int prob=atoi(tdProbStr);
 
 	if (mouse_b & 1) {
 		if (key_shifts & KB_SHIFT_FLAG) {
@@ -1201,14 +1219,51 @@ void terrain_click() {
 				open_push_undo_sequenece();
 				for (i = ssx; i <= esx; i++)
 					for (j = ssy; j <= esy; j++){
-						push_undo_tile(i, j);
-						copyToTerrain(i, j);
+						if (rand()%100 < prob ){
+							if ( (TTData_Max_Tiles[map[x][y].tile] == 0 && GUI_only_on_clear) || !GUI_only_on_clear){
+								push_undo_tile(i, j);
+								copyToTerrain(i, j);
+							}
+						}
 					}
 				close_push_undo_sequenece();
 			}
 		} else {
-			push_undo_one_tile(x,y);
-			copyToTerrain(x, y);
+			open_push_undo_sequenece();
+			int xx0,yy0;
+
+			if (rand()%100 < prob ){
+				if ( (TTData_Max_Tiles[map[x][y].tile] == 0 && GUI_only_on_clear) || !GUI_only_on_clear){
+					push_undo_tile(x, y);
+					copyToTerrain(x, y);
+				}
+			}
+
+			if (GUI_use_brush) {
+				int r=atoi(tdRadiusStr);
+				for (i = 0; i <= r; i++){
+					for (j = -r + i / 2; j <= r - (i + 1) / 2; j++)
+						{
+							if (rand()%100 < prob ){
+								xx0 = x + i;
+								yy0 = y + j + x % 2 * (x + i + 1) % 2;
+								if ( (TTData_Max_Tiles[map[xx0][yy0].tile] == 0 && GUI_only_on_clear) || !GUI_only_on_clear){
+									push_undo_tile(xx0, yy0);
+									copyToTerrain(xx0, yy0);
+								}
+							}
+							if (rand()%100 < prob ){
+								xx0 = x - i;
+								yy0 = y + j + x % 2 * (x + i + 1) % 2;
+								if ((TTData_Max_Tiles[map[xx0][yy0].tile] == 0 && GUI_only_on_clear) || !GUI_only_on_clear){
+									push_undo_tile(xx0, yy0);
+									copyToTerrain(xx0, yy0);
+								}
+							}
+						}
+					}
+				}
+			close_push_undo_sequenece();
 		}
 
 		draw_map(map_bmp, map_x0, map_y0, tiles_high, tiles_wide);
@@ -1536,7 +1591,7 @@ int d_mapbmp_proc(int msg, DIALOG *d, int c) {
 		if (edit_op == edit_exp)
 			experience_click();
 		if (edit_op == edit_place)
-			place_click();
+			place_unit_click();
 		if (edit_op == edit_vic)
 			victory_click();
 		if (edit_op == edit_deploy)
@@ -2571,7 +2626,6 @@ int count_vic_hexes() {
 				++count;
 
 	return count;
-
 }
 
 void my_log(char *fmt, ...) {
@@ -2644,24 +2698,8 @@ int main(int argc, char *argv[]) {
 	int error, i, really_exit = 1;
 	char tmp_str[128];
 	int max_scn, min_scn;
-	//int j,   hide_empty=0,  hide_names=0;
 	unsigned short is_app6_bmp[MAX_UICONS];
-
-	// char param;
 	BITMAP *mousie;
-	// char path[80];
-	// int x,y;
-	//unsigned char temp;
-	/* you should always do this at the start of Allegro programs */
-
-	//	for (i=0;i<max_colors_for_bmp;i++) printf("t_b %d,%d,%d,%d\n",i,tiles_for_bmp[i][0],tiles_for_bmp[i][1],tiles_for_bmp[i][2]);
-	//	for (i=0;i<max_colors_for_bmp;i++) printf("t_b %d,%d,%d,%d\n",i,colors_for_bmp[i][0],colors_for_bmp[i][1],colors_for_bmp[i][2]);
-
-
-	//  printf("%d\n",coast_pattern_tile[2][0]);
-	//  printf("%d\n",TTData[MAX_TILES_IN_PG-1]);
-	//  printf("%d\n",tiles_for_bmp[0][0]);
-	//  printf("%d\n",colors_for_bmp[3][0]);
 
 	memset(is_app6_bmp, 0, sizeof(is_app6_bmp));
 	memset(flag_bmp, 0, sizeof(flag_bmp));
@@ -2684,12 +2722,13 @@ int main(int argc, char *argv[]) {
 	//my_log("Compile time : %s %s%s",__DATE__,__TIME__,"\n");
 	my_log("\n");
 
+	/* you should always do this at the start of Allegro programs */
 	my_log("Allegro library init...\n");
 	allegro_init();
 
 	loadpng_init();
 	/* set up the keyboard handler */
-	install_keyboard(); //not now to keep RHIDE working
+	install_keyboard();
 
 	if (argc > 1 && strcmp(argv[1], "-h") == 0) {
 		CLIHelp(MapStatusTxt);
@@ -3029,7 +3068,6 @@ int main(int argc, char *argv[]) {
 		} else {
 			my_log("File '%s' not found...\n",pac_mt2pg_mt);
 		}
-
 	}
 
 	//no nulp needed for PGF
@@ -3348,13 +3386,7 @@ int main(int argc, char *argv[]) {
 
 	free_undo();
 	allegro_exit();
-/*
-	 for(i=0;i<roads_tiles_size;i++){
-	 printf("0x%02x, ", roads_tiles_mask[i]);
-	 if (i%8==7) printf("// 0x%02x\n",i+1);
-	 }
-	 printf("\n");
-*/
+
 	if (save_config())
 		my_log("Error in writing FPGE config file.\n");
 	else

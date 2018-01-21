@@ -23,10 +23,10 @@ int load_equip(int probe_file_only, char *fname)
    int i;
    FILE *inf;
    unsigned char equip_buffer[EQUIP_REC_SIZE];
-	char path[MAX_PATH];
+   char path[MAX_PATH];
 
-	strncpy(path,fname,MAX_PATH);
-	canonicalize_filename(path,path,MAX_PATH);
+   strncpy(path,fname,MAX_PATH);
+   canonicalize_filename(path,path,MAX_PATH);
    inf=fopen(path,"rb");
    if (!inf)
    {

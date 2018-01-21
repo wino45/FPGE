@@ -227,7 +227,7 @@ DIALOG main_dlg[MAIN_DLG_SIZE]=
 {d_keyboard_proc,0,0,0,0,0,0,'p'-'a'+1,0,0,0,(void *)ctrl_p_keycallback,0,0},
 {d_keyboard_proc,0,0,0,0,0,0,'l'-'a'+1,0,0,0,(void *)ctrl_l_keycallback,0,0},
 {d_keyboard_proc,0,0,0,0,0,0,'w'-'a'+1,0,0,0,(void *)ctrl_w_keycallback,0,0},
-{d_keyboard_proc,0,0,0,0,0,0,'h'-'a'+1,0,0,0,(void *)ctrl_h_keycallback,0,0},
+{d_keyboard_proc,0,0,0,0,0,0,0,0,KEY_H,0,(void *)ctrl_alt_h_keycallback,0,0},
 {d_keyboard_proc,0,0,0,0,0,0,'i'-'a'+1,0,0,0,(void *)ctrl_i_keycallback,0,0},
 {d_keyboard_proc,0,0,0,0,0,0,'z'-'a'+1,0,0,0,(void *)ctrl_z_keycallback,0,0},
 {d_keyboard_proc,0,0,0,0,0,0,0,0,KEY_U,0,(void *)ctrl_alt_u_keycallback,0,0},
@@ -462,7 +462,12 @@ int save_as_dialog(){
 				//we need to convert PGF -> PG
 				//load PG equipment for conversion
 				error=load_equip(LOAD_CONVERSION_TABLE_ONLY,EquipmentFileToSave);
-				if (error) return error;
+				if (error) {
+					printf("Could not load equipment file for conversion.\n");
+					sprintf(MapStatusTxt, "Equipment not found !!\nScenario %d not saved\nPick an Operation", getScenarioNumber());
+					broadcast_dialog_message(MSG_DRAW,0);
+					return D_O_K;
+				}
 				qsort(conversion_equip,conversion_total_equip,sizeof(struct conversion_equipment),compare_by_name_and_country);
 				//TODO: tests, save and convert
 				save_pg_scenario(SAVE_WITH_UNIT_IDS_CONVERSION);
@@ -484,7 +489,12 @@ int save_as_dialog(){
 				//save and convert
 				//load PGF equipment for conversion
 				error=load_pgf_equipment(LOAD_CONVERSION_TABLE_ONLY,EquipmentFileToSave);
-				if (error) return error;
+				if (error) {
+					printf("Could not load equipment file for conversion.\n");
+					sprintf(MapStatusTxt, "Equipment not found !!\nScenario %d not saved\nPick an Operation", getScenarioNumber());
+					broadcast_dialog_message(MSG_DRAW,0);
+					return D_O_K;
+				}
 				qsort(conversion_equip,conversion_total_equip,sizeof(struct conversion_equipment),compare_by_name_and_country);
 				save_pgf_pgscn(getScenarioNumber(), DO_NOT_SHOW_LOGS, SAVE_WITH_UNIT_IDS_CONVERSION,0,0,0);
 			}
@@ -497,7 +507,12 @@ int save_as_dialog(){
 				//we need to convert PGF -> PG
 				//load PG equipment for conversion
 				error=load_equip(LOAD_CONVERSION_TABLE_ONLY,EquipmentFileToSave);
-				if (error) return error;
+				if (error) {
+					printf("Could not load equipment file for conversion.\n");
+					sprintf(MapStatusTxt, "Equipment not found !!\nScenario %d not saved\nPick an Operation", getScenarioNumber());
+					broadcast_dialog_message(MSG_DRAW,0);
+					return D_O_K;
+				}
 				qsort(conversion_equip,conversion_total_equip,sizeof(struct conversion_equipment),compare_by_name_and_country);
 				//TODO: tests, save and convert
 				save_pg_scenario(SAVE_WITH_UNIT_IDS_CONVERSION);

@@ -52,7 +52,7 @@ int save_config(){
 		fwrite(&displayUnitsOrder,sizeof(displayUnitsOrder),1,inf);
 		fwrite(&show_ranges,sizeof(show_ranges),1,inf);
 		fwrite(&show_problems,sizeof(show_problems),1,inf);
-		fwrite(&colorize_names,sizeof(colorize_names),1,inf);
+		fwrite(&colorizeNames,sizeof(colorizeNames),1,inf);
 
 		//terrain filters and match
 		fwrite(&tdTTStrOn,sizeof(tdTTStrOn),1,inf);
@@ -78,6 +78,20 @@ int save_config(){
 
 		fwrite(&showHexMatrix,sizeof(showHexMatrix),1,inf);
 		fwrite(&showMatrixMode,sizeof(showMatrixMode),1,inf);
+
+		fwrite(&showHexColor,sizeof(showHexColor),1,inf);
+		fwrite(&showHexMatrixColor,sizeof(showHexMatrixColor),1,inf);
+
+		fwrite(&sortMatrixMode,sizeof(sortMatrixMode),1,inf);
+
+		fwrite(&drawRoadsDebug,sizeof(drawRoadsDebug),1,inf);
+		fwrite(&showDecimalDebug,sizeof(showDecimalDebug),1,inf);
+		fwrite(&drawNamesDebug,sizeof(drawNamesDebug),1,inf);
+		fwrite(&drawAllNamesDebug,sizeof(drawAllNamesDebug),1,inf);
+		fwrite(&colorizeNamesDebug,sizeof(colorizeNamesDebug),1,inf);
+		fwrite(&drawTerrainDebug,sizeof(drawTerrainDebug),1,inf);
+
+
 
 		fclose(inf);
 	}else{
@@ -126,7 +140,7 @@ int load_config(){
 			fread(&displayUnitsOrder,sizeof(displayUnitsOrder),1,inf);
 			fread(&show_ranges,sizeof(show_ranges),1,inf);
 			fread(&show_problems,sizeof(show_problems),1,inf);
-			fread(&colorize_names,sizeof(colorize_names),1,inf);
+			fread(&colorizeNames,sizeof(colorizeNames),1,inf);
 			//terrain filters and match
 			fread(&tdTTStrOn,sizeof(tdTTStrOn),1,inf);
 			fread(&tdRDStrOn,sizeof(tdRDStrOn),1,inf);
@@ -151,6 +165,18 @@ int load_config(){
 
 			fread(&showHexMatrix,sizeof(showHexMatrix),1,inf);
 			fread(&showMatrixMode,sizeof(showMatrixMode),1,inf);
+
+			fread(&showHexColor,sizeof(showHexColor),1,inf);
+			fread(&showHexMatrixColor,sizeof(showHexMatrixColor),1,inf);
+
+			fread(&sortMatrixMode,sizeof(sortMatrixMode),1,inf);
+
+			fread(&drawRoadsDebug,sizeof(drawRoadsDebug),1,inf);
+			fread(&showDecimalDebug,sizeof(showDecimalDebug),1,inf);
+			fread(&drawNamesDebug,sizeof(drawNamesDebug),1,inf);
+			fread(&drawAllNamesDebug,sizeof(drawAllNamesDebug),1,inf);
+			fread(&colorizeNamesDebug,sizeof(colorizeNamesDebug),1,inf);
+			fread(&drawTerrainDebug,sizeof(drawTerrainDebug),1,inf);
 		}else{
 			exit_code= 2;// bad magic number
 		}

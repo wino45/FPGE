@@ -123,6 +123,15 @@ int d_makemap_proc(int msg, DIALOG *d, int c){
 			block7_lines++;
 			strncpy(block7[block7_lines],"ALLIED VICTORY\t-1\t-1",MAX_LINE_SIZE);
 			block7_lines++;
+
+			if (scn_buffer[TURNS]==0){
+				scn_buffer[TURNS]=1;
+
+				for(i=0;i<scn_buffer[TURNS];i++){
+					sprintf(block4[i],"%d\t%d\t%d\n",i+1,0,0);
+				}
+				block4_lines=scn_buffer[TURNS];
+			}
 		}
 		//finally draw map
 		draw_map(map_bmp,map_x0,map_y0,tiles_high,tiles_wide);

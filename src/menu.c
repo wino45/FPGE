@@ -233,7 +233,7 @@ MENU file_menu[] =
 /*15*/	   { "Spotting",     NULL,       spottings_menu,       0,  NULL  },
 /*16*/	   { "Scenario view",     (void *)change_scenarioUnitsMode,       NULL,       0,  NULL  },
 /*17*/	   { "Game View",     (void *)ctrl_v_keycallback,       NULL,       0,  NULL  },
-/*18*/	   { "Hex Grid",     (void *)ctrl_h_keycallback,       NULL,       0,  NULL  },
+/*18*/	   { "Hex Grid",     (void *)ctrl_alt_h_keycallback,       NULL,       0,  NULL  },
 	   { "",     NULL,       NULL,       0,  NULL  },
 	   { "Weather",     NULL,       weather_menu,       0,  NULL  },
 	   { "",     NULL,       NULL,       0,  NULL  },

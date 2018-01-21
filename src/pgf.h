@@ -13,7 +13,6 @@
 #include <stdio.h>
 
 #define MAX_TURNS  256 //max number of turns in scenario
-#define MAX_LINE_SIZE 256
 #define MAX_SUPPLY 400
 #define MAX_CLASSES 32
 #define MAX_VICTORY_CON 10

@@ -282,10 +282,17 @@ int draw_new_all_names() {
 }
 
 int ctrl_a_keycallback() {
-	if (drawAllNames)
-		colorize_names = (colorize_names + 1) % 3;
-	if (colorize_names == 0)
-		drawAllNames = (drawAllNames + 1) % 2;
+	if (edit_op == edit_tile && debug_tile_matrix){
+		if (drawAllNamesDebug)
+			colorizeNamesDebug = (colorizeNamesDebug + 1) % 3;
+		if (colorizeNamesDebug == 0)
+			drawAllNamesDebug = (drawAllNamesDebug + 1) % 2;
+	}else{
+		if (drawAllNames)
+			colorizeNames = (colorizeNames + 1) % 3;
+		if (colorizeNames == 0)
+			drawAllNames = (drawAllNames + 1) % 2;
+	}
 	return draw_new_all_names();
 }
 
@@ -362,7 +369,11 @@ int ctrl_alt_n_keycallback() {
 	}
 
 	if (key_shifts & KB_CTRL_FLAG) {
-		drawNames = (drawNames + 1) % 4;
+		if (edit_op == edit_tile && debug_tile_matrix) {
+			drawNamesDebug = (drawNamesDebug + 1) % 2;
+		}else{
+			drawNames = (drawNames + 1) % 4;
+		}
 		draw_new_unique_names();
 	}
 	return D_REDRAW;
@@ -376,7 +387,11 @@ int draw_new_terain() {
 }
 
 int ctrl_t_keycallback() {
-	drawTerrain = (drawTerrain + 1) % 2;
+	if (edit_op == edit_tile && debug_tile_matrix){
+		drawTerrainDebug = (drawTerrainDebug + 1) % 2;
+	}else{
+		drawTerrain = (drawTerrain + 1) % 2;
+	}
 	draw_new_terain();
 	return D_REDRAW;
 }
@@ -425,7 +440,11 @@ int draw_new_road() {
 }
 
 int push_new_road() {
-	drawRoads = (drawRoads + 1) % 2;
+	if (edit_op == edit_tile && debug_tile_matrix){
+		drawRoadsDebug = (drawRoadsDebug + 1) % 4;
+	}else{
+		drawRoads = (drawRoads + 1) % 2;
+	}
 	return draw_new_road();
 }
 
@@ -457,7 +476,11 @@ int draw_new_display_names() {
 }
 
 int ctrl_d_keycallback() {
-	showDecimal = (showDecimal + 1) % 3;
+	if (edit_op == edit_tile && debug_tile_matrix){
+		showDecimalDebug = (showDecimalDebug + 1) % 3;
+	}else{
+		showDecimal = (showDecimal + 1) % 3;
+	}
 	return draw_new_display_names();
 
 }
@@ -492,6 +515,13 @@ int ctrl_alt_s_keycallback() {
 	}
 
 	if (key_shifts & KB_CTRL_FLAG) {
+		if (tile_mode==1){
+			sortMatrixMode = (sortMatrixMode+1)%2;
+			setup_show_filters_info();
+			draw_tiles_matrix();
+			draw_map(map_bmp, map_x0, map_y0, tiles_high, tiles_wide);
+			return D_REDRAW;
+		}
 		if (showCounter == 0)
 			showCounter = -1;
 		else //if (showCounter == -1)
@@ -706,17 +736,36 @@ int draw_new_flag() {
 	select_flag_item();
 	return D_REDRAW;
 }
-int ctrl_h_keycallback() {
+int ctrl_alt_h_keycallback() {
+	int redraw=0;
 
-	if (tile_mode==1) {
-		showHexMatrix = (showHexMatrix + 1) % 2;
+	if (key_shifts & KB_ALT_FLAG) {
+		if (tile_mode==1) {
+			showHexMatrixColor = (showHexMatrixColor + 1) % 6;
+			redraw=2;
+		}else{
+			showHexColor = (showHexColor + 1) % 6;
+			redraw=1;
+		}
+	}
+	if (key_shifts & KB_CTRL_FLAG) {
+		if (tile_mode==1) {
+			showHexMatrix = (showHexMatrix + 1) % 2;
+			redraw=2;
+		}else{
+			showHex = (showHex + 1) % 2;
+			redraw=1;
+		}
+	}
+	if (redraw==1){
+		return draw_new_hex();
+	}
+	if (redraw==2){
 		setup_show_filters_info();
 		draw_map(map_bmp, map_x0, map_y0, tiles_high, tiles_wide);
 		return D_REDRAW;
 	}
-	showHex = (showHex + 1) % 2;
-	return draw_new_hex();
-
+	return D_O_K;
 }
 
 int draw_new_scenario_units() {
@@ -794,7 +843,11 @@ int ctrl_i_keycallback() {
 	showWeather = 0;
 	showHex = 1;
 	showHexMatrix = 1;
+	showHexColor = 0;
+	showHexMatrixColor = 0;
+	mapShiftMode = 0;
 	showMatrixMode=0;
+	sortMatrixMode=0;
 	graphical_overide = 0;
 	scenarioUnitsMode = 0;
 	displayAllUnits = 0;
@@ -803,7 +856,15 @@ int ctrl_i_keycallback() {
 	show_ranges = 2;
 	show_problems = 0;
 	//colorize_ocean=0;
-	colorize_names = 0;
+	colorizeNames = 0;
+
+	drawRoadsDebug=0;
+	showDecimalDebug=0;
+	drawNamesDebug=0;
+	drawAllNamesDebug=0;
+	colorizeNamesDebug=0;
+	drawTerrainDebug=0;
+
 	//clear all filters for tiles matrix
 	memset(filter_number_current_ingroup,0,sizeof(filter_number_current_ingroup));
     if (tile_mode==1) draw_tiles_matrix();
@@ -869,8 +930,7 @@ void position_gui_elements(int w, int h) {
 	tiles_wide = (w - 80) / TILE_WIDTH;
 	if (w == 800)
 		tiles_wide -= 1;
-	tiles_high = (h - TILE_HEIGHT / 2 - 54 - top_spacer - bottom_spacer)
-			/ TILE_HEIGHT;
+	tiles_high = (h - TILE_HEIGHT / 2 - 54 - top_spacer - bottom_spacer)/ TILE_HEIGHT;
 
 	map_h = (tiles_high * 2 + 1) * TILE_HEIGHT / 2 + 1;
 	map_w = (tiles_wide * 3 / 2 + 1) * 30 - ((tiles_wide % 2) ? 0 : 15);

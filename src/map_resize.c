@@ -252,7 +252,8 @@ int d_button_proc_resize(int msg, DIALOG *d, int c){
 				//new sizes
 				mapx=my_x;
 				mapy=my_y;
-
+				//compute victory hexes
+				get_victory_hexes();
 				return D_CLOSE;
 				}//continue_anyway
 			}

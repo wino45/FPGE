@@ -101,12 +101,7 @@ int is_tile_passive_or_road_tile(int tile){
 	return 0;
 }
 
-
-
-
 void debug_dump_hex_pattern(int N, int NE, int SE, int S, int SW, int NW, int val){
-
-
 /*
 	printf("    __     \n");
 	printf(" __/%2d\\__ \n", N);
@@ -125,12 +120,105 @@ void debug_dump_hex_pattern(int N, int NE, int SE, int S, int SW, int NW, int va
 	printf("    \\___/    \n");
 }
 
-
 void debug_dump_hex_pattern_bit(int N, int NE, int SE, int S, int SW, int NW, int val){
-
 	debug_dump_hex_pattern(N?1:0, NE?1:0, SE?1:0, S?1:0, SW?1:0, NW?1:0, val);
-
 }
 
+void dump_scenario_to_csv(int dump_type,int dump_name,int dump_road,int dump_tiles,int dump_owner,int dump_victory,int dump_units, int dump_deploy){
+	int x,y;
+	char line[MAX_LINE_SIZE],tmp[MAX_LINE_SIZE];
 
+	snprintf(line,MAX_LINE_SIZE,"x,y");
+	if (dump_type){
+		snprintf(tmp,MAX_LINE_SIZE,",ttype");
+		strncat(line,tmp,MAX_LINE_SIZE);
+	}
+	if (dump_name){
+		snprintf(tmp,MAX_LINE_SIZE,",name");
+		strncat(line,tmp,MAX_LINE_SIZE);
+	}
+	if (dump_road){
+		snprintf(tmp,MAX_LINE_SIZE,",road");
+		strncat(line,tmp,MAX_LINE_SIZE);
+	}
+	if (dump_tiles){
+		snprintf(tmp,MAX_LINE_SIZE,",tile");
+		strncat(line,tmp,MAX_LINE_SIZE);
+	}
+	if (dump_owner){
+		snprintf(tmp,MAX_LINE_SIZE,",owner");
+		strncat(line,tmp,MAX_LINE_SIZE);
+	}
+	if (dump_victory){
+		snprintf(tmp,MAX_LINE_SIZE,",victory");
+		strncat(line,tmp,MAX_LINE_SIZE);
+	}
+	if (dump_deploy){
+		snprintf(tmp,MAX_LINE_SIZE,",deploy");
+		strncat(line,tmp,MAX_LINE_SIZE);
+	}
+	if (dump_units){
+		snprintf(tmp,MAX_LINE_SIZE,",unitid,str,exp,entrench,country,unitflag,auxtnum,orgtnum");
+		strncat(line,tmp,MAX_LINE_SIZE);
+	}
+	printf("%s\n",line);
+
+	for (x=0;x<mapx;x++)
+		for (y=0;y<mapy;y++){
+			snprintf(line,MAX_LINE_SIZE,"%2d,%2d",x,y);
+			if (dump_type){
+				snprintf(tmp,MAX_LINE_SIZE,",%2d",map[x][y].utr);
+				strncat(line,tmp,MAX_LINE_SIZE);
+			}
+			if (dump_name){
+				snprintf(tmp,MAX_LINE_SIZE,",%4d",map[x][y].gln);
+				strncat(line,tmp,MAX_LINE_SIZE);
+			}
+			if (dump_road){
+				snprintf(tmp,MAX_LINE_SIZE,",%3d",map[x][y].rc);
+				strncat(line,tmp,MAX_LINE_SIZE);
+			}
+			if (dump_tiles){
+				snprintf(tmp,MAX_LINE_SIZE,",%3d",map[x][y].tile);
+				strncat(line,tmp,MAX_LINE_SIZE);
+			}
+			if (dump_owner){
+				snprintf(tmp,MAX_LINE_SIZE,",%2d",map[x][y].own);
+				strncat(line,tmp,MAX_LINE_SIZE);
+			}
+			if (dump_victory){
+				snprintf(tmp,MAX_LINE_SIZE,",%2d",map[x][y].vic);
+				strncat(line,tmp,MAX_LINE_SIZE);
+			}
+			if (dump_deploy){
+				snprintf(tmp,MAX_LINE_SIZE,",%2d",map[x][y].deploy);
+				strncat(line,tmp,MAX_LINE_SIZE);
+			}
+			if (dump_units){
+				int idx =-1;
+				if (map[x][y].guidx>=0){
+					idx = map[x][y].guidx;
+				}
+				if (map[x][y].auidx>=0){
+					idx = map[x][y].auidx;
+				}
+				if (idx>0){
+					snprintf(tmp,MAX_LINE_SIZE,",%3d,%2d,%2d,%2d,%2d,%1d,%3d,%3d",
+							all_units[idx].unum,
+							all_units[idx].str,
+							all_units[idx].exp,
+							all_units[idx].entrench,
+							all_units[idx].country,
+							all_units[idx].uflag,
+							all_units[idx].auxtnum,
+							all_units[idx].orgtnum
+							);
+				}else{
+					snprintf(tmp,MAX_LINE_SIZE,",%3d,%2d,%2d,%2d,%2d,%1d,%3d,%3d",0,0,0,0,0,0,0,0);
+				}
+				strncat(line,tmp,MAX_LINE_SIZE);
+			}
+			printf("%s\n",line);
+	}
+}
 

@@ -782,13 +782,30 @@ Changelog for version 0.5.0: Jan 09, 2010
     * LGEN: multi column output for eqp bmp
     * PG2 import: prioritize rivers tiles over roads tiles
     * BUGFIX: terrain was generated only for x,y <=255, now is for whole map
-    * River generator changed -> river 2nd pass generating
+    * River generator changed -> river 2nd pass generating - WIP
     * CLI: -Eg will export LGeneral scenario files 
     * BUGFIX: map resize fixed when New Map X/Y==0 
     * Search and replace dialog: 'match' decoupled from 'set' for greater flexibility
     * Search and replace dialog: ! can be used to indicate "not match" : !52 will match everything except 52
     * BUGFIX: -Qu was not working, in APP6 mode there is no second unit displayed in unit dialog
+    * Move mode is trying to mimic PGDOS movement, but this is still WIP
     
+    0.7.4 26 November 2013
+    * CLI: -J[tnriuovd] - dump map and units on map in csv format for easy comparing using text diff tools
+    * BUGFIX: - new PGF map from scratch - prestige allotments fixed
+    * BUGFIX: - display number of victory or deploy fields while clicking
+    * BUGFIX: - when changing map size change victory points
+    * BUGFIX: - show error message when "save as" fails due to lack of target equipment file
+    * Move mode : aircraft move and PGDOS movement AFAIK 100% compatible
+    * Move mode : added path finding for transport (organic or aux)
+    * BUGFIX: Move mode - bridge unit in sea/air transport is not bridging anymore
+    * Change color of hex grid: use alt-h to circle : std_color, white, black, red, yellow, blue
+    * ctrl-s in tile mode will change sorting order of tiles : terrain type sorting <-> tile id sorting
+    * Tiles debug mode is now allways on. Try ctrl-a,n,r,d,t combinations in tile mode
+    * Added special tiles for road and river that tiles generator is using to change into tile.
+    * BUGFIX: road generation table was broken in 0.7.3
+    * Added 3 special tiles in tiles mode: road, river and road/river crossing (not used)
+    * Compiler switched to GCC 4.8.1
 
 Check:
 *
@@ -804,14 +821,13 @@ There is a package of 57 Jordi AG scenarios, each scenario in a uniquely named z
   the main directory?  
   
 - What I can do is to add dialog with covert options for LGeneral map export : use PG tile to LG terrain type (as now) or use PG terrain type to LG terrain type (new one).
-- LGEN: strenght bmp,  campaign (path+ brefings)
+- LGEN: strenght bmp, campaign (path+ brefings)
 - PacGen country conversion in case of PG/PGF/AG modes-do we need this ?
 - PacGen units names
-- new PGF map from scratch - save as ...
+- new PGF map from scratch - save as
 - PGDOS map different then SCN -Woolf campaign
 - check if deployment fields are empty !
 - check number of deploy field vs size of the core.
-- when changing map size change victory points, deploy, neutral, etc
 - show which country can buy given unit (?)
 - unit list - limits
 - alt-i show wrong rivers
@@ -828,6 +844,7 @@ There is a package of 57 Jordi AG scenarios, each scenario in a uniquely named z
 - Analyze palette usage- show all colors used by tacicons and tacmap (?)
 - undo - basic, limited number of levels, tiles only
 - radius in terrain (?)
+- there is no limits in victory hex number. Should be 20.
   Road generation:
 - treat end of map as road when making road connections
 - road generation special case = road parallel to the city

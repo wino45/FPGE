@@ -50,7 +50,7 @@ int draw_new_weather();
 int ctrl_w_keycallback();
 int draw_new_hex();
 int draw_new_flag();
-int ctrl_h_keycallback();
+int ctrl_alt_h_keycallback();
 int ctrl_i_keycallback();
 int ctrl_z_keycallback();
 int draw_new_scenario_units();

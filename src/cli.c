@@ -22,6 +22,7 @@
 #include "pg.h"
 #include "unitlist.h"
 #include "lgeneral.h"
+#include "maputils.h"
 
 int hide_names = 0;
 
@@ -111,13 +112,16 @@ void CLIHelp(char *VersionName)
     printf("  Use any of : c-make tiles with colors        n-do not color tiles.\n");
     printf("  Use any of : g-make tiles gray (default is green).\n");
     printf("  Use any of : u-do not make units icons.\n");
-    printf("-d Use tile matrix debug.\n");
+    printf("-d Use tile matrix debug[depricated, not used].\n");
     printf("-P Dump river patterns. Use switches to dump other patterns.\n");
     printf("  Use any of : R-check radius of 2 instead of 1 \n");
     printf("  Use any of : r-road patterns  o-road and river a-all\n");
     printf("-x Upon load of map change tiles\n");
     printf("  Use any of : s-scope          m-mode\n");
     printf("  Use any of : r-road patterns  o-road and river a-all\n");
+    printf("-J Dump map in csv format. Specify options to display only columns:\n");
+    printf("  Use any of : t-terrain type    n-name  r-road pattern  i-tile\n");
+    printf("  Use any of : d-deployment hex  o-owner v-victory hex   u-unit\n");
     printf("-h display this help.\n");
 }
 
@@ -1248,47 +1252,47 @@ int get_tile_offmap(int x, int y){
 //gawk "{ print \"{\" $0 \"},\" }" pat_all_s.txt
 //fpge -P ALL | grep "^[ 0-9][0-9]\{2\}" | sort | uniq -w 12 | wc -l
 void display_patterns(int pattern_mode, int mode){
-	int x,y,i,j,found,limit, border=0;
+	int x,y,i,j,found,limit=2, border=0;
 	int row[32];
 
 	for (x = border; x < mapx-border ; ++x)
 		for (y = border; y < mapy-border ; ++y)
-					if (is_tile_in_limited_set(map[x][y].tile,pattern_mode)!=-1){
-						row[1]=0;
-						//printf("%3d->",map[x][y].tile);
-						row[0]=map[x][y].tile;
-						if (mode==1){
-							limit=8;
-							for(i=0;i<6;i++){
-								found = is_tile_in_limited_set(map[x + dx_tab_N_CW[i]][y + dy_tab_N_CW[i][x % 2]].tile,pattern_mode);
+			if (is_tile_in_limited_set(map[x][y].tile,pattern_mode)!=-1){
+				row[1]=0;
+				//printf("%3d->",map[x][y].tile);
+				row[0]=map[x][y].tile;
+				if (mode==1){
+					limit=8;
+					for(i=0;i<6;i++){
+						found = is_tile_in_limited_set(map[x + dx_tab_N_CW[i]][y + dy_tab_N_CW[i][x % 2]].tile,pattern_mode);
+						row[1] |= (found >-1);
+						row[1] = row[1] << 1;
+						row[2+i]=found;
+					//printf("%3d%c",found,i<5?',':'\n');
+					}
+				}
+				if (mode==2){
+					limit=2;
+					int r=2;
+					for (i=0;i<=r;i++)
+							for (j=-r+i/2;j<=r-(i+1)/2;j++){
+								found = is_tile_in_limited_set(get_tile_offmap(x+i,y+j+x%2*(x+i+1)%2),pattern_mode);
 								row[1] |= (found >-1);
 								row[1] = row[1] << 1;
-								row[2+i]=found;
-							//printf("%3d%c",found,i<5?',':'\n');
+								row[limit]=found;
+								limit++;
+								found = is_tile_in_limited_set(get_tile_offmap(x-i,y+j+x%2*(x+i+1)%2),pattern_mode);
+								row[1] |= (found >-1);
+								row[1] = row[1] << 1;
+								row[limit]=found;
+								limit++;
 							}
-						}
-						if (mode==2){
-							limit=2;
-							int r=2;
-							for (i=0;i<=r;i++)
-									for (j=-r+i/2;j<=r-(i+1)/2;j++){
-										found = is_tile_in_limited_set(get_tile_offmap(x+i,y+j+x%2*(x+i+1)%2),pattern_mode);
-										row[1] |= (found >-1);
-										row[1] = row[1] << 1;
-										row[limit]=found;
-										limit++;
-										found = is_tile_in_limited_set(get_tile_offmap(x-i,y+j+x%2*(x+i+1)%2),pattern_mode);
-										row[1] |= (found >-1);
-										row[1] = row[1] << 1;
-										row[limit]=found;
-										limit++;
-									}
-						}
+				}
 
-						printf("%3d,0x%08x,",row[0],row[1]);
-						for(i=2;i<limit;i++) printf("%3d%c",row[i],i<limit-1?',':'\n');
+				printf("%3d,0x%08x,",row[0],row[1]);
+				for(i=2;i<limit;i++) printf("%3d%c",row[i],i<limit-1?',':'\n');
 
-					}
+			}
 }
 
 void  run_and_marks_rivers(int mode, int scope, int pattern_mode){
@@ -1439,6 +1443,7 @@ int cli_parsing(int argc, char *argv[]) {
 	int pattern_mode=LIMITED_SET_RIVER;
 	int tmode=0;
 	int tscope=0;
+	int dump_type=0, dump_name=0, dump_road=0, dump_tiles=0, dump_owner=0, dump_victory=0, dump_units=0, dump_deploy=0;
 	//layers
 	//int layer_tiles=0;
 	//int layer_roads=0;
@@ -1520,10 +1525,10 @@ int cli_parsing(int argc, char *argv[]) {
 							show_problems=6;
 							break;
 						case 'A':
-							colorize_names=1;
+							colorizeNames=1;
 							break;
 						case 'E':
-							colorize_names=2;
+							colorizeNames=2;
 							break;
 						case 'g':
 							show_unit_layer_type = 0;
@@ -2117,6 +2122,51 @@ int cli_parsing(int argc, char *argv[]) {
 			}
 			run_and_marks_rivers(tmode,tscope,pattern_mode);
 			break;
+
+		case 'J':
+
+			if (strlen(argv[1]) > 2) {
+				for (i = 2; i < strlen(argv[1]); i++) {
+					switch (argv[1][i]) {
+					case 't':
+						dump_type++;
+						break;
+					case 'n':
+						dump_name++;
+						break;
+					case 'r':
+						dump_road++;
+						break;
+					case 'i':
+						dump_tiles++;
+						break;
+					case 'u':
+						dump_units++;
+						break;
+					case 'o':
+						dump_owner++;
+						break;
+					case 'v':
+						dump_victory++;
+						break;
+					case 'd':
+						dump_deploy++;
+						break;
+					}
+				}
+			}else{
+				//default, show all
+				dump_type=1;
+				dump_name=1;
+				dump_road=1;
+				dump_tiles=1;
+				dump_owner=1;
+				dump_victory=1;
+				dump_units=1;
+				dump_deploy=1;
+			}
+			dump_scenario_to_csv(dump_type,dump_name,dump_road,dump_tiles,dump_owner,dump_victory,dump_units,dump_deploy);
+			return 1;
 		}
 		}
 	return 0;

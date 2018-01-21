@@ -9,8 +9,8 @@
 
 #define HD_X  1
 #define HD_Y  1
-#define HD_LINES   38
-#define HD_LINES2   25
+#define HD_LINES   39
+#define HD_LINES2   26
 #define HD_COLUMNS 63
 
 #define HD_LH  16
@@ -52,10 +52,11 @@ DIALOG help_dlg[HELP_DLG_SIZE]={
 	 "ctrl-l display transport in Gnd and Trans modes\n\n"
 	 "ctrl-w cycle weather: normal, mud, snow\n\n"
 	 "ctrl-h show/hide hex grid on map\n\n"
+     "alt-h  change color of hex grid on map\n\n"
 	 "ctrl-u switch between campaign and scenario unit display modes\n\n"
 	 "ctrl-v switch between edit and game unit display modes\n\n"
 	 "ctrl-o show units ID in the scenario, two display modes.\n\n"
-	 "ctrl-k show scan ranges\n\n"
+	 "ctrl-k show spotting ranges\n\n"
      "ctrl-i clears all visual display flags to defaults\n\n"
 	 "Actions:\n\n"
 	 "ctrl-b save entire map as BMP\n\n"
@@ -109,15 +110,14 @@ DIALOG help_dlg2[HELP_DLG_SIZE]={
 	 "F11 - bocage\n\n"
 	 "F12 - escarpment\n\n"
 	 "ctrl-h show/hide hex grid on tile matrix\n\n"
+     "alt-h  change color of hex grid on tile matrix\n\n"
      "ctrl-l change tile matrix layout\n\n"
-     "In tile matrix debug mode (CLI: -d)\n\n"
+     "ctrl-s change tile matrix sorting\n\n"
      "ctrl-a - tile ID and ocean(O), group filter and passive road(R), main group filter information\n\n"
-     "Use ctrl-d to change display mode for:\n\n"
+     "ctrl-d - use to change display mode for:\n\n"
      "ctrl-r - road, river information, tile generation mask\n\n"
      "ctrl-t - tile default terrain type\n\n"
      "ctrl-n - tile default name\n\n"
-
-
      //"\n\n"
 	 ,0,0
 },

@@ -114,9 +114,11 @@ int terrain_move_cost(int from_x, int from_y, int to_x, int to_y, int move_type,
 	if ((map[from_x][from_y].rc & dir_bit_mask_RC[direction]) ||
 			(map[to_x][to_y].guidx!=0 &&
 			 get_unit_side(map[to_x][to_y].guidx) == unit_side &&
-			(  equip_flags[all_units[map[to_x][to_y].guidx].unum]&EQUIPMENT_CAN_BRIDGE_RIVERS)  ) )
+			(  equip_flags[all_units[map[to_x][to_y].guidx].unum]&EQUIPMENT_CAN_BRIDGE_RIVERS) &&
+			( all_units[map[to_x][to_y].guidx].auxtnum<=0 )
+			) )
 
-		//road move is 0
+		//road move is index 0
 		return PgStaticMoveTable[0 + showWeather + multiplyer*move_type ];
 
 	if (map_terrain_type_to_movement_terrain[map[to_x][to_y].utr]<MOVEMENT_TYPE_UNKNOWN){
@@ -169,30 +171,65 @@ void compute_move_hexes(unsigned char move_array[][MOVE_MAP_Y],unsigned char mov
 	move_array[x0][y0]=move_point;
 	compute_costs(move_array,move_dir,x0,y0,move_type,move_point,uside);
 
-	int r,i,j,xx0,yy0,l=0, changes=1;
+	int r,i,j,xx0,yy0,/*l=0, */changes=1;
 
 	while(changes){
 		changes=0;
 		for (r = 1; r <= move_point; r++) {
 			for (i = 0; i <= r; i++)
-				for (j = -r + i / 2; j <= r - (i + 1) / 2; j++) {
+				for (j = -r + i / 2; j <= r - (i + 1) / 2; j++)
+				if (j== -r + i / 2 || j== r - (i + 1) / 2 || i== r){
 					xx0 = x0 + i;
 					yy0 = y0 + j + x0 % 2 * (x0 + i + 1) % 2;
-					if (xx0 >= 0 && xx0 <= mapx && yy0 >= 0 && yy0 <= mapy && (j== -r + i / 2 || j== r - (i + 1) / 2 || i== r) ) {
+					if (xx0 >= 0 && xx0 <= mapx && yy0 >= 0 && yy0 <= mapy ) {
 						changes+=compute_costs(move_array,move_dir,xx0,yy0,move_type,move_point,uside);
 						//move_points[xx0][yy0]=r;
 					}
+					if (i!=0){
 					xx0 = x0 - i;
 					yy0 = y0 + j + x0 % 2 * (x0 + i + 1) % 2;
-					if (xx0 >= 0 && xx0 <= mapx && yy0 >= 0 && yy0 <= mapy && (j== -r + i / 2 || j== r - (i + 1) / 2 || i== r) ) {
+					if (xx0 >= 0 && xx0 <= mapx && yy0 >= 0 && yy0 <= mapy ) {
 						changes+=compute_costs(move_array,move_dir,xx0,yy0,move_type,move_point,uside);
 						//move_points[xx0][yy0]=r;
 					}
-					l++;
+					}
+					//l++;
 				}
 		}
 	}
 }
+
+void compute_radius(unsigned char move_array[][MOVE_MAP_Y],unsigned char move_dir[][MOVE_MAP_Y], int x0, int y0,int move_type,int move_point,int uside){
+
+	move_array[x0][y0]=move_point;
+	move_array[x0][y0]++;
+
+	int r,i,j,xx0,yy0,/*l=0,*/ changes=1;
+
+	while(changes){
+		changes=0;
+		for (r = 1; r <= move_point; r++) {
+			for (i = 0; i <= r; i++)
+				for (j = -r + i / 2; j <= r - (i + 1) / 2; j++)
+				if (j== -r + i / 2 || j== r - (i + 1) / 2 || i== r) {
+					xx0 = x0 + i;
+					yy0 = y0 + j + x0 % 2 * (x0 + i + 1) % 2;
+					if (xx0 >= 0 && xx0 <= mapx && yy0 >= 0 && yy0 <= mapy   ) {
+						move_array[xx0][yy0]++;
+					}
+					if (i!=0){
+					xx0 = x0 - i;
+					yy0 = y0 + j + x0 % 2 * (x0 + i + 1) % 2;
+					if (xx0 >= 0 && xx0 <= mapx && yy0 >= 0 && yy0 <= mapy ) {
+						move_array[xx0][yy0]++;
+					}
+					}
+					//l++;
+				}
+		}
+	}
+}
+
 
 int compute_prefix(int from_x, int from_y, int to_x, int to_y){
 	int r = abs(from_x-to_x)-abs(from_y-to_y+from_x%2)*2 +
@@ -222,16 +259,16 @@ void draw_prefix_for_movements(int x, int y, int r){
 		}
 }
 
-int compute_path(int from_x,int from_y,int to_x,int to_y){
-	int x,y,i,iter=10;
+int compute_path(int from_x,int from_y,int to_x,int to_y, int type){
+	int x,y,i,iter=50;
 	int best_v, best_x, best_y, best_i;
 
-	int prefix = compute_prefix( to_x, to_y,from_x, from_y);
+	int prefix1 = compute_prefix( to_x, to_y,from_x, from_y);
 	//if (from_x%2) prefix = !prefix;
 
 	x=from_x;
 	y=from_y;
-	prefix= (x+to_x)%2;
+	int prefix= (x+to_x)%2;
 	//print_dec(prefix);
 	move_path_init();
 
@@ -241,31 +278,51 @@ int compute_path(int from_x,int from_y,int to_x,int to_y){
 			int xx=x + dx_tab_N_CW[i];
 			int yy=y + dy_tab_N_CW[i][x % 2];
 			if (xx<0 || xx>= mapx || yy<0 || yy>= mapy) continue;
+			int mp=0;
+			if (type){
+				mp=move_points_transport[xx][yy];
+			}else{
+				mp=move_points[xx][yy];
+			}
+
 			if (!set){
-				if (move_points[xx][yy]!=MOVE_NOT_CHECKED){
-					best_v=move_points[xx][yy];
+				if (mp!=MOVE_NOT_CHECKED){
+					best_v=mp;
 					best_x=xx;
 					best_y=yy;
 					best_i=i;
 					set=1;
 				}
 			}else{
-				if (move_points[xx][yy]!=MOVE_NOT_CHECKED  && move_points[xx][yy]>=best_v ){
-					if (move_points[xx][yy]>best_v){
-						best_v=move_points[xx][yy];
+				if (mp!=MOVE_NOT_CHECKED  && mp>=best_v ){
+					if (mp>best_v){
+						best_v=mp;
 						best_x=xx;
 						best_y=yy;
 						best_i=i;
 					}else{
-						if (!prefix && abs(xx-to_x)<abs(best_x-to_x)){
-							best_x=xx;
-							best_y=yy;
-							best_i=i;
-						}
-						if (prefix && abs(yy-to_y)<abs(best_y-to_y)){
-							best_x=xx;
-							best_y=yy;
-							best_i=i;
+						if (to_x>from_x || to_y>from_y){
+							if (!prefix1 && abs(xx-to_x)<abs(best_x-to_x)){
+								best_x=xx;
+								best_y=yy;
+								best_i=i;
+							}
+							if (prefix1 && abs(yy-to_y)<abs(best_y-to_y)){
+								best_x=xx;
+								best_y=yy;
+								best_i=i;
+							}
+						}else{
+							if (!prefix && abs(xx-to_x)<abs(best_x-to_x)){
+								best_x=xx;
+								best_y=yy;
+								best_i=i;
+							}
+							if (prefix && abs(yy-to_y)<abs(best_y-to_y)){
+								best_x=xx;
+								best_y=yy;
+								best_i=i;
+							}
 						}
 
 					}
@@ -291,9 +348,14 @@ int move_click(){
 	int y0 = map_mouse_y;
 
 	//check if there is a unit
-	if (map[x0][y0].guidx>=0){//ground unit only
+	if ( (map[x0][y0].guidx>=0 && show_unit_layer_type==0) || ( map[x0][y0].auidx>=0 && show_unit_layer_type==1)){
 		//print_str("Move click.");
-		int uid = map[x0][y0].guidx;
+		int uid=0;
+		if (map[x0][y0].guidx>=0 && show_unit_layer_type==0){
+			uid = map[x0][y0].guidx;
+		}else{
+			uid = map[x0][y0].auidx;
+		}
 		int uside = get_unit_side(uid);
 
 		move_init();
@@ -305,14 +367,20 @@ int move_click(){
 		//print_dec(move_point);
 
 		compute_move_hexes(move_points,move_directions_RC, x0,  y0, move_type, move_point, uside);
-
-		if (all_units[uid].orgtnum!=0){
-			//print_dec(all_units[uid].orgtnum);
-			//mark also organic transport range
-			int move_point = equip[all_units[uid].orgtnum][MOV];
-			int move_type = equip[all_units[uid].orgtnum][MOV_TYPE];
-			//print_dec(move_point);
+		if (all_units[uid].auxtnum!=0){
+			int move_point = equip[all_units[uid].auxtnum][MOV];
+			int move_type = equip[all_units[uid].auxtnum][MOV_TYPE];
 			compute_move_hexes(move_points_transport,move_directions_transport_RC, x0,  y0, move_type, move_point, uside);
+		}else{
+			if (all_units[uid].orgtnum!=0){
+				//print_dec(all_units[uid].orgtnum);
+				//mark also organic transport range
+				int move_point = equip[all_units[uid].orgtnum][MOV];
+				int move_type = equip[all_units[uid].orgtnum][MOV_TYPE];
+				//print_dec(move_point);
+				compute_move_hexes(move_points_transport,move_directions_transport_RC, x0,  y0, move_type, move_point, uside);
+				//compute_radius(move_points_transport,move_directions_transport_RC, x0,  y0, move_type, move_point, uside);
+			}
 		}
 		move_x0=x0;
 		move_y0=y0;
@@ -321,16 +389,16 @@ int move_click(){
 		draw_map(map_bmp, map_x0, map_y0, tiles_high, tiles_wide);
 		main_dlg[dmMapBmpIdx].flags |= D_DIRTY;
 	}else{
-		if (move_points[x0][y0]< MOVE_NOT_CHECKED ){
-			//compute path
-			compute_path(x0,y0,move_x0,move_y0);
-			draw_map(map_bmp, map_x0, map_y0, tiles_high, tiles_wide);
-			main_dlg[dmMapBmpIdx].flags |= D_DIRTY;
-		}else{
-			draw_prefix_for_movements(x0,y0,8);
-			draw_map(map_bmp, map_x0, map_y0, tiles_high, tiles_wide);
-			main_dlg[dmMapBmpIdx].flags |= D_DIRTY;
-		}
+			if (move_points[x0][y0]< MOVE_NOT_CHECKED || move_points_transport[x0][y0]< MOVE_NOT_CHECKED){
+				//compute path
+				compute_path(x0,y0,move_x0,move_y0,move_points_transport[x0][y0]< MOVE_NOT_CHECKED);
+				draw_map(map_bmp, map_x0, map_y0, tiles_high, tiles_wide);
+				main_dlg[dmMapBmpIdx].flags |= D_DIRTY;
+			}else{
+				draw_prefix_for_movements(x0,y0,8);
+				draw_map(map_bmp, map_x0, map_y0, tiles_high, tiles_wide);
+				main_dlg[dmMapBmpIdx].flags |= D_DIRTY;
+			}
 	}
 
 	return 0;

@@ -176,6 +176,7 @@
 #define COLOR_GREEN 10
 #define COLOR_RED 12
 #define COLOR_PURPLE 5
+#define COLOR_YELLOW 27
 #define COLOR_DARK_GREEN 120
 #define COLOR_DARK_DARK_GREEN 232
 #define COLOR_DARK_GREEN_GRAY 38
@@ -516,6 +517,7 @@ extern int anum_selected; //aux transport
 #define EQUIPMENT_CANNOT_BE_PURCHASED        0x0200
 #define EQUIPMENT_RECON_MOVEMENT             0x0400
 
+#define MAX_LINE_SIZE 256
 #define MAX_MAP_FRG 500
 #define FRG_X_SIZE 9
 #define FRG_Y_SIZE 9
@@ -610,6 +612,9 @@ extern int showWeather;
 extern int showHex;
 extern int showHexMatrix;
 extern int showMatrixMode;
+extern int sortMatrixMode;
+extern int showHexColor;
+extern int showHexMatrixColor;
 extern int graphical_overide;
 extern int scenarioUnitsMode;
 extern int displayAllUnits;
@@ -619,7 +624,15 @@ extern int debug_tile_matrix;
 extern int show_ranges;
 extern int show_problems;
 extern int show_debug_problems;
-extern int colorize_names;
+extern int colorizeNames;
+extern int mapShiftMode;
+//edit_op == edit_tile && debug_tile_matrix
+extern int drawRoadsDebug;
+extern int showDecimalDebug;
+extern int drawNamesDebug;
+extern int drawAllNamesDebug;
+extern int colorizeNamesDebug;
+extern int drawTerrainDebug;
 
 extern char MonthStr[SCENARIO_STR_SIZE];
 extern char YearStr[SCENARIO_STR_SIZE];

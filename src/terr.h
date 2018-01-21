@@ -18,7 +18,7 @@
 #define TD_FG_COLOR GUI_FG_COLOR
 #define TD_SCREEN_COLOR GUI_BG_COLOR
 
-#define TERRAIN_DLG_SIZE 45
+#define TERRAIN_DLG_SIZE (45+7)
 
 extern DIALOG terrain_dlg[TERRAIN_DLG_SIZE];
 
@@ -41,6 +41,9 @@ extern char tdTNStrMatch[8];
 extern char tdGLNStrMatch[8];
 extern char tdSDStrMatch[8];
 
+extern char tdRadiusStr[8];
+extern char tdProbStr[8];
+
 extern int tdTTStrMatchOn;
 extern int tdRDStrMatchOn;
 extern int tdTNStrMatchOn;
@@ -50,6 +53,8 @@ extern int tdSDStrMatchOn;
 extern int tdMatchMatchOn;
 
 extern int GUI_fill_default_tt;
+extern int GUI_use_brush;
+extern int GUI_only_on_clear;
 
 int do_findname_dlg();
 
