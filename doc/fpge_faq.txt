@@ -1,0 +1,94 @@
+FPGE for windows 0.6.0 FAQ
+
+1. Installation. Copy FPGE.EXE to :
+PGF: "scenario" folder
+AG/PGWIN: "scenario" folder
+PGDOS: "DAT" folder
+Run. That's all.
+
+FPGE for windows 0.5.1 FAQ
+
+1. Windows Vista or 7 64bit problems
+
+There is no good solution for graphic problems with 64bit versions for Windows.
+To use FPGE change graphic to "window mode":
+* run FPGE
+* press ctrl-g
+* choose DirectDraw window + resolution that suits your need.
+
+2. Compiling
+The 0.5.0 has been compiled via Dev-C++. But I have switched to newer version of Allegro and EclipseCDT in version 0.5.1.
+So the 0.5.1 is compiled using gcc-3.4.5, Allegro 4.2.2 (MINGW 5.1.6 package as of 2010.02) and EclipseCDT 20100218-1602.
+The difference between Dev-C++ and EclipseCDT is Eclipse must be configured specialy to 
+compile resource file (icon and version information).
+I have used the following modification to project file:
+* add RC_file variable in "Properties -> C/C++ Build -> Build variables"
+  RC_file is set to..\src\FPGE_private.rc
+* compile resource file "Properties -> C/C++ Build -> Settings -> Build Step -> Pre-build steps"
+  Command set to : windres -i "${RC_file}" -o src\resources.o
+* link resources "Properties -> C/C++ Build -> Settings -> Tool Settings -> MinGW C Linker -> Miscellaneous -> Other objects"
+  Add ".\Release\src\resources.o"
+  
+3. RIMP, REXP what they load/save
+Using this function you will load/save only one layer : tile layer - the graphical represenation of the map.
+Recreate road layer, terrain layer or names layer by using CTRL-Q generation algorithms.
+
+  
+FPGE for DOS FAQ (version 0.4 or older)
+
+1. 
+Q: When I start the editor I got the simmilar information but editor does not start:
+C:\PG\DAT>FPGE.EXE 06
+Load error: no DPMI - get csdpmi*b.zip
+
+A: Look into zip with FPGE editor. There is cws.zip inside. Extract the CWSDPMI.EXE to the same directory as FPGE.EXE
+
+2. 
+Q: When I start the editor I got the simmilar information but editor does not start: 
+
+C:\PG\DAT>FPGE.EXE 06
+Starting FPGE...
+Loading tiles...
+Loading unit icons...
+Loading equipment...
+Loading flags...
+Loading strength icons...
+Loading names...
+Loading scenario #06...
+Opening file Game006.scn
+Reading the core units...
+Reading the aux units...
+Reading the allied units...
+#145 total units read.
+Reading the victory hexes..
+Reading the deployment hexes...
+Allegro library init...
+
+A: Use DOSBOX (http://www.dosbox.com/) to start editor. FPGE is a DOS application
+
+3. 
+Q: How to compile FPGE.
+
+A: To compile FPGE you need DJGPP (http://www.delorie.com/djgpp/) compiler and tools. The version of the compiler I used is very old. I was able to compile FPGE using the folowing DJGPP packages:
+
+27/08/1999  19:07         1,460,848 alleg312.zip
+24/08/2009  23:07         1,712,024 bnu27b.zip
+07/04/2002  13:32         1,538,295 djdev201.zip
+07/04/2002  13:31         1,096,967 gcc2721b.zip
+07/04/2002  13:32           681,045 gpp2721b.zip
+07/04/2002  13:32           638,706 lgp271b.zip
+25/10/1996  05:29           209,185 mak375b.zip
+24/08/2009  23:00           602,129 obc2721b.zip
+16/01/2000  09:03           646,656 txi40b.zip
+
+Most of them are downloaded from http://www.ludd.luth.se/~ams/djgpp/
+see file : http://djgpp.linux-mirror.org/deleted/v2gnu/gcc2721.txt
+
+Install DJGPP (unzip and set PATH and DJGPP system variables).
+
+To complie allegro:
+make mmxtest
+make
+make install
+
+Compiling FPGE works directly from Windows XP command prompt. Just run build.bat

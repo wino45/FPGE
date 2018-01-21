@@ -1,0 +1,429 @@
+SCN
+0x00 byte AXIS #1 code
+0x01 byte ALLY #1 code
+0x02 byte AXIS #2 code
+0x03 byte ALLY #2 code
+0x04 byte AXIS #3 code
+0x05 byte ALLY #3 code
+0x06 byte AXIS #4 code
+0x07 byte ALLY #4 code
+0x08 byte AXIS #5 code
+0x09 byte ALLY #5 code
+
+[unconfirmed]0x0a byte AXIS #6 code (?)
+[unconfirmed]0x0b byte ALLY #6 code (?)
+
+0x0c, 2 bytes direction 1 -> <- -1
+0x0e, 1 byte, AXIS offensive (1)
+0x0f, 1 byte, Allied offensive (0)
+0x10, 1 byte, weather front No=1, yes =0 (?is this realy NO/YES) 
+
+0x11 weather; 3 Eastern europe; 0 North Africa; 2 West Europe; 1 South Europe
+0x12 no max Ax core, 1 byte
+0x13 no max Ax aux, 1 byte
+0x14 no max Allied core, 1 byte
+
+0x15 no of turns, 1 byte
+0x16 day, 1 byte, 
+0x17 month, 1 byte, 
+0x18 year, 1 byte, 
+0x19 turns per day, 1 byte
+0x1A days per turn, 1 byte
+0x1B axis prestige pool, 2 byte
+0x1D allied prestige pool, 2 byte
+0x1F Axis turns allotment, 1 byte
+0x20 Allied turns allotment, 1 byte
+
+0x21 Number of axis core units, 1 byte
+0x22 Number of allied units, 1 byte
+0x23 Number of axis aux units, 1 byte
+
+[unconfirmed]0x24 Number of allied aux units, 1 byte (?)
+
+0x25 victory  x(2bytes),y(2bytes); -1,-1 non valid (20 times) 
+0x75 numer of deployment points (2bytes) NO
+0x77 x(2bytes),y(2bytes) of deployment points; -1,-1 last one must be
+PRESTIGE OFFSET (PO) = 0x77 + NO * 4
+
+PO   :  2 byte Axis starting prestige,
+PO+2 : 2 byte Allied starting  prstige,
+PO+4 : 1 byte, axis air
+PO+5 : 1 byte, allied air
+PO+6 : 1 byte, axis naval
+PO+7 : 1 byte, allied naval
+PO+8 : 2 byte, axis air transport type
+PO+10 : 2 byte, allied air transport type
+PO+12 : 2 byte, axis sea transport type
+PO+14 : 2 byte, allied sea transport type
+
+PO+16
+14 byte - unit description
+0x00 typ -2 byte
+0x02 typ - organic transport, 2 byte (transporter of organic unit )
+0x04 owner - byte
+0x05 typ - air/sea transportu, 2 byte
+0x07 - X, 2 byte
+0x09 - y, 2 byte
+0x0B - str
+0x0C - entranchment
+0x0D - exp (?)
+
+ls game0*.scn | xargs -n 1 hexdump -n 37 -e \"12/1 \\\"%2d \\\" 1/2 \\\" %2d \\\" 13/1 \\\"%2d \\\" 2/2 \\\" %4d \\\" 6/1 \\\" %2d \\\" \\\"\n\\\"\"
+
+
+STM
+terain type (movement cost)
+0x00 - terain type = (17+1)*(15+1) *2 
+
+
+SET
+MAP got 17 x 15
+
+0x00 Value 1, 1 byte (version or 'is active' ) (?) 
+0x01 path to tacmap.shp (tiles), 20bytes
+0x15 path to tacmap.tgf tgf, 20bytes
+0x29 path to stm, 20bytes
+0x3d path to mapconv.stg, 20bytes
+0x51 name, 20 bytes
+0x65 X, 2bytes = 17
+0x67 Y, 2bytes = 15
+0x69 - ? 18 bytes
+0x7b - tiles name - tiles 576 bytes = (17+1)*(15+1) *2 
+0x2bb - roads  - (17+1)*(15+1)=288
+0x3db - (17+1)*(15+1) = owner, 1byte (16 for PL, 8 for GE)
+0x4fb - (17+1)*(15+1) = owner by side, 1 byte (1 for city allied, 2  axis(?), 3 neutral)
+0x61e - tiles IDs, 576 bytes = (17+1)*(15+1) *2 
+
+11    21    32    2A
+010   010   001   001
+010   100   110   101
+ 
+NW X SW S SE X NE N
+
+ls map*.set | xargs -n 1 hexdump -n 4 -e \"2/2 \\\"%d \\\" \\\"\n\\\"\" -s 101
+ls -I "*SHP"
+strings SCENSTAT.BIN | head -n 38
+strings MAPNAMES.STR | grep -n .
+ls game0*.scn | xargs -n 1 hexdump -n 2 -s 117 -e \"1/2 \\\" %2d \\\" \\\"\n\\\"\"
+----------
+ EQP
+ 
+ NAME   0, 20 bytes
+ CLASS 20, byte
+ SoftAttack    21, byte
+ HardAttack    22, byte
+ AirAttack    23, byte
+ NavalAttack    24, byte
+ GroundDefence    25, byte
+ AirDefence    26, byte
+ CloseDefence    27, byte
+ TargergeType    28, byte
+ prestigeBombing   29, byte
+___   30, byte, value "00"
+ Initiative   31, byte
+ Range   32, byte
+ Spotting   33, byte
+ GAF   34, byte
+ MOV_TYPE 35, byte
+ MOVment   36, byte
+ FUEL  37, byte
+ AMMO  38, byte
+ ___   39 value "0A"
+ ___   40 value "06"
+ COST  41, byte (/12)   
+ BMP   42, byte  (2bytes?) yes
+___  43 value "00"
+ ANImation   44, byte(2bytes?) yes
+ ___   45 value "00"
+ 
+ MON   46, byte
+ YR    47, byte
+ LAST_YEAR 48, byte 
+ allowed_transport   49, 0 none; 1 sea; 2 sea & air; 3 sea & paratroop
+ 
+ ---hexdump EQP-----
+ hexdump -e "\"%07.7_ax \" 20/1 \"%c\" 30/1 \"%03d \" \"\n\"" -n 100 -s 2 PANZEQUP.EQP
+ 
+ SCENSTAT.BIN
+ 40 bytes - 0,1 - on/off each scenario (40 scenarios)
+ 40x14 bytes - name of the scnario
+ 40x160 bytes - description of the scenario
+ 
+ -------pacific---
+ scn
+ 
+ 2 X map
+ 2 Y map
+ X * Y * 37 + 4 -each map entry is 37 bytes
+ cchina units starting from 51728, 218 bytes per unit
+ 
+Checked on CCHINA.MAP
+
+1c 00 Map size X
+12 00 Map size Y
+Then X * Y records, each 37 bytes long.
+End of file - some unknown bytes, allways 101 bytes
+
+Each 37 bytes long record is one hex on map:
+
+ff 7f - name from SCCHINA.TST file, 0 first line
+00 - always 00 
+00 - unknown, spotted values :  1,5 city, 0 - most common - victory points awarder for conquer
+00 - unknown, spotted values : FF-lake, FE -river, FD-lake, 1- city
+00 00 00 00 00 00 - allways 6 zeros.
+00 - road connection, 0x01 N, 0x02 NE, 0x08 SE, 0x10 S, 0x20 SW, 0x80 NW
+02 - tile set number, set is from TIL.PFP 
+00 01 - tile number in set, from TIL.PFP
+04 - terrain type, use TERRAIN from from TXT.PFP
+ff - owner FF for no owner, other use NATIONS from TXT.PFP
+0E - owner of victory point- 00 standard
+00 00 00 00 00 00 - allways 6 zeros.
+02 - this hex is deploy hex 00 normal hex
+
+Rest of record - 00
+ 
+hexdump -s 4 -v -n 18648 -e "37/1 \"%02x \" \"\n\"" CCHINA.MAP
+
+--
+Pac scenario:
+MAP
+after map skip:
+ 0x291a admrisl.scn
+ 0x291a cchina.scn
+ 0x291a malay
+then:
+200*218*6 - units 200 per side, first 80 core, next aux
++128 unknown bytes
+
+---
+
+Units:
+1308=218*6, 218 bytes per unit, axis, allied, player1,2,3,4
+
+40 bytes -unit name
+1 BYTE - flag, owner 0x0e- japan, 0x1c - usa 40
+1 WORD - unit id 41,42
+1 WORD - unit organic transport id 43,44
+1 WORD - unit seaair transport id 45,46
+2 WORD -unknow 47,48,49,50
+1 WORD - X 51,52
+1 WORD - Y 53,54
+1 WORD - strength 55,56
+2 WORD - unknown
+1 WORD - entranchment
+1 BYTE - unknown
+1 WORD - experience
+
+
+------
+Pacific general eqipfile structure. Each record got 168 bytes
+PACGEN_EQUIP_REC_SIZE 168
+
+	BYTE class; //1
+	BYTE sa,ha,aa,na,sub_a; //6
+	BYTE gd,ad,assault_def,torpedo_def,depth_charge_def; //11
+	BYTE target_t; //12
+	BYTE bomber_size; //13
+	BYTE uk1; //14 unknown
+	BYTE ini, range, spotting; //17
+	BYTE move_med; //18 0- surf, 1 - air
+	BYTE move_type; //19 3-leg, 5 -air, 7-coastal-naval, etc
+	BYTE mov, fuel, amo, life, uk3 ; //24
+	BYTE prestige; //25
+	BYTE pic_num[2]; // 27
+	BYTE uk4[2]; //29 unknown
+	BYTE month,year,last_year; //33
+	BYTE transport; //34 0- none, 1-Naval ,2-Air Mobile,3-Airborne
+	BYTE hangar_size;// 35
+	BYTE countries[4];//39, bits for flags. 0x00200000 -Poland, 0x10000000 USA, etc
+	BYTE special[4]; //43 special units attributes, like 14-"No buy", 1-"No AI buy" ,etc
+	UWORD move_sound,attack_sound,death_sound; // 49 sound effects numbers
+	BYTE fill[PACGEN_EQUIP_REC_SIZE-49];
+
+
+ ---------
+hexdump -s 2 -n 20 -e "1/20 \"%s\n\" " MAPNAMES.STR
+
+//dump all names used in the map
+
+hexdump -e "2/2 \"%d \" " -s 101 -n 4 map01.set | awk "{ $size=($1+1)*($2+1)*2; print \"-n \"$size\" -s 123  map01.set\"}" | xargs hexdump -v -e \"1/2 \\\"%d \n\\\" \" | sort | uniq | awk "{$off=$1*20+2; print \" -n 20 -s \"$off\" mapnames.str\"}" | xargs -n 5 hexdump -v -e \"1/20 \\\"%s\n\\\"\"
+
+//divide map file into 3 parts 1- header, 2- names, 3- rest
+set mmm=map03
+od -A n -j 101 -N 4 -t d2 %mmm%.set | gawk -v name=%mmm% "{ print \"of=\"name\".001 if=\"name\".set count=122 skip=0 of=\"name\".002 if=\"name\".set count=\"($1+1)*($2+1)*2\" skip=122 of=\"name\".003 if=\"name\".set skip=\"($1+1)*($2+1)*2+122} " | xargs -n 4 dd bs=1 
+
+-----------------
+
+27/08/1999  19:07         1,460,848 alleg312.zip
+24/08/2009  23:07         1,712,024 bnu27b.zip
+07/04/2002  13:32         1,538,295 djdev201.zip
+07/04/2002  13:31         1,096,967 gcc2721b.zip
+07/04/2002  13:32           681,045 gpp2721b.zip
+07/04/2002  13:32           638,706 lgp271b.zip
+25/10/1996  05:29           209,185 mak375b.zip
+24/08/2009  23:00           602,129 obc2721b.zip
+16/01/2000  09:03           646,656 txi40b.zip
+
+F:\gry\pg\DAT>ls -l *.set | gawk "{printf \" -j %d --width=2 -A n -v -t d2 map%0
+2d.set\",$5-2*($5-0x7b)/7,i+1; i++; }" | xargs -n 9 od > tiles.txt
+
+PGF experience for allies for each scenario
+grep -a S.i.d.e.s -A 3 *.pgscn | sed -e "s/\x00//g" | grep "pgscn-[1]"
+---------
+save file:
+37722
+
+Bosna
+
+23783 MAP01.SET
+ 6760 MAP01.STM
+  587 GAME001.SCN
+  ----
+31130 sum  
+
+save
+
+1 byte cos =1
+14 description
+18+some data
+
+From SET
+0x3db - (17+1)*(15+1) = owner, 1byte (16 for PL, 8 for GE)
+0x4fb - (17+1)*(15+1) = owner by side, 1 byte (1 in allied cites, 2 for axis(?), 3 neutral)
+0x61e - tiles 576 bytes = (17+1)*(15+1) *2 
+then units:
+400 slots:
+80 core
+120 aux
+200 allied
+
+
+49 bytes per unit- 1 axis unit, then 1 allied unit
+constant slot number (0x3595+400*49+240) 400 slots?
+
+20 name
+1 flag
+2 type
+2 org type
+2 transport type
+2 X
+2 Y
+1 str
+2 ?
+1 mount 0-non, 1-org, 2 sea/air
+1 fuel
+1 amo
+1 entr
+1 supp
+1 - exp % 100
+1 - exp / 100
+1 - movement left
+2 - moved 1= yes, 0=no
+2 - unknown 1 or 0
+2 - kills
+1 -allways 0
+
+
+
+24005
+24005 -the units are from this point + then structure 4405 bytes long
+
+then:
+4405 bytes - seems to be always there
+
+0x0F0 - 1b-axis, 1b-allied
+0x102
+1-turn till front
+1-current weather
+1-wetness
+
+0x10F
+1- turns left
+1- total turn
+1 - day
+1-month
+1-year
+
+23e - victory cites 20x4
+  2-x1
+  2-Y1
+  2-x2
+  2-Y2 ...
+28E 
+2 - AXIS cash
+2 - allied cash  
+  
+
+hexdump -s 8005 -n 49 -v -e "20/1 \"%03d \" \"\n\"" GAME.SV0
+
+tail --bytes=24005 GAME.SV0 | head -c 25 | hexdump -v -e "16/1 \"%03d \" \"\n\""
+
+---------
+format of the RLE graphic file from TILEART.DAT AG file
+
+f-flags
+m-terrain
+n-counters
+s-stack
+u-units
+
+52 4c 45 69 header = RLEi
+00 00 00 6a size
+61 61 4e 6c name
+61 61 4e 6c palette name
+00 00
+00 00 
+00 09 X
+00 07 Y
+ 
+00 01 End of header - 2 bytes - count of pictures (?)
+
+00 0a each new line, 2 bytes NO of bytes in line including this 2 bytes
+line 1
+ff = 255 = read 1 byte of kntr (?)
+03 - kntr - size of block of pixels of 255 = transparent pixels
+83 12 19 12 
+ff = 255
+03 = 3 x 255
+
+line 2
+00 0e -size
+ff 01 
+87 12 12 19 1c 19 12 12 
+ff 01 
+line 3
+00 0c 
+89 12 19 1c 1c 1c 1c 1c 19 12 
+
+line 4
+00 0e -size
+ff 01 
+87 12 1c 1c 1c 1c 1c 12 
+ff 01 
+
+line 5
+00 0c -size
+ff 02 
+85 12 1c 1c 1c 12 
+ff 02 
+
+line 6
+00 0e -size
+ff 01 
+87 12 19 1c 12 1c 19 12 
+ff 01 
+
+line 7
+00 0c -size
+ff 01 1xFF
+03 12 3x12
+ff 01 1xFF
+03 12 3x12
+ff 01 1xFF
+
+
+C:\Users\wino\Downloads\ts1\Data>gawk -F \. "{ print $2\"\t\t\"$2\"\t\"$4\"\t\"$9\"\t\t\"$5\"\t\"$10\"\t\t\"$6\"\t\"$11\"\t\"}" SCENA.tdb > scenario_1.txt
+gawk: warning: escape sequence `\.' treated as plain `.'
+
+C:\Gry\PGForever101\sgr\Scenario>fpge -S ALL | grep "\(Axis core\)\|\(Scenario #\)\|\(Scenario name\)\|\(Deploy\)"
+

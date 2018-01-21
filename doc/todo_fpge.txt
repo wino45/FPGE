@@ -1,0 +1,18 @@
+
+DONE: NUPL from AG.exe and PGWIN.exe
+DONE:- NUPL from txt files in 2 formats: NUPL by Fred Ch. and PGAGNULP by Jeff Crouch
+DONE- save of AG scenario
+DONE:- midmap - use flags instead of sticons.shp
+
+DONE:- minimap for PGF (can be interesting) - get rid of sticon.shp and vichex.shp
+DONE:- minimap for AG 
+DONE- save of PGF graphics
+DONE save of PGF equipment file - PGF equipment file is combination of std. equipment file and NUPL.
+
+- support for "user defined map fragments files"
+- support for road generation using "tiles.txt"
+
+- Finally "First turn side" and "Second turn side". Maybe I will find some idea here.
+- Maybe saving units in order that you like...
+- maybe more batch processing, like : "save as", "fix roads", etc. All with ALL option.. 
+- mini & midi map via menu

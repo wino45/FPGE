@@ -1,0 +1,21 @@
+1. Get working FPGE in PGF mode : download PGF, download FPGE, unpack FPGE.exe into %PGF%/pg/scenario folder. Run FPGE, check initial screen for "PGF mode" (top-right)
+
+2. get PG2 map. Import it using FILE->PG2->Import Map/Scn. Check all three upper checkboxes and leave "generate road tiles" unchecked.
+2.a. get PG2 map and PG2 scenario. Import it using FILE->PG2->Import Map/Scn. Check all three upper checkboxes and leave "generate road tiles" unchecked. Leave "no units" radio button. The advantage of importing scenario is that geographical names are converted. Copy SCN & TXT & MAP file to FPGE dir. 
+2.b. to convert PG2 units from scenario make sure that : equip97.eqp and eqiuip97.txt are in FPGE dir. You will be asked to match equipment ID's. The result will be saved in 'pg2u2pgu.txt' file so you can edit it afterwards. Then follow 2.a.
+
+For PG2 MAP only import you need MAP file only. 
+For PG2 SCN you need only : SCN & TXT & MAP & equip97.eqp & eqiuip97.txt
+
+3. You should get a map. Check that roads are there by pressing ctrl-r. Check/correct icons orientation.
+
+4. Go to tools->make tiles. Check "River tiles" only. Hit generate. This will not work in latest FPGE since it got error- alt-m broke "make tile". Try to hit ctrl-m instead. This step will allow FPGE to export PzC with rivers. ONLY good rivers that are properly looking in PG will be converted. The PzC river export code depends on river tiles only.
+
+5. Fix river tiles manually to make a perfect looking rivers on the whole map. See 4 for explanations.
+
+6. Export to PzC. Make sure that 'equipment.pzequ' file is in the FPGE dir even when you do not have any units in scenario. In case of 2.b dialog will be show to make equipment ID's conversion. The result is in 'pgu2pzcu.txt' file so you can edit it manually afterwards and repeat export. You will not need to find ID's match when ID's are in this file.
+
+7. Open in PzC editor, fix roads and rivers around map borders, generate tiles. Save.
+
+Checked with FPGE 0.6.3.b15
+21 April 2012

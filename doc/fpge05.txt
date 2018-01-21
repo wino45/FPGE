@@ -1,0 +1,291 @@
+Fred's Panzer General Editor
+FPGE for Windows
+Version 0.5.1
+
+Installation
+
+Copy FPGE.exe to DAT directory of the PG game, then run it.
+
+Introduction
+
+This my modded version of FPGE. Read "fpge01.txt" file first ! Since version 0.4.1 FPGE is a native Windows application. No more DOSbox and CWSDPMI.
+
+Some most important new features of the version 0.5.0 are here (full changelog below):
+* Support for many graphical modes - use direct X accel modes for the best results
+* FPGE is saving config file, so each time you start you got same visual information displayed. Use crtl-i to reset visuals to default
+* Search and Replace function - great in naming oceans
+* advanced terrain function - change tile only when is matching some criteria. Also great in naming oceans and rivers. Hint - use this feature : choose desired tile attributes and matching criteria, then left click first tile, then left click with shift key pressed to change all matching tiles in rectangle.
+* command line options to:
+- search of common errors in maps
+- save BMP file with map (big, full of details) and small map (strategic map)
+- list units or scenario parameters to console
+Hint : command line listings or bmp file generation can be used for quick building of the web pages or wikis. 
+
+Use HELP button to read about all active hot keys in FPGE (over 35 of them are now active)
+
+Start cmd.exe, navigate to DAT directory, run FPGE -h to check possible command line switches.
+Example below:
+
+Fred's Panzer General Editor
+Version 0.5.1
+Modified by Wino
+
+Usage : fpge [option] XX
+where XX is map number
+
+Only one of following command line switches will be recognized at each program run:
+* Save BMP options:
+-B[nyrlizgatu{0123}{56}{dhf}{sexc}{mwo}{pvq@}] save BMP and exit.
+  Config is loaded before saving bmp.
+  Use any modifier to skip loading configuration. Default is 'g0so'. Modifiers:
+  Use any of : n-all names     y-draw terrain  r-draw roads       z-override unit hiding
+  Use any of : i-hide map hex grid l-toggle unit org. transport (will work for 'gt' only)
+  Use any of : ^-scenario units counters mode  $-draw all units   #-override flags hiding
+  Use any of : j-show units ID in the scenario.
+  Use one of : g-ground units  a-air units     t-transport units  u-no units
+  Use one of : 0-no names      1-non trivial   2-non river        3-river names
+  Use one of : 5-axis spotting 6-allied spotting
+  Use one of : d-show decimal  h-show hex      f-show full names
+  Use one of : s-show strength e-show ent      x-show experience  c-no unit counters
+  Use one of : o-normal tiles  m-mud tiles     w-winter tiles
+  Use one of : p-deployment    v-victory mode  q-neutral mode     @-all of them
+  Usage of any of modifiers 'nyr123' will hide all units icons unless 'z' is specified.
+  Example: 'fpge -Br1f 01' will draw bmp file with roads, non trivial names, display full names.
+* Display information options:
+-N display all names used in scenario.
+-U[d] list units. Use 'd' to display IDs
+-C list all cities.
+-A[s] display tile name used in map, one line per tile.
+-T[s] display tile type used in map, one line per tile.
+  For -A and -T use 's' modifier to skip lines with not used tiles in current map: -Ap -Tp.
+-S show scenario information.
+-O show names and all tiles type for each name.
+-M[v{gan}{mwo}{56}{al}] saves strategic map bmp. Modifiers:
+  Use one of : g-ground units  a-air units     u-no units
+  Use one of : x-axis units    l-allied units
+  Use one of : o-normal tiles  m-mud tiles     w-winter tiles
+  Use one of : 5-axis spotting 6-allied spotting
+  Use any of : v-display victory cites
+* Check map options:
+-r check roads. Find potential problems with roads connections.
+-i check rivers tiles for naming.
+-c check for not named city.
+-o check if all ocean is named.
+-h display this help.
+
+The visual introduction to new or enchanced features of FPGE v0.3 is available at http://wino.babilon24.org/fpge_info.pdf 
+
+Changelog for version 0.5.1 - 24.04.2010
+    * Se&re dialog centered
+	* shortcuts keys in ctrl-q, ctrl-m
+	* BUG FIXED: cut small maps x-3 w-6, h-8 y-4
+	* BUG FIXED: one press of SPACE will switch from Terrain to Tiles
+	* refactoring - main source file is split into few source files
+	* refactoring - no more complication warnings with gcc-3.4.5, Allegro 4.2.2 (MINGW 5.1.6 package as of 2010.02) and EclipseCDT 20100218-1602
+	* handle cursors keys to scroll map in scroll sliders
+	* BUG FIXED known graphic problems 800x600 and 1600x1280
+     - graphic problems for 800x600
+     - map24 wrong vertical scroll  (1600x1280)
+     - map27 - cannot scroll to right (1600x1280)
+    * BUG FIXED graphical problems with switching between GND/AIR/TRANS/NONE
+    * ctrl-k - show scan ranges, update when new unit or flag
+    * BUG FIXED properly show scan ranges for units transported by sea or air
+    * -B5, -B6 show scan ranges on saved BMP
+
+Changelog for version 0.5.0 - 09.01.2010
+   * "lake","creek","sea","gulf","bay","swamp run", "straigth" in name - draw blue
+   * ctrl-n got three modes : display non standard names, display non standard but not "water" names, display "water" names. Press ctrl-n four times to remove filter.
+   * info that BMP was saved
+   * bug fix: In ctlr-n mode do not display names for <14 and 280-283 only
+   * bug fix: ctrl-b - is properly saving bmp regardles of current map position
+   * bug fix: new map will delete units
+   * ctrl-l show land transport in GDN and TRANS modes
+   * set road direction checkboxes in terrain to current road connections
+   * LOAD renamed to RLOAD
+   * Search and Replace function
+   * Save config file - graph mode, filters only
+   * Search names in terrain dialog, press Name button
+   * bug fix: change 127 tile in road generation, 127 is a town 
+   * change background for non river names -> black
+   * New option for terrain : the hex can be change only when matching criteria - can be used for naming oceans or rivers
+   * bug fix: in some graphic modes and maps size combination FPGE was crashing
+   * rigth click will try to fix road when in road mode and non other modes are active - useful for small corections
+   * #define MAX_NAMES 20000
+   * bug fix: make terrain and names only if id<=13 (not <=21 as before )
+   * -N invoking parameter display all names used in scenario
+   * -B[s] save BMP and exit. Load config before saving bmp to use filters settings
+   * -r check roads. Find potential problems with roads connections
+   * -i check rivers tiles for naming
+   * -U list units
+   * -c check for not named city
+   * small change in terrain matrix filters, ocean tile is not longer in citys group
+   * -C list all cities
+   * -o check if all ocean is named
+   * -T[s] display tile type used in map, one line per tile
+   * -A[s] display tile name used in map, one line per tile
+   * for -A and -T use 's' to skip lines with not used tiles in current map: -Ap -Tp
+   * -S show scenario information
+   * -h help for command line
+   * changed palette to combined WARPAL and _BACKUP_, color #0 and #255 switched to make allegro happy
+   * hex border changed to color #241
+   * ctrl-w cycle weather: normal, mud, snow. Filter state saved in config file.
+   * ctrl-s,e,x - strength, exp and ent can be switched off.
+   * ctrl-h hide/show hexes. Filter state saved in config file.
+   * -B bitmap generation modifiers. See help in exe: fpge.exe -h
+   * save bak files on save only once, 
+   * save to scenario directly !!! - no more scenario 00 !!
+   * MapInfo box is wider for screen sizes >640
+   * RLOAD renamed back to LOAD. 
+   * load any scenario from FPGE. You can choose scenario number to load
+   * OWNER renamed to FLAG
+   * when no scenario set on startup do not ask about load confirmation
+   * -h can be invoked without specifying scenario number
+   * victory hex - red, single line only
+   * neutral hex - cyan, 243 palette number
+   * deployment hex - black, 0 palette number
+   * ctrl-i - clears all visual display flags to defaults
+   * unit order while saving is as expected: scan each row from left to right
+   * help info updated about hiding units and flags, help dialog internaly simplyfied
+   * added sea and air info in scenario txt dump -S option
+   * -B got new option 'z' - overide unit/flags hiding
+   * -B got new options 'pvq@' : p-deployment,v-victory mode,q-neutral mode,@-all
+   * ctrl-z cycle unit hiding on/off and special hex on/off
+   * all new filter flags are displayed
+   * FLAG renamed to FLAGS
+   * flags, units, special hex can be on/off independently
+   * -B got new option '#' will show flags only
+   * -B options changed: 'z'-show units/hide. 
+   * -B You can use any combination of 'z@#'. When you do not specify any of these three FPGE will defaults.
+   * ctrl-u switch between campaign and scenario unit display modes 
+   * -B got new option '^' = ctrl-u
+   * read up to 5 neutral countries on scenaron load
+   * scenario screen updated to show up to 5 neutral countries
+   * when in Flags mode clicking on neutral hex will put first neutral country flag
+   * -U got 'd' modifier, display in number instead of strings
+   * units dialog- when scrolling down with keys units info is updated
+	* FIX: removed neutral debug to console
+	* ctrl-q - road generation, basic name and terrain generation are independent
+	* ctrl-m - coast, road and river generation are independent
+	* display stacked units:
+     ctrl-v toggle stacked units
+	 -B$ show stacked units
+	* display units icons depending on scenario <-- or --> icon indicator
+	* added 6th country
+	* FIX : stacked icons side
+	* changed 'load' dialog - focus on edit with scenario number
+	* ctrl-z - flags or units on/off only
+	* -Bz units on, -B# flags on
+	* ctrl-c - view/hide special hexes, -Bvpq or -B@ for all
+	* added d_yield_proc to every dialog
+	* adjusted units and stacked units positions
+	* added support for CP1250 charset in units and places names. The names are converted from cp1250 to UTF8 on loading.
+	* coloring of the river/ocen tiles based upon tiles id not name
+	* -o,-i are checking more tiles
+	* ctrl-o display/hide units ID
+	* New -B option: j-show units ID in the scenario.
+	* New switch : -O show names and all tiles type for each name.
+    * changed: adding units is now at the end of core/aux/allied set. No sorting inside set yet.
+	* fixed centering of the help, terrain and ctrl-p dialogs
+	* fixed buttons pressed/unpressed logic 
+	* ctrl-p windows colors and sizes fixed
+	* "load" edit background, button "Cancel" behaviour fixed
+	* moved units ID labels in case of ground units to show icons, when other info is displayed : do not move labels
+    * -M new option, saves strategy map bmp -M[v{gan}{mwo}{123}{xl}]
+	* add victory hex dump to scenario dump
+	* added skiping of loading of the very big unit icons. It seems that they are broken in k.u.k
+
+Changelog for version 0.4.1:
+   * native MS Windows compilation ! DOSbox and DPMI not longer needed
+   * small adjustments to make FPGE compile with Dev-C++
+   * rest on MSG_IDLE = save batery for laptops
+   * added icon
+   * MAX_DEPLOY_HEXES = 255
+
+Changelog for version 0.4:
+* ctrl-y - make map from bmp file (4bit bmp only)
+* ctrl-p - make new map; fill it with current tile
+* export/import terrain rectangular fragments - two new buttons REXP and RIMP
+* shift click - fill rectangle with current tile, can be used for naming also
+* changed and fixed ctrl-1..ctrl-9 to alt-1..alt-9
+* alt-1..alt-9, 1..9 code displays current tile info
+* assign 4 basic terrains as default: 1-ocean, 2-clear, 3-road, 4-river
+* tiles matrix is now 20x12
+* F1-F10 filter by terrain type in the tiles matrix mode
+* shortcut - SPACE- display tiles matrix
+* click in "tiles matrix" allway switch to tile laying mode
+* BMP for saving is allocated while saving only to reduce memory usage
+* more infos on errors during bmp save
+* different color for rivers labels
+* confirmation of exit, load, ctrl-y, ctrl-p   
+* status of ctrl switches on screen
+* FIXED: "tiles mode" + ctrl-a,n,f,t visual bug 
+* FIXED: graphic problems for 640x480
+* FIXED: bug in road generator code
+* FIXED: no debug info while "load" button is pressed
+
+Changelog for version 0.3:
+* ctrl-d - show hex->dec->name
+* help windows - all ctrl keys listed
+* shortcuts in main screen:
+  h - help
+  crtl-b - save entire map as bmp, need DPMI swap or more then 16M allocated in DOSBOX
+  crtl-g - change graphic mode
+  ctrl-m - make coast, roads, rivers
+  ctrl-q - make roads connections, terrain type and names
+* tiles shown in better order
+* road connection helper in terrain dialog
+* 1280x1024 mode is working with dosbox 0.73 !!
+* hot key terrain - predefined, press number key to use current, press CTRL-number to change. All keys with on/off masks.
+* all dialogs windows centered and in orginal size.
+* show transport units or hide all units 
+* max map size is 1024x1024 - untested
+* Shift key+mouse click= delete any owner while in "owner" mode
+* assign default names when unassigned (or <=21) - ctrl-q
+* additionaly Visual FAQ for ctrl keys - http://wino.babilon24.org/fpge_info.pdf
+
+Changelog of version 0.2 vs version 0.1:
+* graphic mode 1024x768
+* basic fix of terrain matrix display and usage - still not good
+* added unit icon in unit selection screen
+* added on/off in terrain = easy naming, easy terrain type set, etc
+* better error messages
+* can read 1200*4 names
+* cursor keys are working - still can be improved
+* shortcuts in main screen:
+  o - owner
+  i - unit
+  v - victory
+  t - terrain
+  c - scenario
+  d - deployment
+  n - neutral
+  e - entranchment
+  s - strength
+  x - experience
+  p - place
+  a - air
+  g - ground
+  r - core
+  u - aux
+  l - alied
+* global keys
+  ctrl-n show id's of names bigger then 21
+  ctrl-a show id's of names bigger
+  ctrl-t show terrain type
+  ctrl-r show road connections
+  ctrl-d show switch between hex(default) and decimal display of terrain & names
+  ctrl-f filter output to current name or terrain type
+  ctrl-s show strength
+  ctrl-x show experience
+  ctrl-e show entranchment
+* slider bug fix for maps that have x%2=1
+* load and show strength counters for units, make 0 from 10 by deleting 1.
+   
+New limits:
+MAX_TILES        256  // maximum number of map tile icons
+MAX_UICONS       3000 // maximum number of unit icons
+MAX_UNITS        5000 // maximum number of units in equipment file
+MAX_CORE_UNITS   160
+MAX_ALLIED_UNITS 400
+MAX_AUX_UNITS    240
+MAX_NAMES        4800

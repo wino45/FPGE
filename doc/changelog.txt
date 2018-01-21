@@ -1,0 +1,785 @@
+
+   Changelog:
+   v0.2 Aug 28, 2009
+   * graphic mode 1024x768
+   * basic fix of terrain matrix display and usage - still not good
+   * added unit icon in unit selection screen
+   * added on/off in terrain = easy naming, easy terrain type set, etc
+   * better error messages
+   * cursor keys are working - still can be improved
+   * shortcuts in main screen:
+     o - owner
+	 i - unit
+	 v - victory
+	 t - terrain
+     c - scenario
+	 d - deployment
+	 n - neutral
+	 e - entranchment
+     s - strength
+	 x - experience
+	 p - place
+	 a - air
+	 g - ground
+     r - core
+	 u - aux
+	 l - allied
+   * global keys
+     ctrl-n show id's of names bigger then 21
+     ctrl-a show id's of all names
+	 ctrl-t show terrain type
+	 ctrl-r show road connections
+	 ctrl-d show switch between hex(default) and decimal display of terrain & names
+	 ctrl-f filter output to current name or terrain type
+	 ctrl-s show strength
+	 ctrl-x show experience
+	 ctrl-e show entrenchment
+   * slider bug fix for maps that have x%2=1
+   * load and show strength counters for units, make 0 from 10 by deleting 1.
+   v0.3 Sep 16, 2009
+   * ctrl-d - show hex->dec->name
+   * help windows - all ctrl keys listed
+   * shortcuts in main screen:
+     h - help
+	 crtl-b - save entire map as bmp, need DPMI swap or more then 16M allocated in DOSBOX
+	 crtl-g - change graphic mode
+	 ctrl-m - make coast, roads, rivers
+	 ctrl-q - make roads connections, terrain type and names
+   * tiles shown in better order
+   * road connection helper in terrain dialog
+   * 1280x1024 mode is working with dosbox 0.73 !!
+   * hot key terrain - predefined, press number key to use current, press CTRL-number to change. All keys with on/off masks.
+   * all dialogs windows centered and in original size.
+   * show transport units or hide all units 
+   * max map size is 1024x1024 - untested
+   * Shift key+mouse click= delete any owner while in "owner" mode
+   * assign default names when unassigned (or <=21) - ctrl-q
+   * additionaly Visual FAQ for ctrl keys
+Changelog for version 0.4: Sep 30, 2009
+   * ctrl-y - make map from bmp file (4bit bmp only)
+   * ctrl-p - make new map; fill it with current tile
+   * export/import terrain rectangular fragments - two new buttons REXP and RIMP
+   * shift click - fill rectangle with current tile, can be used for naming also
+   * changed and fixed ctrl-1..ctrl-9 to alt-1..alt-9
+   * alt-1..alt-9, 1..9 code displays current tile info
+   * assign 4 basic terrains as default: 1-ocean, 2-clear, 3-road, 4-river
+   * tiles matrix is now 20x12
+   * F1-F10 filter by terrain type in the tiles matrix mode
+   * shortcut - SPACE- display tiles matrix
+   * click in "tiles matrix" always switch to tile laying mode
+   * BMP for saving is allocated while saving only to reduce memory usage
+   * more infos on errors during bmp save
+   * different color for rivers labels
+   * confirmation of exit, load, ctrl-y, ctrl-p   
+   * status of ctrl switches on screen
+   * FIXED: "tiles mode" + ctrl-a,n,f,t visual bug 
+   * FIXED: graphic problems for 640x480
+   * FIXED: bug in road generator code
+   * FIXED: no debug info while "load" button is pressed
+Changelog for version 0.4.1: Oct 06, 2009
+   * native MS Windows compilation ! DOSbox and DPMI not longer needed
+   * small adjustments to make FPGE compile with Dev-C++
+   * rest on MSG_IDLE = save batery for laptops
+   * added icon
+   * MAX_DEPLOY_HEXES = 255
+Changelog for version 0.5.0: Jan 09, 2010
+   * "lake","creek","sea","gulf","bay","swamp run", "straigth" in name - draw blue
+   * ctrl-n got three modes : display non standard names, display non standard but not "water" names, display "water" names. Press ctrl-n four times to remove filter.
+   * info that BMP was saved
+   * bug fix: In ctlr-n mode do not display names for <14 and 280-283 only
+   * bug fix: ctrl-b - is properly saving bmp regardless of current map position
+   * bug fix: new map will delete units
+   * ctrl-l show land transport in GDN and TRANS modes
+   * set road direction checkboxes in terrain to current road connections
+   * LOAD renamed to RLOAD
+   * Search and Replace function
+   * Save config file - graph mode, filters only
+   * Search names in terrain dialog, press Name button
+   * bug fix: change 127 tile in road generation, 127 is a town 
+   * change background for non river names -> black
+   * New option for terrain : the hex can be change only when matching criteria - can be used for naming oceans or rivers
+   * bug fix: in some graphic modes and maps size combination FPGE was crashing
+   * rigth click will try to fix road when in road mode and non other modes are active - useful for small corections
+   * #define MAX_NAMES 20000
+   * bug fix: make terrain and names only if id<=13 (not <=21 as before )
+   * -N invoking parameter display all names used in scenario
+   * -B[s] save BMP and exit. Load config before saving bmp to use filters settings
+   * -r check roads. Find potential problems with roads connections
+   beta
+   * -i check rivers tiles for naming
+   * -U list units
+   * -c check for not named city
+   * small change in terrain matrix filters, ocean tile is not longer in citys group
+   * -C list all cities
+   * -o check if all ocean is named
+   * -T[s] display tile type used in map, one line per tile
+   * -A[s] display tile name used in map, one line per tile
+   * for -A and -T use 's' to skip lines with not used tiles in current map: -Ap -Tp
+   * -S show scenario information
+   * -h help for command line
+   beta3
+   * changed palette to combined WARPAL and _BACKUP_, color #0 and #255 switched to make allegro happy
+   * hex border changed to color #241
+   beta4
+   * ctrl-w cycle weather: normal, mud, snow. Filter state saved in config file.
+   * ctrl-s,e,x - strength, exp and ent can be switched off.
+   * ctrl-h hide/show hexes. Filter state saved in config file.
+   * -B bitmap generation modifiers. See help in exe: fpge.exe -h
+   * save bak files on save only once, 
+   * save to scenario directly !!! - no more scenario 00 !!
+   * MapInfo box is wider for screen sizes >640
+   * RLOAD renamed back to LOAD. 
+   * load any scenario from FPGE. You can choose scenario number to load
+   beta5
+   * OWNER renamed to FLAG
+   * when no scenario set on startup do not ask about load confirmation
+   * -h can be invoked without specifying scenario number
+   * victory hex - red, single line only
+   * neutral hex - cyan, 243 palette number
+   * deployment hex - black, 0 palette number
+   * ctrl-i - clears all visual display flags to defaults
+   * unit order while saving is as expected: scan each row from left to right
+   * help info updated about hiding units and flags, help dialog internaly simplyfied
+   * added sea and air info in scenario txt dump -S option
+   * -B got new option 'z' - overide unit/flags hiding
+   * -B got new options 'pvq@' : p-deployment,v-victory mode,q-neutral mode,@-all
+   * ctrl-z cycle unit hiding on/off and special hex on/off
+   * all new filter flags are displayed
+   beta6
+   * FLAG renamed to FLAGS
+   * flags, units, special hex can be on/off independently
+   * -B got new option '#' will show flags only
+   * -B options changed: 'z'-show units/hide. 
+   * -B You can use any combination of 'z@#'. When you do not specify any of these three FPGE will defaults.
+   * ctrl-u switch between campaign and scenario unit display modes 
+   * -B got new option '^' = ctrl-u
+   * read up to 5 neutral countries on scenario load
+   * scenario screen updated to show up to 5 neutral countries
+   * when in Flags mode clicking on neutral hex will put first neutral country flag
+   * -U got 'd' modifier, display in number instead of strings
+   * units dialog- when scrolling down with keys units info is updated
+	beta7
+	* FIX: removed neutral debug to console
+	* ctrl-q - road generation, basic name and terrain generation are independent
+	* ctrl-m - coast, road and river generation are independent
+	* display stacked units:
+     ctrl-v toggle stacked units
+	 -B$ show stacked units
+	* display units icons depending on scenario <-- or --> icon indicator
+	* added 6th country
+	beta8
+	* FIX : stacked icons side
+	* changed 'load' dialog - focus on edit with scenario number
+	* ctrl-z - flags or units on/off only
+	* -Bz units on, -B# flags on
+	* ctrl-c - view/hide special hexes, -Bvpq or -B@ for all
+	* added d_yield_proc to every dialog
+	* adjusted units and stacked units positions
+	* added support for CP1250 charset in units and places names. The names are converted from cp1250 to UTF8 on loading.
+	* coloring of the river/ocean tiles based upon tiles id not name
+	* -o,-i are checking more tiles
+	* ctrl-o display/hide units ID
+	* New -B option: j-show units ID in the scenario.
+	* New switch : -O show names and all tiles type for each name.
+    * changed: adding units is now at the end of core/aux/allied set. No sorting inside set yet.
+	0.5.0 Jan 09, 2010
+	* fixed centering of the help, terrain and ctrl-p dialogs
+	* fixed buttons pressed/unpressed logic 
+	* ctrl-p windows colors and sizes fixed
+	* "load" edit background, button "Cancel" behavior fixed
+	* moved units ID labels in case of ground units to show icons, when other info is displayed : do not move labels
+    * -M new option, saves strategy map bmp -M[v{gan}{mwo}{123}{xl}]
+	* add victory hex dump to scenario dump
+	* added skipping of loading of the very big unit icons. It seems that they are broken in k.u.k
+   0.5.1 Apr 24, 2010
+    * Se&re dialog centered
+	* shortcuts keys in ctrl-q, ctrl-m
+	* BUG FIXED: cut small maps x-3 w-6, h-8 y-4
+	* BUG FIXED: one press of SPACE will switch from Terrain to Tiles
+	* refactoring - main file is split into few files
+	* refactoring - no more complication warnings with gcc-3.4.5, Allegro 4.2.2 (MINGW 5.1.6 package as of 2010.02) and EclipseCDT 20100218-1602
+	* handle cursors keys to scroll map in scroll sliders
+	* BUG FIXED known graphic problems 800x600 and 1600x1280
+     - graphic problems for 800x600
+     - map24 wrong vertical scroll  (1600x1280)
+     - map27 - cannot scroll to right (1600x1280)
+    * BUG FIXED graphical problems with switching between GND/AIR/TRANS/NONE
+    * ctrl-k - show scan ranges, update when new unit or flag
+    * BUG FIXED properly show scan ranges for units transported by sea or air
+    * -B5, -B6 show scan ranges on saved BMP
+   0.5.2 May 31, 2010
+	* BUG FIXED help window fixed
+	* BUG FIXED in ctrl-q 0,MAX rows for simple names and tt where not generated
+	* ESC exits Terr dialog, use t key to display Terr dialog
+	* ctrl-j - reread names files, useful in adding new names with external editor
+	* FIXED. hotkeys handling in unit dialog
+	* basic units list (shortcut 'l', 'ulist' button) -del, up, down, add, copy TODO sort
+	* added display of movement type in unit info in human readable form
+	* FIXED BUG in refreshing map BMP while pressing DPLY, VICT, FLAGS
+	* New switch : -u -check units vs terrain type, five tests
+	* New switch :- v - check map owner vs side
+   0.5.3
+   beta1
+   * support for up to 8192 tiles in SHP file
+   * BUG FIX: command line modifiers 's','d' now work again
+   * BUG FIX: added Airfield to as road passive tile thus lowering many false-positive in road check
+   * BUG FIX: small correction in CLI help
+   * BUG FIX: wrong limit was checked during equipment load
+   beta2
+   * BUG FIX: save/load show_ranges variable in config file
+   * alt-r highlight hexes with road connection problem, similar to -r command line
+   * alt-n highlight hexes with city naming problem, similar to -c command line
+   * load PGF scenario files !
+   * BUG FIX: fixed ctrl-y, ctrl-m, ctrl-q
+   beta3-24.06.2010
+   * F11 key shortcut :restore palette-use it in case of Vista/Win7 64bit display problems
+   * Refactoring of load.c
+   * Loading of PGF equipment.pgeqp, 33 columns
+   * get STM file number from SET file and use it during loading
+   * Improvements in PGF scenario file reading.
+   * save PGF scenario file - use alt-s. Note different saved file extension : pgscn_
+   beta4
+   * mark city/roads problems while saving -B, CLI options : -7 -8
+   * Add ALL option in CLI to process all scenarios
+   beta5
+   * BUG FIX tile 0x7f was treaded as "active road", while it should be "passive road".
+   * wait for key pressed on error exit - startup only
+   * post-process road connection algorithm - remove not needed connection
+   * don't load not needed resources on startup, change startup and command line parsing sequences
+   beta6-14.07.2010
+   * fix in coast/road/river generation code
+   * add some extension to river generation code
+   * support for 32bit graphic mode, monitor native mode can be used, use -G command line switch, -G must be last command option, ex: fpge 34 -G
+   * ctrl-y : BMP load code can handle 8bit (palette) or 24/32 bit BMP files
+   beta7-20.07.2010
+   * Menu added- not yet fully implemented
+   * BUG FIX: compute scan ranges on load
+   * config dialog- not yet implemented
+   * save-as dialog not yet fully implemented
+   * load dialog changed
+   * BUG FIX - road generation code fixed
+   * FPGE will load scenario and equipment file as one step
+   * colors set to one colors combination for each dialog in application
+   beta8
+   * save-as dialog - finished
+   * different size of UNIT radio buttons
+   * added "last year" of unit availability
+   * BUGFIX : for "dark" tiles do not convert colors with index in palette below 16, same as PGDOS does (example: tile 181)
+   * BUGFIX: do not show ranges in tile matrix mode
+   * proper showing of tiles description in tiles matrix mode
+   * show hardcoded PG "Ignores Entrenchment" & "Can Bridge Rivers" units
+   * load of New Unit Purchase List (NUPL) from panzer.exe, size of panzer.exe must be 814305 (1.0) or 811233 (1.2). Must be in . or ..\EXE dirs.
+   * filter units in "unit" dialog using NUPL data -PGDOS only
+   * in case of no panzer.exe use default NUPL
+   * rest of the view menu implemented
+   Release of 0.5.3 - 28.07.2010
+
+   0.6.0
+   beta1
+   * added saving of map fragments with mask to text file. FGT
+   * added map elements browser with 30 predefined map fragments from PGDOS
+   * terrains ready to use, esp. mountains
+   * add map resize dialog
+   * BUGFIX: max aux unit number bug in scenario dialog - but how it was fixed??
+   * loading of tacicons.bmp done, but colors, why they are shifted - allegro WTF ???
+   * all FPG graphic loaded
+   * all AG TILEART.DAT loaded
+   * AG scenario load
+   beta2-13.08.2010
+   * load small tiles for AG
+   * dark, mud and winter tiles for AG
+   * NUPL for ag.exe (size 2167611,2167296), pg.exe (size 2135040)
+   * Save As dialog - added title, added AG save
+   * AG save is working
+   * loading of p_slots.txt for AG NUPL (Jeff's PGAGNulp.exe by Jeff Crouch)
+   * loading of nulp.txt for PG NUPL (NUPLLST by Fred Chlanda)
+   * save PGF units BMP
+   * save PGF terrain BMP
+   * save PGF equipment file
+   * minimap (-M) for AG and PGF is working, but vichex.shp and sticons.shp files are needed in scenario dir.
+   * medium map -D CLI switch
+   * PGF equipment file saving- not tested
+   * flags, stack icons, strength PGF bmps files saved via menu
+   * default color depth now is 32bit : -P switch will force 8bit mode, use for PGDOS only
+   * added short and long scenario description in scenario dialog
+   * BUGFIX: when loading all radio buttons in scenario where not cleared
+   * BUGFIX: use UTF8 names in units list window
+   * BUGFIX: displayAllUnits got 0 as default (not 1)
+   * Added country icon in unitlist dialog 
+   * BUGFIX: border color of units and unitlist dialogs set to right values
+   * BUGFIX: transports was not checked in menu
+   * Added strength, entr, exp in unitlist dialog 
+   * Center 0 in "0 strength" token 
+   * use default cross, star, city, vic city 11x8 indicators when sticons.shp or vichex.shp are not present
+   * display tile picture in Terrain dialog
+   * save PGF equipment in UTF 16 
+   * BUGFIX: load PGF BMP and ANI as 2 bytes
+   * load PGF equipment and scenario and tile.txt as UTF16 and convert to UTF8
+   * inform user about wrong unit conversions during "save as"
+   beta3-26.08.2010
+   * BUGFIX : display problems on load fix - compute_shade() was buggy
+   * load unit.txt NUPL from Gerold Treitler New Campaign for Panzer General
+   * BUGFIX : in tile mode do not show problems
+   * -E CLI switch, save PGF scenario
+   * -F CLI switch, fix roads, names or terrain
+   * BUFGIX : properly initialize PGF scenario read to make '-S ALL' CLI combination work properly
+   * BUFGIX : properly write victory hexes for PGF, filter vichex on load
+   * BUFGIX : properly read number of units for PGF
+   * Load mapfrg.txt user map fragments definitions file on startup
+   * -R CLI switch, randomize common tiles to make map better looking
+   * -X CLI switch, save units.bmp with annotation
+   * BUGFIX in AG scenario save
+   * Randomize dialog in tools menu
+   * BUGFIX: strength tokens are shown properly in PGF mode
+   * ctrl-p dialog shows tile
+   * BUGFIX : "bomber special" column properly saved in PGF equipment file
+   * All check boxes should have active area the same size as longest text
+   * On map unit flags - Menu->View->Unit Flags
+   * New sub option for -B : k - show units flags
+   beta4
+   * -S - added support for 'd' sub option and display name of the victory hex.
+   * -P, -G CLI options are not longer valid, allways use 32bit color mode.
+   * BUGFIX: when -E ALL CLI was used + AG data the map was not cleared so deployment hex where growing in number
+   * -S added number of victory points and PGF friendy victory coordinates
+   * BUGFIX: country was not 0 when -E ALL and load from PGF, the whole buffer was not zeroed...
+   * keyboard shortcuts in terrain dialog
+   * help updated
+   * added two unit tests -u : non 3,4 movement type units having organic transport and organic transport not class=15
+   * fix in Units dialogs and better cooperation between Unit dialog and Place mode
+   * added NUPL for countries that share it with Norway and Belgium
+   * transport mode - easy add/del air/sea transport
+   * randomize bocage CLI : -Rb
+   * -Fh fix names harder, set to default when name_ID > total_names. If name_ID > total_names can crash PGF.
+   * BUGFIX: crash when number of core units was 0 and unit list was displayed and clicked
+   * -Fs set air/sea allied/axis transport ID to default when transport number >0. Needed for PGF.
+   * BUGFIX: new victory point where not saved in PGF mode
+   * added number of victory hexes per side in CLI -S to check for errors when one side got 0
+   * in Flag mode you can change unit Flag with ALT key
+   * randomize swamp CLI : -Rs
+   * sort map fragments acording to size
+   * move map fragments when x=0 or y=0 using left click in map frg. place mode
+   * in ALT-F Center mouse button opens fragment dialog
+   * in Fragments dialog you can use mouse wheel to search tiles
+   * fixed NUPL for AG.exe size 2167296
+   * when in AG scenaro there are Allied Aux units they are loaded as Allied units
+   * added flags in scenario dialog
+   Release of 0.6.0 - 23.09.2010
+   
+   0.6.1
+   3.12.2010
+   * display x,y and id of unit that is not found during PG -> PGF conversion
+   * BUGFIX: allow flag with last ID to be displayed in scenario
+   * Rotate Axis and Allies countries button in scenario
+   * load "countries.txt" for user defined countries names
+   * Add new -Eh test. Change unit name, only first token: "AU Inf" can be converted to "US Inf"
+   * -E can make PGF->PGF conversion -Eh working properly
+   * ALL[XXXXX] from 1 to 40, or X-99, XX-199, XXX-299, XXXX-399, XXXXX=499
+   * support for "Allies Move First" PGF scenario parameter
+   * -Es swap sides. Swap: units, icon point, Allies Move First, flags,...
+   * BUGFIX: PG DOS data loading
+   * BUGFIX: typo in case of absence of mapfrg.txt
+   * removed -G from CLI description
+   * trim names while loading "countries.txt"
+   * BUGFIX: in convert_equipment_hard, proper usage of country prefix
+   * scenario description for AG.EXE size 2167296
+   * first try different country for unit, then change name in -Eh
+   * added ALLIED AUX in unit list window
+   * BUGFIX: short country names loading
+   * unit flags tick show in menu
+   * -Xc ID MONTH YEAR : save BMP file with units of given country as of MONTH YEAR
+   * MAX_COUNTRY=255, MAX_FLAGS=512
+
+   0.6.2
+   beta1 - 5.12.2010
+   * MAX_UICONS 5000
+   * load icons.txt, a file with additional unit icons descriptions, 2 or 3 columns
+   * CLI : -XuI 
+   beta2 - 13.12.2010
+   * BUGFIX: tile 51 got terrain type == 4 (coast) now (not 9 - river)
+   * CLI : -Y - build graphviz compatible campaign tree. This is WIP
+   beta3 - 20.12.2010
+   * BUGFIX: properly list "bridges" tiles
+   * CLI: -L[rnts] FILE load map layer from different file
+   * compiled against Allegro 4.4.0.1
+   beta4 - 27.12.2010
+   * Added 4 new colors in BMP2MAP : City 7f7f7f, Bocage 7f0000, Rough 7f7f00, Swamp 007f7f
+   * Added BMP save dialog
+   * Added PG2 MAP file import
+   * distribution script changed - no more bak files in src.zip
+   beta5 - 05.01.2011
+   * CLI : -Y finished; added entry points, properly handled multi pgbrf references, coloring nodes, initial briefing
+   * PG2 MAP changes. Road only when no city or port TT, all rivers as river, port as city
+   * fixed bug in victory point loading, all will be loaded now
+   * changed -S - initial possesions X,Y are displayed 
+   * added PacGen MAP import using terrain type using Allied General Workshop conversion table.
+   * added PacGen tiles loading - when PacGen tiles are present loading PacGen MAP will use proper tiles - no terrain type substitution 
+   beta6-09.02.2011
+   * added loading of all PacGen tiles: normal, mud, winter; small and big.
+   * added support for 'tt2tiles.txt' file. In this UTF file you can overide PacGen terrain type to PG tile conversion.
+   * load PacGen units and rescale to PGF size when needed (some tiles got x=180)
+   * load PacGen flags and rescale to PGF size
+   * load PacGen equipment file
+   * BUGFIX : scenario long description in SCEN dialog is now 256 chars long (not 64 as before)
+   * added number of deploy hexes in -S
+   * added number of airfield per side in -S. PGF AI can move airplanes only when is possesing airfield
+   * added checking of the equipment vs country in -u
+   * better error handling while loading PGF scenario file
+   * added new switch for -S - 'c' add CSV line in the output so many scenario params can be examined in Excel : fpge -Sc ALL | grep CSV > all.csv
+   * BUGFIX : fixed flags saving for PGF. Thanks JuloAG for reporting problem.
+   * BUGFIX : save BMP window - problem with 'none' in spottings
+   * rotate map 90,180,270. Use 'filter' to process tiles : substitue roads, coast, rivers with tiles used in BMP2MAP procedure. Thanks JuloAG for idea.
+   * BUGFIX: fixed number of lines in PGF scenario file in per-turn prestige allotments block. Thanks Kaiser Martens for reporting problem.
+   * changes to unit and unitlist dialogs to properly display longer units names
+   * load PacGen counters
+   * load PacGen stack icons and convert to PG/PGF classes
+   * units pictures orientation done based on countries mask : 0x47006284
+   * load PacGen scenario - only map and units - fix me - transport, all scenario details, desciptions...
+   beta7 - 4.3.2011
+   * added displaying of status of the FPGE mode
+   * place will use first empty field to place unit - same as add in ulist
+   * new map will not ask for confirmation when map is empty 
+   * BUGFIX: fix flag display in scenario dialog : flags will be draw only on MSG_LOSTFOCUS or change - Thanks JuloAG for reporting problem.
+   * BUGFIX: fix of PGF savings of "per-turn prestige allotments"- Thanks JuloAG for reporting problem.
+   beta8- 11.3.2011
+   * BUGFIX: map resize Cancel redraws main window
+   * BUGFIX: most edit boxes in Scenario dialog now allows 3, 4 or 5 digits only
+   * BUGFIX: edit fields in Scenario dialog got trimmed before encoded to 1 or 2 bytes
+   * in load window you can enter 0-9999 as scenario number
+   * BUGFIX: most edit boxes in Scenario dialog allowed bigger numbers then limit set by binary size.
+   * BUGFIX: tab order in Scenario dialog is almost fixed
+   * CLI : -M and -D got new switch $ - show ground and air units
+   * CLI : -B is clipping map
+   * BUGFIX: PacGen scenarios, maps, user scenarios files can be read again.
+   * When reading PacGen scenario files airplanes are spread around aircarries
+   * Added sort units menu options in tools. First class then equipment id
+   beta9-17.3.2011
+   * when saving SET file scenario number up to 9999 supported - was 99 only
+   * PacGen load window
+   * BUGFIX: proper saving of PGF victory conditions when scenario ==0
+   * some changes when new scenario in PGF is saving
+   * Many PacGen scenario parameters read
+   * BUGFIX: PacGen : equip[total_equip][LAST_YEAR]=pacgen_equip.last_year-1;
+   * Added handling special units attributes in PacGen efile: Pure Tac,Engineer,Bunker Killer,Ranger
+   * Handling Armory PacGen efile tricks : reconnaissance floatplanes and Coastal Forts 
+   * BUGFIX: when drawing map hex border was draw after units icon - fixed
+   * CLI : -Bb or -Bbb can be used to cut map BMP similar to PGF and PG DOS
+   * Scenario ID labels are displayed in case of icon stacking - different way in Air and Gnd modes
+   beta10-17.3.2011
+   * CLI : -Bjj same as j, but aux units start at ID 81.
+   * ctrl-o - switch between, show ID, show ID but aux start from 81, no show ID
+   beta11-18.3.2011
+   * BUGFIX : CLI : -Bjj ALL did not work properly - fixed
+   beta12-22.3.2011
+   * BUGFIX :-o will check whole map
+   * All checks : -r,-c,-u,-v,-i,-o can be show on -B + capital letter.Ex: -BC or -BV or -BO
+   * Release version of exe is stripped
+   beta13-27.3.2011
+   * ALLOWED_TRANSPORT is read in PGF mode
+   * units checks added, request by PepaDrobny:
+   ** land/air/transport unit used as primary unit
+   ** unit transported by air transport in case this unit is not available in eqp for air transporting
+   ** unit transported by air in case this unit has land transport
+   ** unit transported by naval transport in case this unit is not available in eqp for naval transporting
+   ** for air/naval transport is used unit other eqp class than air/naval transport
+   * added ocean check in -o : when name is below 10% of the all ocean names make as possibly wrong.
+   * CLI: -B prefix ## will save bmp named prefix##.bmp
+   * added saving to PNG in -B - not fully working
+   * CLI: -u when checking units organic transport handle fortification case
+   beta14-27.3.2011
+   * fixed CLI -o and -BO
+   * CLI -o and -BO will now report names below 5% od total names
+   * added -os - show statistics on usage of names on ocean tile
+   beta15-31.3.2011
+   * CLI : -BnA or -BnE will colorize names, A all, E ocean only
+   * ctrl-a will cycle : no names displayed, colorize water and ground, all names colorized, ocean names colorized,
+   * FPGE.exe packed with UPX
+   beta15-5.4.2011
+   * CLI: fixed -Bt
+   * CLI: added -BT new transport display mode : show air units over stacked transport
+   beta16
+   * CLI fixed description, added -BT combination
+   beta17
+   * PacGen added sea&air and org transport import 
+   * Wrong unit x or y while loading scenario will give warning only and skip unit
+   * NOT WORKING: read proper SET and STM while loading SET: read first few bytes of SET then load proper SET and STM
+   * BUGFIX: transport mode : allied core and allied aux unit flag will trigger allied transport type
+   * BUGFIX: transport mode : shift left/right click will work properly
+   * BUGFIX: In PGF mode units orientation is saved in proper way
+   * BUGFIX: Crash on wrong country flag in ulist fixed
+   * BUGFIX: Wrong terrain type will display red "WRONG !" name and do not display garbage
+   * BUGFIX: Names and Terrain type generation in Tools->Roads&Names where assigned wrongly. Fixed.
+   * CLI: -Sc added turns column
+   * CLI: -u ok for movement type 10 (mountain) to have organic transport
+   * added PGF movement types : "amphibious tracked","amphibious all terrain","mountain"
+   * CLI: -u more description in the same line as problem in unit, makes fpge -u ALL | grep "\(ID\)\|\(Scenario #\)" easer to read
+   * CLI: New option for F :o ID_FROM ID_TO - change city owner ID_FROM to ID_TO, ex: -Fo 8 13 XX
+   * CLI: -U fixed output formating
+   * CLI: new option: -y[f] - check pg.pgcam against existance of pgbrf files -yf fix pgbrf wrong chars and convert them to HTML codes.
+   * Display flag of the equipment in Units window
+   * BUGFIX: show unit icon in unitlist after click
+   * BUGFIX: when changing standard names treat IDs 280,281,282,283 as standard names
+   * added displaying of target type in unit descripton
+   * BUGFIX: PGF scenario save - fixed per-turn prestige allotments.
+   * set EQUIPMENT_CAN_HAVE_ORGANIC_TRANSPORT flag while loading PGDOS equipment file
+   * CLI -Q[ncgu] - APP6 visual mode for PG PGF module only
+   * refactoring : CLASS_XX & MOV_TYPE_XX
+   * added side optional column in "countries.txt" : -1 not valid, 0 AXIS, 1 ALLIED, 3 NEUTRAL
+   * added loading of "bmp2ctry.txt" file that is mapping BMP to country for APP6
+   * CLI: -U got new option 'b' - list bmp to country mapping
+   TODO - test if bmp2ctry.txt covers all BMP cases
+   0.6.2:
+   * random forest using matrix. Idea by JuloAG.
+   * units dialog- exclude RESERVED from unit list. Idea by JuloAG.
+   * many fields in scenario dialog will not accept values lower then 0
+   * scenario dialog - description in PGF mode is : short 16, long 1024 bytes
+   * scenario dialog, PGF mode only - gen PfC button = generate "prestige for capturing"
+   * scenario dialog, PGF mode only - Gen AI Prest. button = generate "AI prestige"
+   * added "Allied aux" unit type 
+   * fixed Save-as SETXX.MAP field after changing scenarion number
+   * when creating new map in PGF mode default victory conditions are set
+   * added posibility to add allied aux units 
+     
+   0.6.3b1:
+   * Fixed PfC generation for PGF
+   * 1024 chars long description in PGF scenario suported
+   * Max Allied aux support in PGF
+   0.6.3b2:
+   * PGF scenario victory conditions dialog
+   * Fix in forest random matrix.
+   * PFG scenario Purchasable classes editor
+   * Units stats dialog - Menu->Units->Units stats
+   * code cleanup
+   * error exit if PGF scenario not found and in PGF mode
+   0.6.3b3:
+   * Linux compilation fix
+   * changed from MSG_DRAW to D_DIRTY in case of many redraws- this should speedup GUI
+   * bigger buttons in Terrain dialog
+   * name edit in Name dialog (Terrain->Name) with suppport for UTF/CP1250 conversion
+   * bigger buttons: terrain, units, scenario, map resize, help, replace
+   * added name and terrain type names in Terrrain dialog
+   * changed all files names to lowercase in whole FPGE. This will help on Linux compability
+   * changed to Allegreo 4.4.2 from May 2011
+   * pressing SHIFT and clicking check boxes in Terrain dialog will set/unset other check boxes in group
+   * Terrain dialog can automaticaly set default name and terrain, same option will work with tile matrix
+   * Terrain dialog draw road connections
+   * Changed Tile matrix filtering
+   * Limited UNDO for tiles : TERR mode, replace dialog, map fragment, map frg import, neutral, flag, deploy, none-fix road, victory
+   0.6.3b4:
+   * Export of Panzer Corps scenario : terrain types, roads, rivers, vic hex, deploy hex, neutral hex, names, units (with a help of pgu2pzcu.txt file)
+   * Export of Panzer Corps scenario : many scenario parameters, nations + standard victory conditions (allways the same)
+   * Linux compability: use canonicalize_filename everywhere - this could introduce some errors !
+   * Move file names to filename.c - not finished
+   * filter names from current scenario option
+   * sort names in list option
+   0.6.3b5:
+   * Fixes in PZC export code, export should work now
+   * PzC : GUI window for converting units IDs from PG to PzC
+   0.6.3b6:
+   * BUGFIX: ctrl-q fixed. Thanks JuloAG for finding this.
+   * BUGFIX: switch off terrain mode : save, save as, load, undo, rearch&replace, rect import,rect export, map resize, select frg, place frg, place, alt-r, alt-n
+   * BUGFIX: switch off terrain mode : bmp to map, PG2 map, pacgen map, rotate map, make dlg, roads&terrain dlg, randomize dlg- Thanks JuloAG for finding this.
+   * added new file pg.c all PG related load/save function should go here
+   * PzC info text in Msg Box
+   0.6.3b7
+   * BUGFIX : Export of Panzer Corps scenario : ground or air unit properly marked
+   * Export of Panzer Corps scenario : load pgc2pzcc.txt file - PG country to PzC country conversion table
+   * Export of Panzer Corps scenario : load pgtt2pzctt.txt file - PG terrain type to PzC  terrain type conversion table
+   * Export of Panzer Corps scenario : small changes in information put to console
+   * all file names moved to filenames.c
+   * MAX_PATH Linux compilation fix
+   * Some of the GUI checkboxes are saved in binary configuration file - terrain, names, units.
+   * Some char buffers increased
+   * Rearanged scenario dialog, added short countries names to victory points listing
+   * Countries.txt used in scenario and unit dialogs. Unit dialog will display scenario countries only when checkbox set.
+   * Place mode right click changes Core/Aux/Allied/AuxAllied and Gnd/Air selectors
+   0.6.3b8
+   * PGF equipment loaded also from default\scenario
+   * Rearange File menu
+   * Added EQPZC file export, compatible with PzCEdit efile editor v0.7.0
+   * PZC: save names in UTF
+   * PZC: display equipment names in conversion dialog in UTF
+   * PZC: Use NULP in case of PG/AG
+   * PZC: Save units PNG 296x296 (96 big, 48 small) and 296x444 for Air
+   * LGeneral: added new menu entry and map export
+   * PZC: added 10 not used names "terrain" in case of user defined terrains
+   * PZC: number of successfully loaded lines reported while reading pgc2pzcc.txt, pgtt2pzctt.txt and pgu2pzcu.txt files.
+   0.6.3b9 02 Jan 2012
+   * PZC: export flags with resize: flags.png, fXX.png
+   * PZC: air units png corrected
+   * PZC: bug in saving equipment corrected : countries where not loaded before conversion
+   * PZC: export of bigunits PNG - 3x normal unit
+   * PZC: weather, using Rezaf conversion table
+   * PG2: new module for PG2, moved map import
+   * PG2: map import : added ports, hils, fort and escarpment tiles
+   * PG2: map import : added terrain type and road layer options, refectoring
+   * PZC: saves scenario using format 15 PZC 1.01/1.02 (previously was format 13 PZC v1.00)
+   * PG2: map names import added
+   * PG2: scenario data import dialog added : WIP not all fields are supported
+   * PGF: fixed bug in load PG equipment code used in conversion
+   * PG2: equipment import added, but without graphics
+   * PG: equipment export added
+   * PG2: load and save of pg2u2pgu.txt PG2 to PG units ID conversion table
+   * PG2: units conversion dialog.
+   * PG2: scenario conversion dialog : WIP - units types conversions not done
+   * PG2: load of pg2tt2pgtr.txt PG2 terrain type to PG tiles range ID conversion table
+   * PG2: load of pg2tt2pgtt.txt PG2 terrain type to PG terrain type ID conversion table
+   * PG2: load of pg2c2pgc.txt PG2 country to PG country ID conversion table
+   * PG2: load of pg2cl2pgcl.txt PG2class type to PG class type ID conversion table
+   * PG2: convert PG2 campaign file and brefings to PGF or PZC formats
+   0.6.3b10 23 March 2012
+   * change Eclipse IDE to Indigo, run static code analize from Eclipse, fix all problems
+   * run static code analize - cppcheck 1.52, fix all major problems
+   * change MinGW to 4.6.1, fix all warnings
+   * Refactor: change all strcpy and strcat to strncpy and strncat - over 300 places
+   * fixed some stuff found by pc-lint
+   * Class dialog: Cancel button moved to the right. OK renamed to Done
+   * VC dialog: OK renamed to Done
+   * Units sum dialog: OK renamed to Done
+   * BUGFIX: fix wrong "new map" behaviour when in tiles mode and new map is done
+   * fixed some warnings after -O3 for build was set
+   * BUGFIX: Error with XXXX marks: wrong ending of the dialog fixed
+   * Forest randomization post processing using JuloAG idea.
+   * BUGFIX: mouse wheel code was triggered while moving "Move" map fragment dialog
+   * BUGFIX: select fragment left shift click - all map is cleared from selection
+   * Added new category in map fragments : roads. Added 8 build-in roads fragments.
+   * BUGFIX: fixed Linux compilation, changed min->Min
+   * PG2: Campaign file: load all files using lowercase names
+   * BUGFIX: better clean all units and victory points when doing new map.
+   * Change button width to bigger, usually to 96 px
+   * BUGFIX: fixed description of the map fragment in PGF mode
+   * Refactor: hide scenario name variable, acccess is only via get/set functions
+   * Added storing internally of scenario name in case of PG2 or PacGen import-WIP
+   * PG2: pg2tt2pgtr.txt pg2tt2pgtt.txt pg2c2pgc.txt pg2cl2pgcl.txt example files added to distribution
+   
+   0.6.3b11 23 March 2012
+   * BUGFIX: fixing Scenario dialog crash
+   * PGF mode: strenght of unit can be max 20
+   
+   0.6.3b12 6 April 2012
+   * Changes in menu. Moving stuff and renaming, mostly in "Tools" and "File".
+   * BUGFIX: PacGen resource loading paths are ok
+   * Abort startup when PacGen files where not fully read
+   * In PacGen mode do not read initial scenario when specified in CLI
+   * BUGFIX: fixed PacGen map import in PGF/PG/AG modes - river tile
+   * PacGen: better unit matching when no unit/country found
+   * PacGen: load scenario places names (TST file)- add standard names
+   * PacGen: Added of loading "paccl2pgcl.txt" and "pacmt2pgmt.txt" files
+   * PacGen: Added build-in country names for Pacific General mode
+   * PG2: Added canonicalize_filename
+   * PG2: Read and apply map size : X,Y
+   * Warn if mapnames where changed (edit, PG2 import, PacGen import) and not saved : on exit and on mapnames reload
+   * PG2: All files names are converted to lowercase before open. This will help on Linux (?)
+   * PG2: When loading equip97.eqp/txt check current and parent dir.
+   * PGF: Refactor, externalize bmps strings to filename.c
+   * PG2: Added "generate road tiles" independent of "copy road links" in scenario import
+   * PG2: Added names matching for equipment
+   * Improvement: Use city as end of road in case of Make tiles->Roads
+   * PG2: Fixed map file import
+   * Changed standard short names to match equipment, can be override with countries.txt
+   * BUGFIX: PG2: Equipment read. Swaped month/year avail with month/year expired
+   * PG2: Equipment read. First country of equipment will be used.
+   * PGF: Added equipment save in PGF mode
+   * BUGFIX: Scenario dialog. Better clearing of flags fields.
+   * BUGFIX: When reading UCS-2 files last line of the file is properly read.
+   * Added loading of 0str.bmp file. The 0 strenght tokens can be placed in this file. 4 rows, 1 column of 60x50, PGF format.
+   * Changed limit of turns supported by PGF module from 100 to 256
+  
+   0.6.3b13 7 April 2012 
+   * BUGFIX: loading flags.bmp in PGF fixed
+   
+   0.6.3b14 9 April 2012 
+   * alt-m move mode WIP
+   * PG2: BUGFIX: remove hardcoded path in scenario loading
+   * PG2: BUGFIX: lowercase only file name not the whole path
+   * PG2: refactor messages in PG2 equip load
+   * PG2: load equipment only when converting units, better messages during SCN loading
+   
+    0.6.3b15 21 April 2012 
+   * BUGFIX: fixed -E CLI PG->PGF conversion. PGF mode was triggered after PGF equipment found in dir
+   * PG: added brf to PGF pgbrf file conversion via CLI: -yb
+   * BUGFIX: Transport mode. Select Air units only in air mode
+   * Slightly better equipment load : PG, PG2. Number of equipments is 0 before load.
+   * BUGFIX: fixed AG mode start : equ load and logs
+   * PacGen: remove debug info
+   * PacGen: do not add new map names when not needed
+   * BUGFIX: PG short scenario name will display 14 chars
+   * BUGFIX: PGF. Draw flags in Scen after Class or VC dialogs
+   * Added PG brf to PGF pgbrf conversion via PGF menu = CLI -yb
+   * BUGFIX: check_stm in load layer was rejecting correct stm files
+   * Added map layers load to menu: Edit -> Load Map Layer. CLI -L[nrst] will still work
+   * Refactor: Added 'pgcam.gv' file name in filename.c
+   * BUGFIX: alt-u, alt-m was making menu options inactive
+   * BUGFIX: PGF KuK did not work for FPGE -XuA CLI, protection against not existing flags added
+   * CLI -XuAI 1 will work as expected
+   * CLI -Xu[AI] 1 10 will save range of icones files
+   * PG2: added dialog to choose options while map only import
+   * Added dialog to perform CLI -Xu[IA {[UALL],[N],[N M]}] unit(s) bmp save
+   * Refactoring: All makecol24 changed to make_color_fpge
+   * Refactoring: Protect against non existant bmps in many places in pgf.c
+   * Added dialog to perform CLI -Xc [country month year] country unit bmp(s) save
+   * BUGFIX: PZC: reset all scenarion names when exporting
+   
+    0.7.0 15 July 2012 
+    * Fixed warnings in compilation
+    * Changed PG brf to PGF pgbrf conversion : 
+     - no new paragraphs after each block
+     - ASCII code 10 makes new paragraph only
+     - add space after each block
+     - BUGFIX: no printing beyond end of string
+     - added support for cp1250 code page and HTML quotable chars : <>"&'/[]
+    * Unset "min" Windows macro, fixed min in cli.c
+    * BUGFIX. Make tiles dialog redraw on exit
+    * added new set of params in CLI -S[c] - mostly deployment and number of sea & air transports
+    * new icon
+    * LGen: added export of udb
+    * PGF: Added AAF loading from equpiment file
+    * LGen: added export of units pg.bmp
+    * LGen: added export nations -DB & BMP - todo: integrate with FPGE countries
+    * LGen: added scenario export - todo: integrate with FPGE countries, add victory conditions
+    * Removed some broadcast_dialog_message in unitlist, mapfrg, terr, vc, unit, fpge for better graphic performance.
+  
+TODO:
+
+Check:
+*
+Save as in pgf mode save to AG, without equipment name
+*
+Converted PG2 PGCAM listed arract.pgscn but FPGE converted arract.scn as 000.pgscn. 
+*
+There is a package of 57 Jordi AG scenarios, each scenario in a uniquely named zipped folder but the scenario
+ files use the same filenames (game002.scn, some with map02.set and map02.stm). It is possible to rename the 
+ converted files and internally text/hex-edit manually (Cassino as cassi.pgscn, cassi.set, cassi.stm). Could 
+ FPGE do batch conversions to unzip, convert, and rename/edit to unique filenames (either the first 5 letters of 
+ the folder name, which still might require some manual preparation to avoid conflicts, or sequential numbers) in
+  the main directory?  
+  
+- What I can do is to add dialog with covert options for LGeneral map export : use PG tile to LG terrain type (as now) or use PG terrain type to LG terrain type (new one).
+- LGEN: strenght bmp,  campaign (path+ brefings)
+- PacGen country conversion in case of PG/PGF/AG modes-do we need this ?
+- PacGen units names
+- new PGF map from scratch - save as ...
+- PGDOS map different then SCN -Woolf campaign
+- check if deployment fields are empty !
+- check number of deploy field vs size of the core.
+- when changing map size change victory points, deploy, neutral, etc
+- show which country can buy given unit (?)
+- unit list - limits
+- alt-i show wrong rivers
+- alt-o check if all ocean is named
+- alt-u check units
+- alt-v check flags - cites owners versus sides
+- alt-left, alt-right -go to next problem
+- all keyboard shortcuts must be listed in one file
+- road connections edit same as in XWG
+- SAVE AS- ask scenario number when scenario==0
+- don't load not needed resources on startup, change startup and command line parsing sequences
+- faster loading of unit icons- check icon sizes for each file
+- save units in order proposed by Pepa
+- Analyze palette usage- show all colors used by tacicons and tacmap (?)
+- undo - basic, limited number of levels, tiles only
+- radius in terrain (?)
+  Road generation:
+- threat end of map as road when making road connections
+- road generation special case = road parallel to the city
+- road generation changes, Pepa's case: PacPG1, hexes (16,9) and (17,9)
+

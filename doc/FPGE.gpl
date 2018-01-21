@@ -1,0 +1,15 @@
+GIMP Palette
+Name: FPGE
+Columns: 0
+#
+  0   0 255	River
+  0 127   0	Forest
+255   0   0	Road
+  0 255   0	Clear
+  0   0 127	Ocean
+255 255 255	Mountains
+255 255   0	Desert
+  0 127 127	Swamp
+127 127 127	City
+127 127   0	Rough
+127   0   0	Bocage

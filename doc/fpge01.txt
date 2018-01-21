@@ -1,0 +1,87 @@
+Fred's Panzer General Editor
+FPGE for DOS
+Version 0.1
+
+Introduction
+-----------------------------------
+FPGE is a full featured scenario editor for Panzer General. With it, scenarios can be modified or produced from scratch. The map and units are displayed much as they are in the game. Almost anything that you could change with a hex editor can be modified with FPGE. Like the original Panzer General, it is a DOS program (although it should work under various flavors of Microsoft Windows).
+
+I have had very little feedback on the 0.006 alpha so I am assuming that it is working properly. No functionality has been added to that version in this beta release. Testing has not been extensive. USE THIS PROGRAM AT YOUR OWN RISK. I WILL NOT BE RESPONSIBLE FOR ANY DAMAGE USE OF THIS PROGRAM CAUSES TO YOUR SYSTEM. FPGE is entirely free. Since I do not plan additional work on this program, I have included the C source code, such as it is. 
+
+INSTALLATION
+-----------------------------------
+FPGE is a 32-bit program that runs in DOS but requires DPMI support. This is provided by Windows 3.1, Windows 95,98, and most DOS memory managers and by the program CWSDPMI include in this archive. In addition, with some video cards, you may need to load a Vesa driver such as Univbe that comes with Panzer General. It will take several megabytes of memory to run, since most data is stored internally, and you must have a mouse installed. To install the program, place it in a directory with the PG files: mapnames.str, tacmap.shp, tacicons.shp, flags.shp, panzequp.eqp and the complete set of senario files that you want to edit i.e. Gamexxx.scn, Mapxx.set and Mapxx.stm. FPGE only writes files numbered 0 so this could safely be your PG DAT directory. However, that might prove to be confusing in the long run. To run the program, start it with the scenario number on the command line e.g. FPGE 21 to load the Balkans scenario. Optionally, a scenario can be loaded after the program is started. 
+
+FEATURES
+-----------------------------------
+FPGE is primarily a scenario editor although it has some very limited map editing capability. Those interested in making new maps might want to investigate using XWG Map and the programs (PG2XMap and X2PGMap) for transferring maps between XWG Map and Panzer General. 
+
+The following features are implemented in FPGE:
+1. You can view the maps and units in a view that looks much like Panzer General.
+2. Units on the map can easily be copied or moved. Their experience, entrenchment and strength can be edited. New units and their appropriate transport can be picked from the equipment file and placed on the map.
+3. Most of the scenario vaiables including weather, turns and prestige can be edited. 
+4. Deployment, objective, and neutral hexes can be changed.
+5. The tile bitmap and underlying terrain features can be changed.
+
+Limitations: There is VERY LITTLE ERROR CHECKING that goes on in terms of entering illegal values or incomplete data. This help file is basically only to explain how to operate the program. It is not intended to explain how all of the variables work, how to make the scenarios work under Panzer General, or how to design a good scenario. Truthfully, I don't know enough to do that.
+
+As a safety feature I have decided that only scenario number 0 will be written. This will prevent inadvertent overwriting of scenario files that should not be changed. Technical Note: The internal references in the set file will be to the current scenario number as shown on the scenario editing screen, not 00. To make these scenarios functional it is only necessary to rename them to the appropriately numbered files. 
+
+FPGE gives you a view of the PG battlefield much as you would see in the game (with spotting all units on). Above and on the right side of the map are sliders and arrows that will let you move around the map. Above the top slider are radio buttons which will alternately let you view the air or ground units. In the upper left corner is an information box. The top line shows the x and y coordinates and the name of the hex under the mouse pointer. Below this is numeric information about the hex. The terrain type (UTR), the road connectivity (in hexadecimal), the map tile number, the numeric index for the hex name and the controlling side for flagged hexes (0=Axis, 1=Allied, 2=uncontrolled, 3=neutral). If a unit is under the mouse pointer its name will be given on the third line with any organic transport. Below this the unit strength, experience (stars) and entrenchment are shown. In the upper right corner is a Status box which will usually give some information about the current editing operation. 
+
+EDITING FUNCTIONS
+-----------------------------------
+To the right of the map are function buttons. These act as follows:
+
+NEUT- outlines neutral hexes in red. Aleft click turns on the neutral hex property and a right click turns it off.
+
+DEPLY- outlines deployment hexes in red. A left click will add a deployment hex, a right click will remove. 
+
+VICT- outlines victory (objective) hexes in red. A left click will add a victory hex. A right click removes the victory property.
+
+OWNER- allows changing the flag on a hex. A left click will set the flag to the current first Axis country and a right click will set to the first Allied country. These can be changed temporarily to access other countries on that side (using the Scenario Data Screen). The proper terrain owner is set by this operation also. Flags can be removed by temporarily assigning a value of 0 (None) to the first country.
+
+TERR -starts the Terrain Editing mode. A dialog box will pop up with the current default tile information. This can be changed manually. Once the Done button is pressed, you will be in terrain editing mode. Clicking the left button on a map tile will write the current default terrain to that position. A right click on the map will copy the information for that tile to the default tile. A useful procedure for changing the appearance of a tile is to copy a tile using a right click, then select Tiles to find the picture you want, then reenter Terrain editing mode with the Terr button. (Remember FPGE is not intended to be a full blown map editor. Use XWG Map). 
+
+TILES- intended to help editing terrain, this overwrites the top left corner of the map with all of the tiles in the map tile set. Clicking on one will select it as the default tile for placing on the map using the Terrain Editing function and restore the original map view.
+
+ENT- when selected, a left click on a ground unit in the map area will increase its entrenchment. A right click will decrease it. Range 0-9.
+
+STR- when selected, a left click on a unit will increase its strength. A right click will decrease its strength. Range 1-15.
+
+EXP- when selected, a left click on a unit will increase its experience by one star. A right click decreases experience. Range 0-5.
+
+PLACE- in this mode units may be added and removed from the map. It is important BEFORE adding a unit to the map that you select the type of unit it is by setting the radio button for Core, Aux (Axis side) or Allied located above the horizontal slider. The nature of the current unit to be added will be shown in the status window at the top right corner. The unit shown there can be generated in two ways. It can be setup with the Unit function as described below or a unit on the map can be right clicked. This will remove the unit from the map and copy its statistics to the status window. A left click on the map will copy the unit back to the map making it very easy to move a unit. Multiple left clicks will add multiple copies. You must be in the correct map viewing mode i.e. Air to add air units or Gnd to add ground units. 
+
+UNIT- pressing this button will bring up a new screen on which you will be able to select a new unit to be placed on the map. In the upper right is a box with a description of the current unit. The name and the numbers that describe the unit will be shown there. The numbers are all that count and can be edited directly without picking from the lists if you are an expert. Below the current unit box is a list of countries. It is important that you don't forget to set the country. Selecting a German unit will not make the country Germany. Select a country and it will be highlighted. Pressing the Set button will make that the current country. Along the left side are a series of radio buttons for various types of units. Pick the type of unit you want, e.g. Artillery. Possible artillery units available in the game will appear in the list box. There are two options for what you see in the list box, All Units shows all of the units available of that type in the equipment file. By Date shows only units that had appeared before the current scenario date. (Units are not delisted when they become obsolete, however.) If there are more units than the box will hold, it can be scrolled. Select a unit by clicking on it then make it the current unit type by clicking Set. Finally, if you want, you can assign transport to the unit. Pick Land Transport and select the unit from the list and click Set. Sea and Air transport will fill the Auxillary transport slot. When statisfied with your selections, click Done to get back to the map screen. Remember to choose the Place mode to place this unit on the map.(In reality, it is only necessary to click Set once, after selecting Country, Unit and Transports. Unit, Transports and country can be selected in any order.)
+
+SCEN- brings up the scenario data screen. This screen allows for the editing of many of the variables that are stored in the scenario file. The highlighted fields are edit boxes. To change these values put the mouse cursor there...leave it there...and start to type. To stop editing the field move the mouse cursor away. (This is a little different than Windows!) The countries can be picked from the list by clicking on the country in the list then clicking on the slot in the list. Clicking either the Done or Cancel buttons will return you to the main (map) screen. Changes made will be retained when the Done button is clicked but discarded if the Cancel button is clicked. You must of course use the Save button on the main screen to save these changes to a scenario file. The scenario number in the upper left of this screen can be set and the Load button used to load a new scenario.
+
+LOAD- attempts to load the scenario number which has been set on the scenario data screen.
+
+SAVE- pressing this button will save changes made to a scenario file named Game000.scn and map files Map00.set and Map00.stm. You can change the names to make them load in Panzer General, e.g. Game002.scn, Map02.set, Map02.stm will load as the Warsaw scenario. (If you want your game to be played as number 2 then you should set the scenario number to 2 before you save. This is important since the scenario number is stored in the .set file.)
+
+EXIT- ends the program. You will not be prompted to save so make sure you do before pressing this button.
+
+
+MISCELLANEOUS STUFF
+-----------------------------------
+Why write this program? First of all, Panzer General is a great game running in DOS. It deserves an editor that works in DOS. Second, my own project XWG Map can be used to make PG maps but these need an editor to make them into scenarios. Third, I frequently write small utilities for DOS and wanted to explore writing some larger scale DOS programs. I have not done this for many years. There are excellent FREE tools for writing DOS programs. First there is DJGPP, the port of the GNU C/C++ compiler to DOS done by D.J. Delorie. Second there is the nice IDE (like Borland C) Rhide written by Robert Hoehne. Third is the excellent graphics library, Allegro by Shawn Hargreaves.  
+
+Now that this project is finished, I can say that I am glad that Borland produced CBuilder and that graphical operating systems were invented. The CBuilder programing  environment and its older brother Delphi are excellent tools. I would say that FPGE could have been produced in about 1/4 the time with CBuilder. Not only is the visual environment nice, but it places natural structure in your program. Anyone brave enough to look at the C source for FPGE will see what a mess it is. (In fairness to myself, part of this is because I had no experience with the Allegro library.)
+
+If you are having problems with the display, try seeking help from: 
+http://www.talula.demon.co.uk/allegro/
+Some free VESA drivers which may help are available there.
+
+Much of the information needed to write this program was provided by the members of Panzer General DOS Research Center especially Panos Stoucas.
+
+If additions (unlikely) are made to FPGE, you will probably be able to find them on my web page:
+pages.prodigy.net/chlanda.
+Stop in anyway to see other projects that I have going.
+
+Please send your comments to:
+chlanda@hotmail.com
+
+Fred Chlanda
+April 1999
