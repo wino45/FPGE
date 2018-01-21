@@ -8,6 +8,7 @@
 #include "fpge_colors.h"
 #include "minimap.h"
 #include "filename.h"
+#include "tables.h"
 
 //cross
 unsigned char mm_cross[][TILE_FULL_WIDTH_]={
@@ -232,7 +233,7 @@ int build_mini_vichex(){
 	mini_victory_hex_bmp[0]=create_bitmap(TILE_FULL_WIDTH_,TILE_HEIGHT_);
 	mini_victory_hex_bmp[1]=create_bitmap(TILE_FULL_WIDTH_,TILE_HEIGHT_);
 	for (y=0; y<TILE_HEIGHT_; ++y)
-	     for (x=0; x<TILE_FULL_WIDTH; ++x){
+	     for (x=0; x<TILE_FULL_WIDTH_; ++x){
 	       putpixel(mini_victory_hex_bmp[0],x,y,colors_to24bits(mm_white_city[8-y][x]));
 	       putpixel(mini_victory_hex_bmp[1],x,y,colors_to24bits(mm_green_city[8-y][x]));
 	     }

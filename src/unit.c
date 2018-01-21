@@ -239,7 +239,7 @@ int d_setbtn_proc(int msg,DIALOG *d,int c)
 
 void display_unit_info(int idx, int x0, int y0/*, int dx, int dy*/, int fg, int bg)
 {
-  char str[64];
+  char str[64+1];
   int bmp_num,x,y;
 
   //clear the info area
@@ -560,7 +560,7 @@ int d_ucheck_proc(int msg, DIALOG *d, int c)
    {
 	   if (nupl_present){
 		   result=d_check_proc(msg,d,c);
-		   scenario_units_only_filter=unit_dlg[udScenarioCountryUnitsOnlyIdx].flags&D_SELECTED?1:0;
+		   scenario_units_only_filter=(unit_dlg[udScenarioCountryUnitsOnlyIdx].flags&D_SELECTED)?1:0;
 		   make_countries_table(scenario_units_only_filter?FILTER_COUNTRIES_SCENARIO_ONLY:FILTER_COUNTRIES_ALL);
 		   //printf("MSG_CLICK %d\n",filter_units);
 		   unit_dlg[udListBoxIdx].flags |= D_DIRTY;
@@ -586,7 +586,7 @@ int d_er_check_proc(int msg, DIALOG *d, int c)
    if (msg==MSG_CLICK || msg==MSG_KEY)
    {
 		   result=d_check_proc(msg,d,c);
-		   exclude_reserved_units_filter=unit_dlg[udExcludeReservedIdx].flags&D_SELECTED?1:0;
+		   exclude_reserved_units_filter=(unit_dlg[udExcludeReservedIdx].flags&D_SELECTED)?1:0;
 		   //printf("MSG_CLICK %d\n",filter_units);
 		   unit_dlg[udListBoxIdx].flags |= D_DIRTY;
 		   //broadcast_dialog_message(MSG_DRAW,c);

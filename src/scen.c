@@ -69,7 +69,7 @@ char AlldSeaTransNumStr[SCENARIO_STR_SIZE];
 char AxisSeaTransTypeStr[SCENARIO_STR_SIZE];
 char AlldSeaTransTypeStr[SCENARIO_STR_SIZE];
 
-char VictoryStr[1024];
+char VictoryStr[1024+1];
 
 DIALOG senario_dlg[SCENARIO_DLG_SIZE]={
 		{d_clr_proc,0,0,640,480,SD_FG_COLOR,SD_BG_COLOR,     0,     0,     0,0,     0,0,0  }, // 0 clear
@@ -313,7 +313,7 @@ void draw_flags(){
 int d_clr_proc(int msg,DIALOG *d,int c)
 {
   int i,val;
-  char str[1024];
+  char str[1024+1];
 
   //initialize everything that needs it
   if (msg==MSG_START)
@@ -493,8 +493,7 @@ int d_clr_proc(int msg,DIALOG *d,int c)
                                     victory_hexes[i].y,
                                     victory_hexes[i].own,
                                     country_active[victory_hexes[i].own]?country_names_short[victory_hexes[i].own]:"  ");
-     strncat(VictoryStr,str,1024);
-
+     strncat(VictoryStr,str,1024-strlen(VictoryStr));
    }
 
    //hide buttons
@@ -532,7 +531,6 @@ int d_clr_proc(int msg,DIALOG *d,int c)
 	  drawOnIdle=0;
 	  draw_flags();
  }
-
 
   //make changes where they are needed
   if (msg==MSG_END && scen_save_data)
@@ -592,7 +590,6 @@ int d_clr_proc(int msg,DIALOG *d,int c)
 
     val=(Min(atoi(MaxAlldAuxStr),BYTE_MAX)&255);
     if(val>-1) scn_buffer[ALLIED_AUX_UNITS_LIMIT]=(unsigned char)val;
-
 
     //date
     val=(Min(atoi(MonthStr),BYTE_MAX)&255);

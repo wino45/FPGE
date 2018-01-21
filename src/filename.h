@@ -83,6 +83,7 @@ extern char pgtt2pzctt_file[];
 //PG2
 extern char pg2_equip_file[];
 extern char pg2_equip_name_file[];
+extern char pg2_icons_name_file[];
 extern char pg2u2pgu_file[];
 extern char pg2tt2pgtr_file[];
 extern char pg2tt2pgtt_file[];

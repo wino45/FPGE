@@ -135,6 +135,9 @@ extern int colors_for_bmp[][3];
 extern int max_colors_for_bmp;
 extern short tiles_for_bmp[][3];
 
+extern RGB pacgen_pal[256];
+extern RGB pgpal[256];
+
 struct tile_connection_info {
  int tile;
  char pattern_NNW_CW[7];

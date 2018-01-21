@@ -22,7 +22,7 @@
 #define AIRFORCE_ROW (CLASS_NUMBER+1)
 #define NAVY_ROW (CLASS_NUMBER+2)
 
-char TextBox[1024*8];
+char TextBox[1024*8+1];
 
 DIALOG unitsum_dlg[UNITSUM_DLG] =
 {
@@ -100,15 +100,15 @@ int d_unitsum_box_proc(int msg,DIALOG *d,int c)
     	}
 
        	strncpy(TextBox,"\n     Count                        Cost     \n",1024*8);
-    	strncat(TextBox,  "   Axis Allied                  Axis Allied\n\n",1024*8);
+    	strncat(TextBox,  "   Axis Allied                  Axis Allied\n\n",1024*8-strlen(TextBox));
     	//-3 =no transports are shown
     	for(i=0;i<CLASS_NUMBER;i++){
     		sprintf(buff,"   %4d%4d   %16s%6d%6d\n\n",count[i][0],count[i][1],pg_class_names[i],cost[i][0],cost[i][1]);
-    		strncat(TextBox,buff,256);
+    		strncat(TextBox,buff,1024*8-strlen(TextBox));
     	}
     	for(i=0;i<4;i++){
 			sprintf(buff,"   %4d%4d   %16s%6d%6d\n\n",count[ARMY_ROW+i][0],count[ARMY_ROW+i][1],extra_desc[i],cost[ARMY_ROW+i][0],cost[ARMY_ROW+i][1]);
-			strncat(TextBox,buff,256);
+			strncat(TextBox,buff,1024*8-strlen(TextBox));
     	}
     }
 

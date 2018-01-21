@@ -805,7 +805,18 @@ Changelog for version 0.5.0: Jan 09, 2010
     * Added special tiles for road and river that tiles generator is using to change into tile.
     * BUGFIX: road generation table was broken in 0.7.3
     * Added 3 special tiles in tiles mode: road, river and road/river crossing (not used)
+	* Added "brush" in tile - you can place tiles within hexes with some probability and optionally only on 'clear' terrain
     * Compiler switched to GCC 4.8.1
+
+	0.7.5 
+	* check BMP size in BMP2MAP (ctrl-y) code
+	* removed boolean type as M$-sizm
+	* added handling of APP for air and sea transports, small update in bmp2ctry.txt file
+	* fixed compilation warnings
+	* small fix in help window so it can fit in 800x600. Removed F1-F12 help line.
+	* load panzer2.dat index during PG2 EQU load
+	* save of PG2 icons in PGF format
+	* check with CPPCheck 1.76.1 - many style changes
 
 Check:
 *

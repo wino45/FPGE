@@ -101,6 +101,7 @@ int f12_keycallback();
 void position_gui_elements(int , int );
 void mark_road_problems();
 void mark_city_problems();
+void check_city_names(int);
 
 void gen_terrain(short ,unsigned char [],unsigned char ,short [][3],unsigned char );
 void gen_magic_river2();

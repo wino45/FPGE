@@ -479,11 +479,11 @@ void draw_app6_unit_symbol(BITMAP *where_bmp, int x0,int y0, int idx, int side){
 		masked_blit(app_components[APP_LAND_TRANSPORT],where_bmp,0,0,x0,y0,TILE_FULL_WIDTH,TILE_HEIGHT);
 	}
 	if (class==CLASS_AIR_TRANSPORT) {
-		masked_blit(app_components[APP_RHALF_ELLIPSE],where_bmp,0,0,x0,y0,TILE_FULL_WIDTH,TILE_HEIGHT);
+		masked_blit(app_components[side?APP_RED_RHALF_ELLIPSE:APP_RHALF_ELLIPSE],where_bmp,0,0,x0,y0,TILE_FULL_WIDTH,TILE_HEIGHT);
 		masked_blit(app_components[APP_AIR_TRANSPORT],where_bmp,0,0,x0,y0,TILE_FULL_WIDTH,TILE_HEIGHT);
 	}
 	if (class==CLASS_SEA_TRANSPORT) {
-		masked_blit(app_components[APP_CIRCLE],where_bmp,0,0,x0,y0,TILE_FULL_WIDTH,TILE_HEIGHT);
+		masked_blit(app_components[side?APP_RED_CIRCLE:APP_CIRCLE],where_bmp,0,0,x0,y0,TILE_FULL_WIDTH,TILE_HEIGHT);
 		masked_blit(app_components[APP_SEA_TRANSPORT],where_bmp,0,0,x0,y0,TILE_FULL_WIDTH,TILE_HEIGHT);
 	}
 	//Modifiers

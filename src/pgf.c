@@ -205,7 +205,7 @@ int read_utf8_line_convert_to_utf8(FILE *inf, unsigned char *line){
 }
 
 
-int load_line(FILE *inf, unsigned char *line, boolean isUTF16){
+int load_line(FILE *inf, unsigned char *line, int isUTF16){
 
 	if (isUTF16){
 		return read_utf16_line_convert_to_utf8(inf,line);
@@ -225,7 +225,7 @@ int load_pgf_equipment(int probe_file_only, char *fname){
 	  unsigned short temp;
 	  unsigned short file_type_probe;
 	  char path[MAX_PATH];
-	  boolean utf16 = FALSE;
+	  int utf16 = 0;
 
       strncpy(path,fname,MAX_PATH);
 	  canonicalize_filename(path,path,MAX_PATH);
@@ -786,8 +786,8 @@ int save_pgf_pgscn(int scen_number, int show_info, int save_type, int hide_names
 	  FILE *inf;
 	  char path[MAX_PATH];
 
-	  char line[1024];
-	  char tmp_line[1024];
+	  char line[1024+1];
+	  char tmp_line[1024+1];
 	  int i,x,y,written_lines_in_block;
 	  int axis_prestige,allied_prestige;
 
@@ -873,7 +873,7 @@ int save_pgf_pgscn(int scen_number, int show_info, int save_type, int hide_names
 	  //block2
 	  fake_UTF_write_string_with_eol(inf,"# Sides");
 	  fake_UTF_write_string_with_eol(inf,"# Index	Prestige	Core Limit	Aux Limit	Stance	Orientation	Sea Transports	Sea Transport Type	Air Transports	Air Transport Type	New Unit Exp");
-	  sprintf(line,"%d\t%d\t%d\t%d\t%d\t%d\t%d",
+	  snprintf(line,1024,"%d\t%d\t%d\t%d\t%d\t%d\t%d",
 			  (0+swap_side)%2,
 			  (WORD)s4_buffer[AXIS_PRESTIGE]+256*s4_buffer[AXIS_PRESTIGE+1],
 			  scn_buffer[CORE_UNITS_LIMIT],
@@ -887,22 +887,22 @@ int save_pgf_pgscn(int scen_number, int show_info, int save_type, int hide_names
 		  sprintf(tmp_line,"\t%d",s4_buffer[AXIS_SEA_TYPE]+256*s4_buffer[AXIS_SEA_TYPE+1]);
 	  else
 		  strncpy(tmp_line,"\t",256);
-	  strncat(line,tmp_line,1024);
+	  strncat(line,tmp_line,1024-strlen(line));
 	  //air number
 	  sprintf(tmp_line,"\t%d",s4_buffer[AXIS_AIR_NUMBER]);
-	  strncat(line,tmp_line, 1024);
+	  strncat(line,tmp_line, 1024-strlen(line));
 	  //air transport type
 	  if(s4_buffer[AXIS_AIR_TYPE]+256*s4_buffer[AXIS_AIR_TYPE+1]>0)
 		  sprintf(tmp_line,"\t%d",s4_buffer[AXIS_AIR_TYPE]+256*s4_buffer[AXIS_AIR_TYPE+1]);
 	  else
 		  strncpy(tmp_line,"\t",256);
-	  strncat(line,tmp_line, 1024);
+	  strncat(line,tmp_line, 1024-strlen(line));
 	  //new unit exp
 	  if (pgf_mode)
 		  sprintf(tmp_line,"\t%u",axis_experience);
 	  else
-		  sprintf(tmp_line,"\t%u",axis_experience_table[scen_number-1]*100);
-	  strncat(line,tmp_line, 1024);
+		  sprintf(tmp_line,"\t%d",axis_experience_table[scen_number-1]*100);
+	  strncat(line,tmp_line, 1024-strlen(line));
 
 	  fake_UTF_write_string_with_eol(inf,line);
 	  orient=0;
@@ -921,22 +921,22 @@ int save_pgf_pgscn(int scen_number, int show_info, int save_type, int hide_names
 		  sprintf(tmp_line,"\t%d",s4_buffer[ALLIED_SEA_TYPE]+256*s4_buffer[ALLIED_SEA_TYPE+1]);
 	  else
 		  strncpy(tmp_line,"\t",256);
-	  strncat(line,tmp_line,1024);
+	  strncat(line,tmp_line,1024-strlen(line));
 	  //air number
 	  sprintf(tmp_line,"\t%d",s4_buffer[ALLIED_AIR_NUMBER]);
-	  strncat(line,tmp_line,1024);
+	  strncat(line,tmp_line,1024-strlen(line));
 	  //air transport type
 	  if(s4_buffer[ALLIED_AIR_TYPE]+256*s4_buffer[ALLIED_AIR_TYPE+1]>0)
 		  sprintf(tmp_line,"\t%d",s4_buffer[ALLIED_AIR_TYPE]+256*s4_buffer[ALLIED_AIR_TYPE+1]);
 	  else
 		  strncpy(tmp_line,"\t",256);
-	  strncat(line,tmp_line,1024);
+	  strncat(line,tmp_line,1024-strlen(line));
 	  //new unit exp
 	  if (pgf_mode)
 		  sprintf(tmp_line,"\t%u",allied_experience);
 	  else
-		  sprintf(tmp_line,"\t%u",allied_experience_table[scen_number-1]*100);
-	  strncat(line,tmp_line,1024);
+		  sprintf(tmp_line,"\t%d",allied_experience_table[scen_number-1]*100);
+	  strncat(line,tmp_line,1024-strlen(line));
 
 	  fake_UTF_write_string_with_eol(inf,line);
 
@@ -1177,7 +1177,7 @@ int save_pgf_pgscn(int scen_number, int show_info, int save_type, int hide_names
 			    convert_equipment_hard(&auxtnum,&fcountry,all_units[i].auxtnum,country,1);
 		 }
 
-		  sprintf(line,"(%d:%d)\t%d",
+		  snprintf(line,1024, "(%d:%d)\t%d",
 				  all_units[i].x,all_units[i].y,
 				  unum);
 		  //orgtnum
@@ -1185,43 +1185,43 @@ int save_pgf_pgscn(int scen_number, int show_info, int save_type, int hide_names
 			  sprintf(tmp_line,"\t%d",orgtnum);
 		  else
 			  strncpy(tmp_line,"\t",256);
-		  strncat(line,tmp_line, 1024);
+		  strncat(line,tmp_line, 1024-strlen(line));
 		  //trans type
 		  if(all_units[i].auxtnum>0)
 			  sprintf(tmp_line,"\t%d",auxtnum);
 		  else
 			  strncpy(tmp_line,"\t",256);
-		  strncat(line,tmp_line, 1024);
+		  strncat(line,tmp_line, 1024-strlen(line));
 		  //side
 		  sprintf(tmp_line,"\t%d",isAllied(all_units[i].uflag)?(1+swap_side)%2:swap_side);
-		  strncat(line,tmp_line, 1024);
+		  strncat(line,tmp_line, 1024-strlen(line));
 		  //flag
 		  sprintf(tmp_line,"\t%d",country);
-		  strncat(line,tmp_line, 1024);
+		  strncat(line,tmp_line, 1024-strlen(line));
 		  //Strength
 		  sprintf(tmp_line,"\t%d",all_units[i].str);
-		  strncat(line,tmp_line, 1024);
+		  strncat(line,tmp_line, 1024-strlen(line));
 		  //Exp
 		  sprintf(tmp_line,"\t%d",((int)all_units[i].exp)*100);
-		  strncat(line,tmp_line, 1024);
+		  strncat(line,tmp_line, 1024-strlen(line));
 		  //Ent
 		  sprintf(tmp_line,"\t%d",all_units[i].entrench);
-		  strncat(line,tmp_line, 1024);
+		  strncat(line,tmp_line, 1024-strlen(line));
 		  //Fuel
 		  if(all_units[i].fuel>0)
 			  sprintf(tmp_line,"\t%d",all_units[i].fuel);
 		  else
 			  strncpy(tmp_line,"\t",256);
-		  strncat(line,tmp_line, 1024);
+		  strncat(line,tmp_line, 1024-strlen(line));
 		  //Ammo
 		  if(all_units[i].ammo>0)
 			  sprintf(tmp_line,"\t%d",all_units[i].ammo);
 		  else
 			  strncpy(tmp_line,"\t",256);
-		  strncat(line,tmp_line, 1024);
+		  strncat(line,tmp_line, 1024-strlen(line));
 		  //aux?
 		  sprintf(tmp_line,"\t%d",isAux(all_units[i].uflag)?1:0);
-		  strncat(line,tmp_line, 1024);
+		  strncat(line,tmp_line, 1024-strlen(line));
 
 		  fake_UTF_write_string_with_eol(inf,line);
 	  }
@@ -1901,6 +1901,7 @@ void draw_units_per_country_bmp(int country, int month, int year, int flipIcons)
 			printf("ERROR writing file %s !!\n",country_units_bmp_name);
 		else
 			printf("File %s saved.\n",country_units_bmp_name);
+		destroy_bitmap(bmp);
 	}else{
 		printf("No units for country %d found for month %d, year %d\n",country,month,year);
 	}
@@ -2424,7 +2425,7 @@ short ie_id[]={48,215,276,330,386,387,388};
 int ie_count=7,i;
 
 if(pacgen_mode || pgf_mode)
-	return (equip_flags[idx] & EQUIPMENT_IGNORES_ENTRENCHMENT ?1:0);
+	return ((equip_flags[idx] & EQUIPMENT_IGNORES_ENTRENCHMENT) ?1:0);
 
 for (i=0;i<ie_count;i++)
 	if (ie_id[i]==idx) return 1;
@@ -2449,7 +2450,7 @@ short cb_id[]={215,276,330,388};
 int cb_count=4,i;
 
 if(pacgen_mode || pgf_mode)
-	return (equip_flags[idx] & EQUIPMENT_CAN_BRIDGE_RIVERS?1:0);
+	return ((equip_flags[idx] & EQUIPMENT_CAN_BRIDGE_RIVERS)?1:0);
 
 for (i=0;i<cb_count;i++)
 	if (cb_id[i]==idx) return 1;
@@ -2461,7 +2462,7 @@ short ij_id[]={7,8,10,169};
 int ij_count=4,i;
 
 if(pacgen_mode || pgf_mode)
-	return (equip_flags[idx] & EQUIPMENT_JET?1:0);
+	return ((equip_flags[idx] & EQUIPMENT_JET)?1:0);
 
 for (i=0;i<ij_count;i++)
 	if (ij_id[i]==idx) return 1;
@@ -2498,7 +2499,7 @@ int save_pgf_equipment(){
 	char pgequip_country[MAX_UNITS];
 	short pgequip_unit[MAX_UNITS];
 	int cursor,i,j,pgequ,unit_id;
-	char line[1024], temp_str[256], temp_str2[256];
+	char line[1024+1], temp_str[256+1], temp_str2[256+1];
     char path[MAX_PATH];
     FILE *outf;
     unsigned short temp;
@@ -2686,7 +2687,7 @@ void strfree( void *d )
 int parse_pgcam( int show_info,  int probe_file_only){
 
 	  FILE *inf, *outf;
-	  char path[MAX_PATH], brfnametmp[256], color_code[256], br_color_code[256], scenario_node[256];
+	  char path[MAX_PATH], brfnametmp[256+1], color_code[256], br_color_code[256], scenario_node[256+1];
 	  char line[1024],tokens[20][256];
 	  int j,i,block=0,last_line_length=-1,cursor=0,token=0, sub_graph_counter=0;
 	  int lines=0;
@@ -2753,7 +2754,7 @@ int parse_pgcam( int show_info,  int probe_file_only){
 				  strncpy(scenario_node,tokens[0],256);
 				  //check brefing
 				  if (strlen(tokens[1])>0){
-					  strncat(scenario_node,"+",256);
+					  strncat(scenario_node,"+",256-strlen(scenario_node));
 
 					  fprintf(outf,"subgraph cluster_%d { color=white \n",sub_graph_counter);
 
@@ -2790,7 +2791,7 @@ int parse_pgcam( int show_info,  int probe_file_only){
 					  if (hash_lookup(brfnametmp,&table)){
 						  //printf("%s juz jest\n",brfnametmp);
 						  while(hash_lookup(brfnametmp,&table)){
-							  strncat(brfnametmp,"+",256);
+							  strncat(brfnametmp,"+",256-strlen(brfnametmp));
 						  }
 						  hash_insert( brfnametmp, strdup(brfnametmp), &table );
 						  //printf("%s nie ma\n",brfnametmp);

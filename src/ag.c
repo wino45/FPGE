@@ -688,7 +688,7 @@ int load_ag_scn(int scenario_number, int show_info){
 
 	fseek(inf, offset_set-7 , SEEK_SET);
 	fread(head,7,1,inf);
-	head[7]=0;
+	//head[7]=0;
 	//printf("HEAD: %s\n",head);
 
 	fseek(inf, offset_set+MAP_X_ADDR, SEEK_SET);
@@ -704,7 +704,7 @@ int load_ag_scn(int scenario_number, int show_info){
 
 	fseek(inf, offset_stm-7 , SEEK_SET);
 	fread(head,7,1,inf);
-	head[7]=0;
+	//head[7]=0;
 	//printf("HEAD: %s\n",head);
 //all offsets are ready
 	parse_set_file(inf,offset_set);

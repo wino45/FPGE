@@ -12,6 +12,8 @@
 #define PG2_MAP_X 45
 #define PG2_MAP_Y 40
 
+#define PG2_MAX_FILES_IN_DAT_FILE 30000
+
 #define PG2_LOAD_UNITSID 0
 #define PG2_LOAD_TT2TRID 1
 #define PG2_LOAD_TT2TTID 2
@@ -64,6 +66,7 @@ struct pg2_unit {
 	uint8_t uk4[3];
 };
 
+extern uint32_t panzer2_file_icon_off_2_local_icon_idx_max;
 
 int import_pg2_map_scn_gui();
 int import_pg2_equip_dialog();
@@ -76,5 +79,11 @@ void load_pg2_conversion_tables();
 int save_pg2unit_to_pgunit();
 void filter_pg_units(int pg_country, int pg_class, int pg_type);
 int convert_pg2_campaign_gui();
+int convert_pg2_icons();
+
+int import_pg2_icons_idx(int probe_file_only, char *fname);
+int import_pg2_equip(int probe_file_only, char *fname);
+
+int pg_dg();
 
 #endif /* PG2_H_ */

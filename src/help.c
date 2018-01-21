@@ -9,14 +9,14 @@
 
 #define HD_X  1
 #define HD_Y  1
-#define HD_LINES   39
+#define HD_LINES   38
 #define HD_LINES2   26
 #define HD_COLUMNS 63
 
 #define HD_LH  16
 
 #define HD_DX  (HD_COLUMNS * 8)
-#define HD_DY  (HD_LINES*HD_LH-HD_LH/2)
+#define HD_DY  (HD_LINES*HD_LH-HD_LH/2-1)
 #define HD_DY2  (HD_LINES2*HD_LH-HD_LH/2)
 #define HD_LINE1  HD_Y+10
 /*
@@ -73,13 +73,13 @@ DIALOG help_dlg[HELP_DLG_SIZE]={
  //    "F11 - refresh palette - try on Vista & Windows 7 64-bit.\n\n"
      "1..9 - recall tile from memory slot\n\n"
 	 "alt-1..alt-9 - store tile below cursor to memory slot\n\n"
-	 "F1..F12 - filter terrain type in the tiles matrix\n\n"
+	 //"F1..F12 - filter terrain type in the tiles matrix\n\n"
 
      //"\n\n"
 	 ,0,0
 },
 // 1
-{ d_button_proc, HD_X + HD_DX / 2 - 96 / 2, HD_Y + HD_DY - HD_LH- 6, 96, 15, HD_FG_COLOR, HD_BG_COLOR, 'd', D_EXIT, 0,0, "&Done", 0, 0 },
+{ d_button_proc, HD_X + HD_DX / 2 - 96 / 2, HD_Y + HD_DY - HD_LH - 5, 96, 15, HD_FG_COLOR, HD_BG_COLOR, 'd', D_EXIT, 0,0, "&Done", 0, 0 },
 //Last
 {d_yield_proc,0,0,0,0,0,0,0,0,0,0,0,0,0},
 {NULL},

@@ -38,26 +38,27 @@ void read_shp(BITMAP *bmp, FILE *inf,long addr){
 }
 
 // read the shp data (for icon n) into the bitmap image (bmp)
-void read_shp_ex(BITMAP *bmp, FILE *inf,long addr, int swap)
+void read_shp_ex(BITMAP *bmp, FILE *inf, long addr, int swap)
 {
    int l; // first line the counter
    int lf; // last line
    int ch,b,r,i;
 
-   fseek(inf,addr+HEADER_SIZE,0);
-   if (header.ystart<0)
-   {
-    l=0; lf=header.yend+abs(header.ystart);   //SP...
-   }
-   else
-   {
-     l=header.ystart;
-     lf=header.yend;
-   }
-   if (header.xstart<0)      //SP....
-      pix_pos=0;
-   else
-    pix_pos=header.xstart;
+	fseek(inf, addr + HEADER_SIZE, SEEK_SET);
+
+	if (header.ystart < 0) {
+		l = 0;
+		lf = header.yend + abs(header.ystart); //SP...
+	} else {
+		l = header.ystart;
+		lf = header.yend;
+	}
+
+	if (header.xstart < 0) //SP....
+		pix_pos = 0;
+	else
+		pix_pos = header.xstart;
+
    do
    {
      // read data  and decode
@@ -84,9 +85,9 @@ void read_shp_ex(BITMAP *bmp, FILE *inf,long addr, int swap)
      {
        ch=fgetc(inf); // the color #
        // SHP files uses 255 as transparent
-       //allego in 8bit uses 0 as transparent, so we need to convert
+       //allegro in 8bit uses 0 as transparent, so we need to convert
        if (ch==0 && swap==1) ch=255;  //allegro uses color 0 as transparent (cf BK_COLOR)
-       ch = colors_to24bits_ex(ch,swap);
+       ch = colors_to24bits_ex(ch, swap);
        //else if (fpge_colors_bits>8) { c=ch; ch=(pgpal[c].r<<16)+(pgpal[c].g<<8)+pgpal[c].b; }
        //ch=mask_color;
        for (i=0; i<b; ++i)
@@ -845,13 +846,9 @@ int load_tiles_description(){
 			}
 
 		}else{
-			if (token!=1 && id!=0) printf("Warning: Tile ID illegal or wrong number of columns. Ignoring line %d\n", lines);
-
+			if (token!=1 && id!=0)
+				printf("Warning: Tile ID illegal or wrong number of columns. Ignoring line %d\n", lines);
 		}
-		//for(i=0;i<token;i++)
-		//	printf("%s->",tokens[i]);
-	//}
-
 	}
 
 	fclose(inf);

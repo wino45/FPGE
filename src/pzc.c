@@ -913,7 +913,7 @@ int save_pzscn(){
 				for(i=0;i<3;i++)
 					hexDataHex[16*3+8+1+i]=0xff;
 			}
-			hexDataHex[16*3+4+8]=0 + map[x][y].vic?2:0 + map[x][y].side==3?1:0 + map[x][y].deploy?4:0;
+			hexDataHex[16*3+4+8]=(map[x][y].side==3?1:0) + (map[x][y].vic?2:0) + (map[x][y].deploy?4:0);
 
 			fwrite(&hexDataHex,HEXSIZE,1,outf);
 		}
@@ -1188,9 +1188,9 @@ int save_pgunit_to_pzcunit(){
 
 int save_pzeqp(){
 	 char path[MAX_PATH];
-	 char line[1024];
+	 char line[1024+1];
 //	 char scenario_name[1024];
-	 char temp_str[1024];
+	 char temp_str[1024+1];
 	 int unit_id;
 
      FILE *outf;

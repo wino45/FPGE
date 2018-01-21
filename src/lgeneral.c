@@ -242,15 +242,17 @@ char *getNotSupported(int count, int max){
 }
 
 
-void find_new_icon_numbers(){
-	int i,bmp_idx,j=0;
+void find_new_icon_numbers() {
+	int i, bmp_idx, j = 0;
 
-	for(i=0;i<MAX_UICONS;i++) new_icon_number[i]=-1;
+	for (i = 0; i < MAX_UICONS; i++) {
+		new_icon_number[i] = -1;
+	}
 
-	for(i=0;i<total_equip;i++){
+	for (i = 0; i < total_equip; i++) {
 		bmp_idx = equip[i][BMP] + 256 * equip[i][BMP + 1];
-		if (bmp_idx<MAX_UICONS && bmp_idx>-1 && new_icon_number[bmp_idx]==-1){
-			new_icon_number[bmp_idx]=j;
+		if (bmp_idx < MAX_UICONS && bmp_idx > -1 && new_icon_number[bmp_idx] == -1) {
+			new_icon_number[bmp_idx] = j;
 			j++;
 		}
 	}
@@ -263,29 +265,31 @@ Write unitclasses, target types, movement types to file.
 void units_write_classes( FILE *file )
 {
     int i;
-    fprintf( file, "<target_types\n" );
-    for ( i = 0; i < TARGET_TYPE_COUNT; i++ )
-        fprintf( file, "<%s\nname»%s\n>\n", target_types[i * 2], target_types[i * 2 + 1] );
-    fprintf( file, ">\n" );
-    fprintf( file, "<move_types\n" );
-    for ( i = 0; i < MOVE_TYPE_COUNT; i++ )
-        fprintf( file, "<%s\nname»%s\nsound»%s\n>\n",
-                 move_types[i * 3], move_types[i * 3 + 1], move_types[i * 3 + 2] );
-    fprintf( file, ">\n" );
+	fprintf(file, "<target_types\n");
+	for (i = 0; i < TARGET_TYPE_COUNT; i++) {
+		fprintf(file, "<%s\nname»%s\n>\n", target_types[i * 2], target_types[i * 2 + 1]);
+	}
+	fprintf(file, ">\n");
+	fprintf(file, "<move_types\n");
+	for (i = 0; i < MOVE_TYPE_COUNT; i++) {
+		fprintf(file, "<%s\nname»%s\nsound»%s\n>\n", move_types[i * 3], move_types[i * 3 + 1], move_types[i * 3 + 2]);
+	}
+	fprintf(file, ">\n");
 
 	/* write unit classes, add purchase info */
 	fprintf( file, "<unit_classes\n" );
 	for ( i = 0; i < UNIT_CLASS_COUNT; i++ ) {
 		fprintf( file, "<%s\n", unit_classes[i * 3] );
 		fprintf( file, "name»%s\n", unit_classes[i * 3 + 1] );
-		if (i == LAND_TRANS)
-			fprintf( file, "purchase»trsp\n" );
-		else if (i == FORT || i == SUBMARINE || i == DESTROYER ||
-					i == CAPITAL || i == CARRIER ||
-					i == AIR_TRANS || i == SEA_TRANS)
-			fprintf( file, "purchase»none\n" );
-		else
-			fprintf( file, "purchase»normal\n" );
+		if (i == LAND_TRANS) {
+			fprintf(file, "purchase»trsp\n");
+		} else {
+			if (i == FORT || i == SUBMARINE || i == DESTROYER || i == CAPITAL || i == CARRIER || i == AIR_TRANS || i == SEA_TRANS) {
+				fprintf(file, "purchase»none\n");
+			} else {
+				fprintf(file, "purchase»normal\n");
+			}
+		}
 		fprintf( file, ">\n" );
 	}
 	fprintf( file, ">\n" );
@@ -395,43 +399,45 @@ Load PG unit entry from FPGE
 static int units_read_entry( int entry_numer, PG_UnitEntry *entry )
 {
 
-	if (entry_numer>total_equip) return 0;
-	strncpy(entry->name,equip[entry_numer],MAX_NAME_SIZE);
-	entry->class=equip[entry_numer][CLASS];
-	entry->atk_soft=equip[entry_numer][SA];
-	entry->atk_hard=equip[entry_numer][HA];
-    entry->atk_air=equip[entry_numer][AA];
-	entry->atk_naval=equip[entry_numer][NA];
-	entry->def_ground=equip[entry_numer][GD];
-	entry->def_air=equip[entry_numer][AD];
-	entry->def_close=equip[entry_numer][CD];
-	entry->target_type=equip[entry_numer][TARGET_TYPE];
-	entry->aaf=equip[entry_numer][AAF];
-	entry->init=equip[entry_numer][INITIATIVE];
-	entry->range=equip[entry_numer][RANGE];
-	entry->spot=equip[entry_numer][SPOTTING];
-	entry->agf=equip[entry_numer][GAF];
-	entry->move_type=equip[entry_numer][MOV_TYPE];
-	entry->move=equip[entry_numer][MOV];
-	entry->fuel=equip[entry_numer][FUEL];
-	entry->ammo=equip[entry_numer][AMMO];
-	entry->cost=equip[entry_numer][COST];
+	if (entry_numer > total_equip) {
+		return 0;
+	}
+	strncpy(entry->name, equip[entry_numer],MAX_NAME_SIZE);
+	entry->class = equip[entry_numer][CLASS];
+	entry->atk_soft = equip[entry_numer][SA];
+	entry->atk_hard = equip[entry_numer][HA];
+	entry->atk_air = equip[entry_numer][AA];
+	entry->atk_naval = equip[entry_numer][NA];
+	entry->def_ground = equip[entry_numer][GD];
+	entry->def_air = equip[entry_numer][AD];
+	entry->def_close = equip[entry_numer][CD];
+	entry->target_type = equip[entry_numer][TARGET_TYPE];
+	entry->aaf = equip[entry_numer][AAF];
+	entry->init = equip[entry_numer][INITIATIVE];
+	entry->range = equip[entry_numer][RANGE];
+	entry->spot = equip[entry_numer][SPOTTING];
+	entry->agf = equip[entry_numer][GAF];
+	entry->move_type = equip[entry_numer][MOV_TYPE];
+	entry->move = equip[entry_numer][MOV];
+	entry->fuel = equip[entry_numer][FUEL];
+	entry->ammo = equip[entry_numer][AMMO];
+	entry->cost = equip[entry_numer][COST];
 	entry->cost = (entry->cost * 120) / 10;
-	entry->pic_id=equip[entry_numer][BMP]+256*equip[entry_numer][BMP+1];
-	entry->month=equip[entry_numer][MON];
-	entry->year=equip[entry_numer][YR];
-	entry->last_year=equip[entry_numer][LAST_YEAR];
+	entry->pic_id = equip[entry_numer][BMP] + 256 * equip[entry_numer][BMP + 1];
+	entry->month = equip[entry_numer][MON];
+	entry->year = equip[entry_numer][YR];
+	entry->last_year = equip[entry_numer][LAST_YEAR];
 
-	entry->allowed_transport=equip[entry_numer][ALLOWED_TRANSPORT];
+	entry->allowed_transport = equip[entry_numer][ALLOWED_TRANSPORT];
 
-	if (equip_country[entry_numer]!= -1 )
-		entry->nation = equip_country[entry_numer]-1;
-	else
-	{
-		if (pg_mode)
-			entry->nation = get_nation_from_unit_name( entry->name );
-		else
+	if (equip_country[entry_numer] != -1) {
+		entry->nation = equip_country[entry_numer] - 1;
+	} else {
+		if (pg_mode) {
+			entry->nation = get_nation_from_unit_name(entry->name);
+		} else {
 			entry->nation = -1;
+		}
 	}
     return 1;
 }
@@ -579,9 +585,15 @@ int units_convert_database(char *name, char *domain, int discard_not_used_icons)
         /* get flags */
         sprintf( flags, unit_classes[entry.class * 3 + 2] );
 
-        if (equip_flags[equ_idx]&EQUIPMENT_JET) strcat( flags, "°jet" );
-        if (equip_flags[equ_idx]&EQUIPMENT_CAN_BRIDGE_RIVERS) strcat( flags, "°bridge_eng" );
-        if (equip_flags[equ_idx]&EQUIPMENT_IGNORES_ENTRENCHMENT) strcat( flags, "°ignore_entr" );
+		if (equip_flags[equ_idx] & EQUIPMENT_JET) {
+			strcat(flags, "°jet");
+		}
+		if (equip_flags[equ_idx] & EQUIPMENT_CAN_BRIDGE_RIVERS) {
+			strcat(flags, "°bridge_eng");
+		}
+		if (equip_flags[equ_idx] & EQUIPMENT_IGNORES_ENTRENCHMENT) {
+			strcat(flags, "°ignore_entr");
+		}
 
 	/* whatever is legged or towed may use ground/air transporter */
         //PW
@@ -594,28 +606,31 @@ int units_convert_database(char *name, char *domain, int discard_not_used_icons)
         }
         */
         //AGW version
-		if ( entry.move < 5 && (entry.move_type == 3 || entry.move_type == 4 || entry.move_type == 10) )
-			strcat( flags, "°ground_trsp_ok" );
-		if ( entry.move < 5 && (entry.move_type == 3 || entry.move_type == 10) ){
-			strcat( flags, "°air_trsp_ok" );
-			if (entry.allowed_transport >2 ) strcat( flags, "°parachute" );
+		if (entry.move < 5 && (entry.move_type == 3 || entry.move_type == 4 || entry.move_type == 10)) {
+			strcat(flags, "°ground_trsp_ok");
 		}
-		if ( entry.move > 1 && (entry.move_type == 4) )
-			strcat( flags, "°air_trsp_ok" );
+		if (entry.move < 5 && (entry.move_type == 3 || entry.move_type == 10)) {
+			strcat(flags, "°air_trsp_ok");
+			if (entry.allowed_transport > 2) {
+				strcat(flags, "°parachute");
+			}
+		}
+		if (entry.move > 1 && (entry.move_type == 4)) {
+			strcat(flags, "°air_trsp_ok");
+		}
 
-        /* all artillery with range 1 has no attack_first */
-        if (entry.class==4 && entry.range==1)
-        {
-            sprintf( flags, "artillery°suppr_fire" );
-            printf( "%s: overwrite flags to: artillery,suppr_fire\n",
-                                                                entry.name);
-        }
+		/* all artillery with range 1 has no attack_first */
+		if (entry.class == 4 && entry.range == 1) {
+			sprintf(flags, "artillery°suppr_fire");
+			printf("%s: overwrite flags to: artillery,suppr_fire\n", entry.name);
+		}
 
         /* write entry */
         fprintf( dest_file, "<%i\n", id++ );
         string_replace_quote( entry.name, buf );
-        if ( apply_unit_mods )
-            fix_spelling_mistakes( buf );
+		if (apply_unit_mods) {
+			fix_spelling_mistakes(buf);
+		}
         //print_str(buf);
         fprintf( dest_file, "name»%s\n", buf );
         fprintf( dest_file, "nation»%s\n", (entry.nation==-1)?"none":nations[entry.nation * 3] );
@@ -648,7 +663,9 @@ int units_convert_database(char *name, char *domain, int discard_not_used_icons)
         fprintf( dest_file, ">\n" );
     }
     fprintf( dest_file, ">\n" );
-    fclose( source_file );
+    if ( source_file ) {
+		fclose( source_file );
+	}
     fclose( dest_file );
     return 1;
 failure:
@@ -657,77 +674,78 @@ failure:
     return 0;
 }
 
-int save_lgeneral_equ(){
-	char buf[128]="pg";
-	char ext[128]=".udb";
-	char name[128]="pg.udb";
+int save_lgeneral_equ() {
+	char buf[128 + 1] = "pg";
+	char ext[128 + 1] = ".udb";
+	char name[128 + 1] = "pg.udb";
 
-	sprintf(MapStatusTxt,"LGen udb export.");
+	sprintf(MapStatusTxt, "LGen udb export.");
 	d_mapstatus_proc(MSG_DRAW, &(main_dlg[dmMapStatusIdx]), 0);
 
-	lgen_equip_dlg[2].dp=buf;
+	lgen_equip_dlg[2].dp = buf;
 	centre_dialog(lgen_equip_dlg);
-	if (do_dialog(lgen_equip_dlg, -1)==6){
-		strncpy(name,buf,128);
-		strncat(name,ext,128);
+	if (do_dialog(lgen_equip_dlg, -1) == 6) {
+		strncpy(name, buf, 128);
+		strncat(name, ext, 128 - strlen(name));
 
-		int change_icons = (lgen_equip_dlg[4].flags&D_SELECTED)?1:0;
+		int change_icons = (lgen_equip_dlg[4].flags & D_SELECTED) ? 1 : 0;
 
-		units_convert_database(name,buf,change_icons);
+		units_convert_database(name, buf, change_icons);
 
-		snprintf(MapStatusTxt,256,"LGen %s saved.\nPick an Operation.",name);
+		snprintf(MapStatusTxt, 256, "LGen %s saved.\nPick an Operation.", name);
 		main_dlg[dmMapStatusIdx].flags |= D_DIRTY;
-	}else{
+	} else {
 		pick_msg();
 	}
 	return D_REDRAW;
 }
 
-int save_lgeneral_map_file(char *name, char *domain){
-	int x,y,i,j;
+int save_lgeneral_map_file(char *name, char *domain) {
+	int x, y, i, j;
 	char type;
 	FILE *fout;
 
-	fout=fopen(name,"wt");
-	if (fout==NULL){
+	fout = fopen(name, "wt");
+	if (fout == NULL) {
 		return 1;
 	}
-	fprintf(fout,"@\n");
-	fprintf(fout,"terrain_db»%s.tdb\n", domain );
-	fprintf(fout,"domain»pg\n" );
-	fprintf(fout,"width»%i\nheight»%i\n", mapx, mapy );
-	fprintf(fout, "tiles»" );
+	fprintf(fout, "@\n");
+	fprintf(fout, "terrain_db»%s.tdb\n", domain);
+	fprintf(fout, "domain»pg\n");
+	fprintf(fout, "width»%i\nheight»%i\n", mapx, mapy);
+	fprintf(fout, "tiles»");
 
-    for ( y = 0; y < mapy; y++ ) {
-        for ( x = 0; x < mapx; x++ ) {
-        	if (map[x][y].tile < MAX_TILES_IN_PG){
+	for (y = 0; y < mapy; y++) {
+		for (x = 0; x < mapx; x++) {
+			if (map[x][y].tile < MAX_TILES_IN_PG) {
 				type = lgeneral_tile_type[map[x][y].tile];
-				j=0;
-				for ( i = 0; i < map[x][y].tile; i++ )
-					if ( lgeneral_tile_type[i] == type )
+				j = 0;
+				for (i = 0; i < map[x][y].tile; i++)
+					if (lgeneral_tile_type[i] == type)
 						j++;
-        	}else{
-        		type='c';
-        		j=12;
-        	}
+			} else {
+				type = 'c';
+				j = 12;
+			}
 
-            fprintf( fout, "%c%d", type, j );
-            if ( y < mapy - 1 || x < mapx - 1 )
-                fprintf( fout, "°" );
-        }
-    }
-    fprintf( fout, "\n" );
-    fprintf( fout, "names»" );
-    for ( y = 0; y < mapy; y++ ) {
-        for ( x = 0; x < mapx; x++ ) {
-        	if (map[x][y].gln>total_names || map[x][y].gln<0)
-        		fprintf( fout, "none");
-        	else
-        		fprintf( fout, "%s", gln[map[x][y].gln]  );
-            if ( y < mapy - 1 || x < mapx - 1 )
-                fprintf( fout, "°" );
-        }
-    }    fprintf( fout, "\n" );
+			fprintf(fout, "%c%d", type, j);
+			if (y < mapy - 1 || x < mapx - 1)
+				fprintf(fout, "°");
+		}
+	}
+	fprintf(fout, "\n");
+	fprintf(fout, "names»");
+	for (y = 0; y < mapy; y++) {
+		for (x = 0; x < mapx; x++) {
+			if (map[x][y].gln > total_names || map[x][y].gln < 0)
+				fprintf(fout, "none");
+			else
+				fprintf(fout, "%s", gln[map[x][y].gln]);
+			if (y < mapy - 1 || x < mapx - 1)
+				fprintf(fout, "°");
+		}
+	}
+	fprintf(fout, "\n");
 	fclose(fout);
 	return 0;
 }
@@ -781,22 +799,26 @@ void scen_create_random_weather( FILE *dest_file, int init_cond ,int region, int
 
     /* compute the weather */
     random_seed( month * turns + ( region + 1 ) * ( init_cond + 1 ) );
-    for ( i = 0; i < turns; i++ ) {
-        result = random_get( 1, 100 );
-        if ( result <= (int)( month_mod[month] * bad_weather[region] ) )
-            weather[i] = 2;
-        else
-            if ( result <= (int)( month_mod[month] * med_weather[region] ) )
-                weather[i] = 1;
-    }
+	for (i = 0; i < turns; i++) {
+		result = random_get(1, 100);
+		if (result <= (int) (month_mod[month] * bad_weather[region])) {
+			weather[i] = 2;
+		} else {
+			if (result <= (int) (month_mod[month] * med_weather[region])) {
+				weather[i] = 1;
+			}
+		}
+	}
 
     /* initial condition */
     weather[0] = (init_cond==1)?0:2;
     /* from december to february turn 2 (rain) into 3 (snow) */
-    if ( month < 3 || month == 12 ) {
-        for ( i = 0; i < turns; i++ )
-            if ( weather[i] == 2 )
-                weather[i]++;
+	if (month < 3 || month == 12) {
+		for (i = 0; i < turns; i++) {
+			if (weather[i] == 2) {
+				weather[i]++;
+			}
+		}
     }
 
     /* write weather */
@@ -823,259 +845,256 @@ int write_prestige_info( FILE *file, int turns, int *ppt )
 	return 0;
 }
 
-int save_lgeneral_scenario_file(char *name, char *map_name, char *domain){
-	int x,y;
-	int i,j;
+int save_lgeneral_scenario_file(char *name, char *map_name, char *domain) {
+	int x, y;
+	int i, j;
 	//char type;
 	FILE *dest_file;
-	char line_buffer[128],dummy[128];
+	char line_buffer[128 + 1], dummy[128 + 1];
 
-	dest_file=fopen(name,"wt");
-	if (dest_file==NULL){
+	dest_file = fopen(name, "wt");
+	if (dest_file == NULL) {
 		return 1;
 	}
 	/* file magic */
-	fprintf(dest_file,"@\n");
+	fprintf(dest_file, "@\n");
 
-    /* scenario name and description */
-	GetScenarioShortName(line_buffer,128);
-    fprintf( dest_file, "name»%s\n", line_buffer );
-    GetScenarioDescription(line_buffer,128);
-    fprintf( dest_file, "desc»%s\n", line_buffer );
-    snprintf(line_buffer,128,"unknow");
-    fprintf( dest_file, "authors»%s\n", line_buffer );
-    fprintf( dest_file, "date»%02i.%02i.19%i\n", scn_buffer[DAY]&255, scn_buffer[MONTH]&255, scn_buffer[YEAR]&255 );
+	/* scenario name and description */
+	GetScenarioShortName(line_buffer, 128);
+	fprintf(dest_file, "name»%s\n", line_buffer);
+	GetScenarioDescription(line_buffer, 128);
+	fprintf(dest_file, "desc»%s\n", line_buffer);
+	snprintf(line_buffer, 128, "unknow");
+	fprintf(dest_file, "authors»%s\n", line_buffer);
+	fprintf(dest_file, "date»%02i.%02i.19%i\n", scn_buffer[DAY] & 255, scn_buffer[MONTH] & 255, scn_buffer[YEAR] & 255);
 
-    /* turn limit */
-    int turns = scn_buffer[TURNS]&255;
-    fprintf( dest_file, "turns»%i\n", turns );
-    int turns_per_day = scn_buffer[TURNS_PER_DAY]&255;
-    fprintf( dest_file, "turns_per_day»%i\n", turns_per_day );
-    int days_per_turn = scn_buffer[DAYS_PER_TURN]&255;
-    if ( turns_per_day == 0 && days_per_turn == 0 )
-        days_per_turn = 1;
-    fprintf( dest_file, "days_per_turn»%i\n", days_per_turn );
+	/* turn limit */
+	int turns = scn_buffer[TURNS] & 255;
+	fprintf(dest_file, "turns»%i\n", turns);
+	int turns_per_day = scn_buffer[TURNS_PER_DAY] & 255;
+	fprintf(dest_file, "turns_per_day»%i\n", turns_per_day);
+	int days_per_turn = scn_buffer[DAYS_PER_TURN] & 255;
+	if (turns_per_day == 0 && days_per_turn == 0)
+		days_per_turn = 1;
+	fprintf(dest_file, "days_per_turn»%i\n", days_per_turn);
 
-    /* domain */
-    fprintf( dest_file, "domain»%s\n",domain );
-    /* nations */
-    fprintf( dest_file, "nation_db»%s.ndb\n",domain );
-    /* units */
-    fprintf( dest_file, "<unit_db\nmain»%s.udb\n>\n", domain);
-    /* map */
-    fprintf( dest_file, "map»%s/%s\n",domain,map_name );
-    /* weather */
-    scen_create_random_weather( dest_file, scn_buffer[STORM_FRONT]&255, scn_buffer[SCEN_LOCALE]&255, scn_buffer[MONTH]&255, scn_buffer[TURNS]&255 );
-    /* flags */
-    fprintf( dest_file, "<flags\n" );
-    for (y = 0; y < mapy; ++y)
-    	for (x = 0; x < mapx; ++x)
-		{
+	/* domain */
+	fprintf(dest_file, "domain»%s\n", domain);
+	/* nations */
+	fprintf(dest_file, "nation_db»%s.ndb\n", domain);
+	/* units */
+	fprintf(dest_file, "<unit_db\nmain»%s.udb\n>\n", domain);
+	/* map */
+	fprintf(dest_file, "map»%s/%s\n", domain, map_name);
+	/* weather */
+	scen_create_random_weather(dest_file, scn_buffer[STORM_FRONT] & 255, scn_buffer[SCEN_LOCALE] & 255, scn_buffer[MONTH] & 255, scn_buffer[TURNS] & 255);
+	/* flags */
+	fprintf(dest_file, "<flags\n");
+	for (y = 0; y < mapy; ++y)
+		for (x = 0; x < mapx; ++x) {
 			if (map[x][y].own) {
-				fprintf( dest_file, "<flag\nx»%i\ny»%i\nnation»%s\nobj»%i\n>\n", x, y, nations[(map[x][y].own - 1) * 3], map[x][y].vic );
+				fprintf(dest_file, "<flag\nx»%i\ny»%i\nnation»%s\nobj»%i\n>\n", x, y, nations[(map[x][y].own - 1) * 3], map[x][y].vic);
 			}
 		}
-    fprintf( dest_file, ">\n" );
+	fprintf(dest_file, ">\n");
 
-    /* players */
-            fprintf( dest_file, "<players\n" );
-            /* axis */
+	/* players */
+	fprintf(dest_file, "<players\n");
+	/* axis */
 
-            if ( (scn_buffer[ORIENTATION]&255) == 1 )
-                snprintf( dummy,128, "right" );
-            else
-                snprintf( dummy,128, "left" );
+	if ((scn_buffer[ORIENTATION] & 255) == 1)
+		snprintf(dummy, 128, "right");
+	else
+		snprintf(dummy, 128, "left");
 
-            /* strategy: -2 (very defensive) to 2 (very aggressive) */
+	/* strategy: -2 (very defensive) to 2 (very aggressive) */
 
-            int axis_strat = scn_buffer[ALLIED_STANCE]&255; //yes ALLIED_STANCE here, was fseek( scen_file, 15, SEEK_SET );
-            if ( axis_strat == 0 )
-                axis_strat = 1;
-            else
-                axis_strat = -1;
-            /* definition */
+	int axis_strat = scn_buffer[ALLIED_STANCE] & 255; //yes ALLIED_STANCE here, was fseek( scen_file, 15, SEEK_SET );
+	if (axis_strat == 0)
+		axis_strat = 1;
+	else
+		axis_strat = -1;
+	/* definition */
 
-                fprintf( dest_file, "<axis\nname»Axis\n" );
+	fprintf(dest_file, "<axis\nname»Axis\n");
 
-                char auxstr[256];
-                memset(auxstr,0,256);
+	char auxstr[256 + 1];
+	memset(auxstr, 0, 256 + 1);
 
-                j=0;
-                for(i=0;i<6;i++){
-                	if (scn_buffer[i*2]){
-                		j=1;
-                		strncat(auxstr,nations[(scn_buffer[i*2]-1)*3],256);
-                		strncat(auxstr,"°",256);
-                	}
-                }
-                if (j) auxstr[strlen(auxstr)-1]=0; //trim last °
+	j = 0;
+	for (i = 0; i < 6; i++) {
+		if (scn_buffer[i * 2]) {
+			j = 1;
+			strncat(auxstr, nations[(scn_buffer[i * 2] - 1) * 3], 256);
+			strncat(auxstr, "°", 256 - strlen(auxstr));
+		}
+	}
+	if (j)
+		auxstr[strlen(auxstr) - 1] = 0; //trim last °
 
-                fprintf( dest_file, "nations»%s\n", auxstr );
+	fprintf(dest_file, "nations»%s\n", auxstr);
 
-            fprintf( dest_file, "allied_players»\n" );
-            int axis_ulimit = (scn_buffer[AUX_UNITS]&255)+(scn_buffer[CORE_UNITS]&255);
-            fprintf( dest_file, "unit_limit»%d\n", axis_ulimit );
-            //fprintf( dest_file, "core_limit»%d\n", scn_buffer[CORE_UNITS]&255 );
-            fprintf( dest_file, "orientation»%s\ncontrol»human\nstrategy»%i\n", dummy, axis_strat );
+	fprintf(dest_file, "allied_players»\n");
+	int axis_ulimit = (scn_buffer[AUX_UNITS] & 255) + (scn_buffer[CORE_UNITS] & 255);
+	fprintf(dest_file, "unit_limit»%d\n", axis_ulimit);
+	//fprintf( dest_file, "core_limit»%d\n", scn_buffer[CORE_UNITS]&255 );
+	fprintf(dest_file, "orientation»%s\ncontrol»human\nstrategy»%i\n", dummy, axis_strat);
 
+	{
+		int ppt[turns]; /* prestige per turn with dynamic size */
+		memset(ppt, 0, turns * sizeof(int)); //zero
+		ppt[0] = get_id_from_2_bytes(AXIS_PRESTIGE);
+		write_prestige_info(dest_file, turns, ppt);
+	}
+	fprintf(dest_file, "ai_module»default\n");
+	/* transporter */
+	fprintf(dest_file, "<transporters\n");
+	/* air */
+	i = get_id_from_2_bytes(AXIS_AIR_TYPE);
+	if (i)
+		fprintf(dest_file, "<air\nunit»%i\ncount»%i\n>\n", i - 1, s4_buffer[AXIS_AIR_NUMBER]); //id-1, RESERVED unit is removed
+	/* sea */
+	i = get_id_from_2_bytes(AXIS_SEA_TYPE);
+	fprintf(dest_file, "<sea\nunit»%i\ncount»%i\n>\n", i - 1, s4_buffer[AXIS_SEA_NUMBER]);
+	fprintf(dest_file, ">\n"); //trans
+	fprintf(dest_file, ">\n"); //player axis
 
-    	{
-    		int ppt[turns]; /* prestige per turn with dynamic size */
-    		memset(ppt,0,turns * sizeof(int)); //zero
-    		ppt[0]=get_id_from_2_bytes(AXIS_PRESTIGE);
-    		write_prestige_info( dest_file, turns, ppt );
-    	}
-            fprintf( dest_file, "ai_module»default\n" );
-            /* transporter */
-            fprintf( dest_file, "<transporters\n" );
-            /* air */
-            i=get_id_from_2_bytes(AXIS_AIR_TYPE);
-            if (i)
-                fprintf( dest_file, "<air\nunit»%i\ncount»%i\n>\n", i - 1, s4_buffer[AXIS_AIR_NUMBER] ); //id-1, RESERVED unit is removed
-            /* sea */
-            i=get_id_from_2_bytes(AXIS_SEA_TYPE);
-            fprintf( dest_file, "<sea\nunit»%i\ncount»%i\n>\n", i - 1, s4_buffer[AXIS_SEA_NUMBER] );
-            fprintf( dest_file, ">\n" ); //trans
-            fprintf( dest_file, ">\n" );//player axis
+	/* allies */
+	if ((scn_buffer[ORIENTATION] & 255) != 1)
+		snprintf(dummy, 128, "right");
+	else
+		snprintf(dummy, 128, "left");
 
+	int allied_strat;
+	if (axis_strat == 1)
+		allied_strat = -1;
+	else
+		allied_strat = 1;
 
-            /* allies */
-            if ( (scn_buffer[ORIENTATION]&255) != 1 )
-                snprintf( dummy,128, "right" );
-            else
-                snprintf( dummy,128, "left" );
+	fprintf(dest_file, "<allies\nname»Allies\n");
+	memset(auxstr, 0, 256 + 1);
 
-            int allied_strat;
-            if ( axis_strat == 1 )
-                allied_strat = -1;
-            else
-                allied_strat = 1;
+	j = 0;
+	for (i = 0; i < 6; i++) {
+		if (scn_buffer[i * 2 + 1]) {
+			j = 1;
+			strncat(auxstr, nations[(scn_buffer[i * 2 + 1] - 1) * 3], 256 - strlen(auxstr));
+			strncat(auxstr, "°", 256 - strlen(auxstr));
+		}
+	}
+	if (j) {
+		auxstr[strlen(auxstr) - 1] = 0; //trim last °
+	}
+	fprintf(dest_file, "nations»%s\n", auxstr);
 
-            fprintf( dest_file, "<allies\nname»Allies\n" );
-            memset(auxstr,0,256);
+	fprintf(dest_file, "allied_players»\n");
+	int allies_ulimit = (scn_buffer[AUX_ALLIED_UNITS] & 255) + (scn_buffer[ALLIED_UNITS] & 255);
+	fprintf(dest_file, "unit_limit»%d\n", allies_ulimit);
+	fprintf(dest_file, "orientation»%s\ncontrol»cpu\nstrategy»%i\n", dummy, allied_strat);
+	{
+		int ppt[turns]; /* prestige per turn with dynamic size */
+		memset(ppt, 0, turns * sizeof(int)); //zero
+		ppt[0] = get_id_from_2_bytes(ALLIED_PRESTIGE);
+		write_prestige_info(dest_file, turns, ppt);
+	}
+	fprintf(dest_file, "ai_module»default\n");
 
-            j=0;
-            for(i=0;i<6;i++){
-            	if (scn_buffer[i*2+1]){
-            		j=1;
-            		strncat(auxstr,nations[(scn_buffer[i*2+1]-1)*3],256);
-            		strncat(auxstr,"°",256);
-            	}
-            }
-            if (j) auxstr[strlen(auxstr)-1]=0; //trim last °
+	/* transporter */
+	fprintf(dest_file, "<transporters\n");
+	/* air */
+	i = get_id_from_2_bytes(ALLIED_AIR_TYPE);
+	if (i) {
+		fprintf(dest_file, "<air\nunit»%i\ncount»%i\n>\n", i - 1, s4_buffer[ALLIED_AIR_NUMBER]); //id-1, RESERVED unit is removed
+	}
+	/* sea */
+	i = get_id_from_2_bytes(ALLIED_SEA_TYPE);
+	fprintf(dest_file, "<sea\nunit»%i\ncount»%i\n>\n", i - 1, s4_buffer[ALLIED_SEA_NUMBER]);
+	fprintf(dest_file, ">\n"); //tr
+	fprintf(dest_file, ">\n"); //allied
+	fprintf(dest_file, ">\n"); //players
 
-            fprintf( dest_file, "nations»%s\n", auxstr );
+	/* the default is that the attacker must capture
+	 all targets */
+	fprintf(dest_file, "<result\ncheck»every_turn\n");
+	fprintf(dest_file, "<cond\n");
+	fprintf(dest_file, "<and\n<control_all_hexes\nplayer»%s\n>\n>\n", (axis_strat > 0) ? "axis" : "allies");
+	fprintf(dest_file, "result»victory\n");
+	fprintf(dest_file, "message»%s\n", (axis_strat > 0) ? "Axis Victory" : "Allied Victory");
+	fprintf(dest_file, ">\n");
+	fprintf(dest_file, "<else\n");
+	fprintf(dest_file, "result»defeat\n");
+	fprintf(dest_file, "message»%s\n", (axis_strat > 0) ? "Axis Defeat" : "Allied Defeat");
+	fprintf(dest_file, ">\n");
+	fprintf(dest_file, ">\n");
 
+	/* deployment fields */
+	fprintf(dest_file, "<deployfields\n<player\nid»axis\ncoordinates»default°");
+	j = 0;
+	for (y = 0; y < mapy; ++y) {
+		for (x = 0; x < mapx; ++x) {
+			if (map[x][y].deploy) {
+				fprintf(dest_file, "%s%d,%d", j ? "°" : "", x, y);
+				j++;
+			}
+		}
+	}
+	fprintf(dest_file, "\n>\n");
+	fprintf(dest_file, "<player\nid»allies\ncoordinates»default\n>\n");
+	fprintf(dest_file, ">\n");
 
-            fprintf( dest_file, "allied_players»\n" );
-            int allies_ulimit = (scn_buffer[AUX_ALLIED_UNITS]&255)+(scn_buffer[ALLIED_UNITS]&255);
-            fprintf( dest_file, "unit_limit»%d\n", allies_ulimit );
-            fprintf( dest_file, "orientation»%s\ncontrol»cpu\nstrategy»%i\n", dummy, allied_strat );
-    	{
-        		int ppt[turns]; /* prestige per turn with dynamic size */
-        		memset(ppt,0,turns * sizeof(int)); //zero
-        		ppt[0]=get_id_from_2_bytes(ALLIED_PRESTIGE);
-        		write_prestige_info( dest_file, turns, ppt );
-    	}
-            fprintf( dest_file, "ai_module»default\n" );
+	/* units */
+	fprintf(dest_file, "<units\n");
+	for (i = 0; i < total_units; i++) {
+		/* write unit */
+		fprintf(dest_file, "<unit\n");
+		fprintf(dest_file, "id»%i\nnation»%s\n", all_units[i].unum - 1, nations[(all_units[i].country - 1) * 3]);
+		fprintf(dest_file, "x»%i\ny»%i\n", all_units[i].x, all_units[i].y);
+		fprintf(dest_file, "str»%i\nentr»%i\nexp»%i\n", all_units[i].str, all_units[i].entrench, all_units[i].exp);
+		if (all_units[i].auxtnum == 0 && all_units[i].orgtnum == 0) {
+			fprintf(dest_file, "trsp»none\n");
+		} else {
+			if (all_units[i].auxtnum) {
+				fprintf(dest_file, "trsp»%i\n", all_units[i].auxtnum - 1);
+			} else {
+				fprintf(dest_file, "trsp»%i\n", all_units[i].orgtnum - 1);
+			}
+		}
+		fprintf(dest_file, ">\n");
+	}
 
-            /* transporter */
-			fprintf( dest_file, "<transporters\n" );
-			/* air */
-			i=get_id_from_2_bytes(ALLIED_AIR_TYPE);
-			if (i)
-				fprintf( dest_file, "<air\nunit»%i\ncount»%i\n>\n", i - 1, s4_buffer[ALLIED_AIR_NUMBER] ); //id-1, RESERVED unit is removed
-			/* sea */
-			i=get_id_from_2_bytes(ALLIED_SEA_TYPE);
-			fprintf( dest_file, "<sea\nunit»%i\ncount»%i\n>\n", i - 1, s4_buffer[ALLIED_SEA_NUMBER] );
-            fprintf( dest_file, ">\n" );//tr
-            fprintf( dest_file, ">\n" );//allied
-            fprintf( dest_file, ">\n" );//players
-
-            /* the default is that the attacker must capture
-                all targets */
-             fprintf( dest_file, "<result\ncheck»every_turn\n" );
-             fprintf( dest_file, "<cond\n" );
-             fprintf( dest_file, "<and\n<control_all_hexes\nplayer»%s\n>\n>\n",
-                      (axis_strat > 0) ? "axis" : "allies" );
-             fprintf( dest_file, "result»victory\n" );
-             fprintf( dest_file, "message»%s\n",
-                      (axis_strat > 0) ? "Axis Victory" : "Allied Victory" );
-             fprintf( dest_file, ">\n" );
-             fprintf( dest_file, "<else\n" );
-             fprintf( dest_file, "result»defeat\n" );
-             fprintf( dest_file, "message»%s\n",
-                      (axis_strat > 0) ? "Axis Defeat" : "Allied Defeat" );
-             fprintf( dest_file, ">\n" );
-             fprintf( dest_file, ">\n" );
-
-             /* deployment fields */
-              fprintf( dest_file, "<deployfields\n<player\nid»axis\ncoordinates»default°" );
-              j=0;
-              for (y = 0; y < mapy; ++y)
-              	for (x = 0; x < mapx; ++x)
-          		{
-          			if (map[x][y].deploy) {
-          				fprintf( dest_file, "%s%d,%d", j ? "°" : "", x, y );
-          				j++;
-          			}
-          		}
-              fprintf( dest_file, "\n>\n" );
-              fprintf( dest_file, "<player\nid»allies\ncoordinates»default\n>\n" );
-              fprintf( dest_file, ">\n" );
-
-              /* units */
-              fprintf( dest_file, "<units\n" );
-              for ( i = 0; i < total_units; i++ ){
-            	    /* write unit */
-            	    fprintf( dest_file, "<unit\n" );
-            	    fprintf( dest_file, "id»%i\nnation»%s\n", all_units[i].unum-1, nations[(all_units[i].country-1) * 3] );
-            	    fprintf( dest_file, "x»%i\ny»%i\n", all_units[i].x, all_units[i].y );
-            	    fprintf( dest_file, "str»%i\nentr»%i\nexp»%i\n", all_units[i].str, all_units[i].entrench, all_units[i].exp );
-            	    if ( all_units[i].auxtnum == 0 && all_units[i].orgtnum == 0 )
-            	        fprintf( dest_file, "trsp»none\n" );
-            	    else {
-            	        if ( all_units[i].auxtnum )
-            	            fprintf( dest_file, "trsp»%i\n", all_units[i].auxtnum - 1 );
-            	        else
-            	            fprintf( dest_file, "trsp»%i\n", all_units[i].orgtnum - 1 );
-            	    }
-            	    fprintf( dest_file, ">\n" );
-              }
-
-
-              fprintf( dest_file, ">\n" );
+	fprintf(dest_file, ">\n");
 
 	fclose(dest_file);
 	return 0;
 }
 
-int save_lgeneral_map(){
+int save_lgeneral_map() {
 	char map_name[128];
 
-	sprintf(MapStatusTxt,"LGen MAP saving...\nPlease wait.");
+	sprintf(MapStatusTxt, "LGen MAP saving...\nPlease wait.");
 	d_mapstatus_proc(MSG_DRAW, &(main_dlg[dmMapStatusIdx]), 0);
 
-	snprintf(map_name,128,"map%02d",getScenarioNumber());
-	save_lgeneral_map_file(map_name,"pg");
+	snprintf(map_name, 128, "map%02d", getScenarioNumber());
+	save_lgeneral_map_file(map_name, "pg");
 
-	sprintf(MapStatusTxt,"LGen MAP saved.\nPick an Operation.");
+	sprintf(MapStatusTxt, "LGen MAP saved.\nPick an Operation.");
 	main_dlg[dmMapStatusIdx].flags |= D_DIRTY;
 
 	return D_O_K;
 }
 
-int save_lgeneral_scenario(){
+int save_lgeneral_scenario() {
 	return save_lgeneral_scenario_CLI(TRUE);
 }
 
-int save_lgeneral_scenario_CLI(int updateGUI){
-	char name[128],map_name[128];
+int save_lgeneral_scenario_CLI(int updateGUI) {
+	char name[128], map_name[128];
 
-	sprintf(MapStatusTxt,"LGen MAP saving...\nPlease wait.");
-	if (updateGUI) d_mapstatus_proc(MSG_DRAW, &(main_dlg[dmMapStatusIdx]), 0);
+	sprintf(MapStatusTxt, "LGen MAP saving...\nPlease wait.");
+	if (updateGUI)
+		d_mapstatus_proc(MSG_DRAW, &(main_dlg[dmMapStatusIdx]), 0);
 
-	snprintf(map_name,128,"map%02d",getScenarioNumber());
+	snprintf(map_name, 128, "map%02d", getScenarioNumber());
 	save_lgeneral_map_file(map_name,"pg");
 
 	sprintf(MapStatusTxt,"LGen scen saving...\nPlease wait.");
@@ -1168,27 +1187,32 @@ int isFlipNeeded(int icon_idx){
 		int found_country=-1;
 		//get first token from string
 		pch = strtok (buf," ");
-		if (pch != NULL){
-			for(i=0;i<MAX_COUNTRY;i++){
+		if (pch != NULL) {
+			for (i = 0; i < MAX_COUNTRY; i++) {
 				//stricmp is a case insensitive string compare. It is not POSIX compatible but supported in MinGW
-				if (stricmp(pch,country_names_short[i])==0){
+				if (stricmp(pch, country_names_short[i]) == 0) {
 					//match
-					if (country_side[i]==1) flip=1;
-					found_country=i;
+					if (country_side[i] == 1) {
+						flip = 1;
+					}
+					found_country = i;
 					break;
 				}
 			}
 		}
 
-		if (found_eqp_id!=-1 && found_country==-1)
-			if (country_side[(int)equip_country[found_eqp_id]]==1) flip=1;
+		if (found_eqp_id != -1 && found_country == -1) {
+			if (country_side[(int) equip_country[found_eqp_id]] == 1) {
+				flip = 1;
+			}
+		}
 	}
 
 	return flip;
 }
 
 int units_convert_bmps(char *name, int isFlipIcons, int discard_not_used_icons, int individual_files, int multi_column){
-	int icon_idx,sum=0,t,b,r,l,ysize,xsize,k,limit,bmp_idx,s=0;
+	int icon_idx,sum=0,t,b,r,l,ysize,xsize,k,limit,bmp_idx=0,s=0;
 	BITMAP *u_bmp;
 	int saved_icons[MAX_UICONS];
 	int SDL_max_height=16384;
@@ -1203,26 +1227,26 @@ int units_convert_bmps(char *name, int isFlipIcons, int discard_not_used_icons, 
 	limit = total_uicons;
 	if (discard_not_used_icons) limit = total_equip;
 
-	for(k=0;k<limit;k++){
+	for (k = 0; k < limit; k++) {
 		if (discard_not_used_icons) {
 			bmp_idx = equip[k][BMP] + 256 * equip[k][BMP + 1];
 			//print_dec(bmp_idx);
 			//print_dec(used_icons[bmp_idx]);
-			if (saved_icons[bmp_idx]==0){
+			if (saved_icons[bmp_idx] == 0) {
 				icon_idx = new_icon_number[bmp_idx];
-				saved_icons[bmp_idx]=1;
+				saved_icons[bmp_idx] = 1;
 				s++;
-			}else{
+			} else {
 				//icon already saved
 				continue;
 			}
 		} else {
 			icon_idx = k;
 		}
-		t=check_icon_true_size_top(icon_idx);
-		b=check_icon_true_size_bottom(icon_idx);
+		t = check_icon_true_size_top(icon_idx);
+		b = check_icon_true_size_bottom(icon_idx);
 
-		ysize=(b>t?b-t+3:3); //add 3 for real pictures, 3 if empty
+		ysize = (b > t ? b - t + 3 : 3); //add 3 for real pictures, 3 if empty
 		sum += ysize;
 	}
 	if (!individual_files){
@@ -1244,137 +1268,136 @@ int units_convert_bmps(char *name, int isFlipIcons, int discard_not_used_icons, 
 		memset(saved_icons,0,sizeof(saved_icons));
 	}
 	int dx=0;
-	for(k=0;k<limit;k++){
+	for (k = 0; k < limit; k++) {
 		if (discard_not_used_icons) {
 			bmp_idx = equip[k][BMP] + 256 * equip[k][BMP + 1];
-			if (saved_icons[bmp_idx]==0){
+			if (saved_icons[bmp_idx] == 0) {
 				icon_idx = new_icon_number[bmp_idx];
-				saved_icons[bmp_idx]=1;
-			}else{
+				saved_icons[bmp_idx] = 1;
+			} else {
 				//icon already saved
 				continue;
 			}
 		} else {
 			icon_idx = k;
 		}
-		t=check_icon_true_size_top(icon_idx);
-		b=check_icon_true_size_bottom(icon_idx);
-		l=check_icon_true_size_left(icon_idx);
-		r=check_icon_true_size_right(icon_idx);
-		ysize=(b>t?b-t+3:3); //add 3 for real pictures, 3 if empty
-		xsize=(r>l?r-l+1:10); // 10 if empty
+		t = check_icon_true_size_top(icon_idx);
+		b = check_icon_true_size_bottom(icon_idx);
+		l = check_icon_true_size_left(icon_idx);
+		r = check_icon_true_size_right(icon_idx);
+		ysize = (b > t ? b - t + 3 : 3); //add 3 for real pictures, 3 if empty
+		xsize = (r > l ? r - l + 1 : 10); // 10 if empty
 
-		/*if (i==total_uicons-1) {
-			print_dec(t);print_dec(b);print_dec(l);print_dec(r);print_dec(xsize);print_dec(ysize);
-		}
-		 */
-
-		if (individual_files){
-			snprintf(name_individual,256,"lg%04d.bmp",bmp_idx);
+		if (individual_files) {
+			snprintf(name_individual, 256, "lg%04d.bmp", bmp_idx);
 			sum = 0;
 			u_bmp = create_bitmap(TILE_FULL_WIDTH, ysize);
 			rectfill(u_bmp, 0, 0, TILE_FULL_WIDTH, ysize, colors_to24bits(COLOR_BLACK)); // COLOR_BLACK is a transparent color for LGen
 		}
 
 		//doFlip=0;
-		if (isFlipIcons && isFlipNeeded(icon_idx)){
+		if (isFlipIcons && isFlipNeeded(icon_idx)) {
 			//doFlip=1;
 			BITMAP *tmp_bmp;
 			tmp_bmp = create_bitmap(TILE_FULL_WIDTH, TILE_HEIGHT);
-			rectfill(tmp_bmp,0,0,TILE_FULL_WIDTH,TILE_HEIGHT+1,fpge_mask_color);
-			draw_sprite_h_flip(tmp_bmp,unit_bmp[icon_idx],0,0);
+			rectfill(tmp_bmp, 0, 0, TILE_FULL_WIDTH, TILE_HEIGHT + 1, fpge_mask_color);
+			draw_sprite_h_flip(tmp_bmp, unit_bmp[icon_idx], 0, 0);
 			//swap left with right limits after H-flip
-			l=TILE_FULL_WIDTH-r;
-			r=l+xsize;
-			masked_blit(tmp_bmp,u_bmp,l,t,dx,sum+1,xsize,ysize);
+			l = TILE_FULL_WIDTH - r;
+			r = l + xsize;
+			masked_blit(tmp_bmp, u_bmp, l, t, dx, sum + 1, xsize, ysize);
 			destroy_bitmap(tmp_bmp);
-		}else{
-			masked_blit(unit_bmp[icon_idx],u_bmp,l,t,dx,sum+1,xsize,ysize);
+		} else {
+			masked_blit(unit_bmp[icon_idx], u_bmp, l, t, dx, sum + 1, xsize, ysize);
 		}
-		putpixel(u_bmp,dx,sum,make_color_fpge(0,192,248));
-		putpixel(u_bmp,dx+xsize,sum,make_color_fpge(0,192,248));
-		putpixel(u_bmp,dx,sum+ysize-1,make_color_fpge(0,192,248));
+		putpixel(u_bmp, dx, sum, make_color_fpge(0, 192, 248));
+		putpixel(u_bmp, dx + xsize, sum, make_color_fpge(0, 192, 248));
+		putpixel(u_bmp, dx, sum + ysize - 1, make_color_fpge(0, 192, 248));
 
-		if (individual_files){
-			save_bmp(name_individual,u_bmp,NULL);
+		if (individual_files) {
+			save_bmp(name_individual, u_bmp, NULL);
 			destroy_bitmap(u_bmp);
 		}
 		sum += ysize;
-		if (multi_column && sum+TILE_HEIGHT > SDL_max_height ){
-			dx +=TILE_FULL_WIDTH;
-			sum=0;
+		if (multi_column && sum + TILE_HEIGHT > SDL_max_height) {
+			dx += TILE_FULL_WIDTH;
+			sum = 0;
 		}
 	}
-	if (!individual_files){
-		save_bmp(name,u_bmp,NULL);
-		destroy_bitmap(u_bmp);
+	if (!individual_files) {
+		if (u_bmp != NULL) {
+			save_bmp(name, u_bmp, NULL);
+			destroy_bitmap(u_bmp);
+		}
 	}
 	return 0;
 }
 
 int save_lgeneral_units_bmp(){
-	char buf[128]="pg";
-	char ext[128]=".bmp";
-	char name[128]="pg.bmp";
+	char buf[128+1]="pg";
+	char ext[128+1]=".bmp";
+	char name[128+1]="pg.bmp";
 
 	sprintf(MapStatusTxt,"LGen bmp export.");
 	d_mapstatus_proc(MSG_DRAW, &(main_dlg[dmMapStatusIdx]), 0);
 
 	lgen_uicons_dlg[2].dp=buf;
 	centre_dialog(lgen_uicons_dlg);
-	if (do_dialog(lgen_uicons_dlg, -1)==7){
-		strncpy(name,buf,128);
-		strncat(name,ext,128);
-		int doFlip = (lgen_uicons_dlg[4].flags&D_SELECTED)?1:0;
-		int change_icons = (lgen_uicons_dlg[8].flags&D_SELECTED)?1:0;
-		int individual_icons = (lgen_uicons_dlg[9].flags&D_SELECTED)?1:0;
-		int multi_column = (lgen_uicons_dlg[10].flags&D_SELECTED)?1:0;
-		units_convert_bmps(name, doFlip, change_icons,individual_icons,multi_column);
+	if (do_dialog(lgen_uicons_dlg, -1) == 7) {
+		strncpy(name, buf, 128);
+		strncat(name, ext, 128 - strlen(name));
+		int doFlip = (lgen_uicons_dlg[4].flags & D_SELECTED) ? 1 : 0;
+		int change_icons = (lgen_uicons_dlg[8].flags & D_SELECTED) ? 1 : 0;
+		int individual_icons = (lgen_uicons_dlg[9].flags & D_SELECTED) ? 1 : 0;
+		int multi_column = (lgen_uicons_dlg[10].flags & D_SELECTED) ? 1 : 0;
+		units_convert_bmps(name, doFlip, change_icons, individual_icons, multi_column);
 
-		snprintf(MapStatusTxt,256,"LGen %s saved.\nPick an Operation.",name);
+		snprintf(MapStatusTxt, 256, "LGen %s saved.\nPick an Operation.", name);
 		main_dlg[dmMapStatusIdx].flags |= D_DIRTY;
-	}else{
+	} else {
 		pick_msg();
 	}
 	return D_REDRAW;
 }
 
 int save_nations_db(char *name, char *target_name, char *domain){
-    int i;
-    FILE *file;
+	int i;
+	FILE *file;
 
-    /* nation database */
-    printf( "Nation database...\n" );
+	/* nation database */
+	printf("Nation database...\n");
 
-    if ( ( file = fopen( name, "w" ) ) == 0 ) {
-        fprintf( stderr, "%s: access denied\n", name );
-        return 1;
-    }
-    fprintf( file, "@\n" );
-    fprintf( file, "icons»%s\n", target_name );
-    fprintf( file, "icon_width»20\nicon_height»13\n" );
-    /* domain */
-    fprintf( file, "domain»%s\n",domain );
-    fprintf( file, "<nations\n" );
-    for ( i = 0; i < NATION_COUNT; i++ )
-        fprintf( file, "<%s\nname»%s\nicon_id»%s\n>\n", nations[i * 3], nations[i * 3 + 1], nations[i * 3 + 2] );
-    fprintf( file, ">\n" );
-    fclose( file );
-    return 0;
+	if ((file = fopen(name, "w")) == 0) {
+		fprintf( stderr, "%s: access denied\n", name);
+		return 1;
+	}
+	fprintf(file, "@\n");
+	fprintf(file, "icons»%s\n", target_name);
+	fprintf(file, "icon_width»20\nicon_height»13\n");
+	/* domain */
+	fprintf(file, "domain»%s\n", domain);
+	fprintf(file, "<nations\n");
+	for (i = 0; i < NATION_COUNT; i++) {
+		fprintf(file, "<%s\nname»%s\nicon_id»%s\n>\n", nations[i * 3], nations[i * 3 + 1], nations[i * 3 + 2]);
+	}
+	fprintf(file, ">\n");
+	fclose(file);
+	return 0;
 }
 
-int save_nations_bmp(char *name){
-    int i;
+int save_nations_bmp(char *name) {
+	int i;
 	BITMAP *n_bmp;
 
-	n_bmp = create_bitmap(20, 13*NATION_COUNT);
-	rectfill(n_bmp, 0, 0, 20, 13*NATION_COUNT, colors_to24bits(COLOR_BLACK)); // COLOR_BLACK is a transparent color for LGen
+	n_bmp = create_bitmap(20, 13 * NATION_COUNT);
+	rectfill(n_bmp, 0, 0, 20, 13 * NATION_COUNT, colors_to24bits(COLOR_BLACK)); // COLOR_BLACK is a transparent color for LGen
 
-	for ( i = 0; i < NATION_COUNT; i++ )
-		masked_blit(flag_bmp[i],n_bmp,20,36,0,i*13,20,13);
-	save_bmp(name,n_bmp,NULL);
+	for (i = 0; i < NATION_COUNT; i++) {
+		masked_blit(flag_bmp[i], n_bmp, 20, 36, 0, i * 13, 20, 13);
+	}
+	save_bmp(name, n_bmp, NULL);
 	destroy_bitmap(n_bmp);
-    return 0;
+	return 0;
 }
 
 int save_lgeneral_nations(){

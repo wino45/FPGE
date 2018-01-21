@@ -255,7 +255,6 @@ int show_move_table_dlg(){
 			return dynamic_dlg(0,RADIO_PG_MOV_TYPES,ROW_PG_TERRAIN_MOV_TYPES,MOVEMENT_TYPES_NO_COL);
 		}
 	}
-
 }
 
 int show_weather_table_dlg(){
@@ -267,7 +266,6 @@ int show_weather_table_dlg(){
 		return dynamic_dlg(3,8,12,4);
 	else
 		return dynamic_dlg(1,3,12,4);
-
 }
 
 

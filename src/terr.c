@@ -185,7 +185,7 @@ void update_name_label() {
 	if (idx > -1 && idx < total_names) {
 		strncpy(td_name_str, gln_utf8[idx], MAX_NAME_UTF_SIZE);
 		while(ustrlen(td_name_str)<MAX_NAME_SIZE){
-			strncat(td_name_str," ",MAX_NAME_UTF_SIZE);
+			strncat(td_name_str," ",MAX_NAME_UTF_SIZE-strlen(td_name_str));
 		}
 		terrain_dlg[tdNameLabel].flags |= D_DIRTY;
 	}
@@ -199,7 +199,7 @@ void update_terrain_label() {
 	if (idx > -1 && idx < MAX_TERRAIN_TYPE) {
 		strncpy(td_tt_name, utr_names[idx], TERRAIN_TYPE_SIZE);
 		while(ustrlen(td_tt_name)<TERRAIN_TYPE_SIZE){
-			strncat(td_tt_name," ",TERRAIN_TYPE_SIZE);
+			strncat(td_tt_name," ",TERRAIN_TYPE_SIZE-strlen(td_tt_name));
 		}
 		terrain_dlg[tdTTLabel].flags |= D_DIRTY;
 	}
@@ -207,13 +207,25 @@ void update_terrain_label() {
 
 void draw_road_connections(BITMAP *map_to_draw, int xs,int ys, int rc){
 	 int line_color = colors_to24bits(LINE_COLOR);
-	 if (rc&0x01) line(map_to_draw,xs+TILE_FULL_WIDTH/2,ys+TILE_HEIGHT/2,xs+TILE_FULL_WIDTH/2,ys,line_color);
-	 if (rc&0x02) line(map_to_draw,xs+TILE_FULL_WIDTH/2,ys+TILE_HEIGHT/2,xs+(float)TILE_FULL_WIDTH/2.0*1.7,ys+TILE_HEIGHT/4,line_color);
-	 if (rc&0x08) line(map_to_draw,xs+TILE_FULL_WIDTH/2,ys+TILE_HEIGHT/2,xs+(float)TILE_FULL_WIDTH/2.0*1.7,ys-1+(-(float)TILE_HEIGHT/4.0+TILE_HEIGHT),line_color);
+	if (rc & 0x01) {
+		line(map_to_draw, xs + TILE_FULL_WIDTH / 2, ys + TILE_HEIGHT / 2, xs + TILE_FULL_WIDTH / 2, ys, line_color);
+	}
+	if (rc & 0x02) {
+		line(map_to_draw, xs + TILE_FULL_WIDTH / 2, ys + TILE_HEIGHT / 2, xs + (float) TILE_FULL_WIDTH / 2.0 * 1.7, ys + TILE_HEIGHT / 4, line_color);
+	}
+	if (rc & 0x08) {
+		line(map_to_draw, xs + TILE_FULL_WIDTH / 2, ys + TILE_HEIGHT / 2, xs + (float) TILE_FULL_WIDTH / 2.0 * 1.7, ys - 1 + (-(float) TILE_HEIGHT / 4.0 + TILE_HEIGHT), line_color);
+	}
 
-	 if (rc&0x10) line(map_to_draw,xs+TILE_FULL_WIDTH/2,ys+TILE_HEIGHT/2,xs+TILE_FULL_WIDTH/2,ys+TILE_HEIGHT,line_color);
-	 if (rc&0x20) line(map_to_draw,xs+TILE_FULL_WIDTH/2,ys+TILE_HEIGHT/2,xs+(float)TILE_FULL_WIDTH/2.0*0.3,ys-1+(-(float)TILE_HEIGHT/4.0+TILE_HEIGHT),line_color);
-	 if (rc&0x80) line(map_to_draw,xs+TILE_FULL_WIDTH/2,ys+TILE_HEIGHT/2,xs+(float)TILE_FULL_WIDTH/2.0*0.3,ys+TILE_HEIGHT/4,line_color);
+	if (rc & 0x10) {
+		line(map_to_draw, xs + TILE_FULL_WIDTH / 2, ys + TILE_HEIGHT / 2, xs + TILE_FULL_WIDTH / 2, ys + TILE_HEIGHT, line_color);
+	}
+	if (rc & 0x20) {
+		line(map_to_draw, xs + TILE_FULL_WIDTH / 2, ys + TILE_HEIGHT / 2, xs + (float) TILE_FULL_WIDTH / 2.0 * 0.3, ys - 1 + (-(float) TILE_HEIGHT / 4.0 + TILE_HEIGHT), line_color);
+	}
+	if (rc & 0x80) {
+		line(map_to_draw, xs + TILE_FULL_WIDTH / 2, ys + TILE_HEIGHT / 2, xs + (float) TILE_FULL_WIDTH / 2.0 * 0.3, ys + TILE_HEIGHT / 4, line_color);
+	}
 }
 
 void clear_all(){
@@ -242,62 +254,114 @@ void clear_all(){
      terrain_dlg[tdNameLabel].dp=td_name_str;
      terrain_dlg[tdTTLabel].dp=td_tt_name;
 
-     if (tdTTStrOn) terrain_dlg[tdTypeEditIdxCheck].flags|=D_SELECTED; else
-		terrain_dlg[tdTypeEditIdxCheck].flags&=~D_SELECTED;
-	 if (tdRDStrOn) terrain_dlg[tdRoadEditIdxCheck].flags|=D_SELECTED; else
-		terrain_dlg[tdRoadEditIdxCheck].flags&=~D_SELECTED;
-	 if (tdTNStrOn) terrain_dlg[tdTileEditIdxCheck].flags|=D_SELECTED; else
-		terrain_dlg[tdTileEditIdxCheck].flags&=~D_SELECTED;
-	 if (tdGLNStrOn) terrain_dlg[tdNameEditIdxCheck].flags|=D_SELECTED; else
-		terrain_dlg[tdNameEditIdxCheck].flags&=~D_SELECTED;
-	 if (tdSDStrOn) terrain_dlg[tdSideEditIdxCheck].flags|=D_SELECTED; else
-		terrain_dlg[tdSideEditIdxCheck].flags&=~D_SELECTED;
+	if (tdTTStrOn) {
+		terrain_dlg[tdTypeEditIdxCheck].flags |= D_SELECTED;
+	} else {
+		terrain_dlg[tdTypeEditIdxCheck].flags &= ~D_SELECTED;
+	}
+	if (tdRDStrOn) {
+		terrain_dlg[tdRoadEditIdxCheck].flags |= D_SELECTED;
+	} else {
+		terrain_dlg[tdRoadEditIdxCheck].flags &= ~D_SELECTED;
+	}
+	if (tdTNStrOn) {
+		terrain_dlg[tdTileEditIdxCheck].flags |= D_SELECTED;
+	} else {
+		terrain_dlg[tdTileEditIdxCheck].flags &= ~D_SELECTED;
+	}
+	if (tdGLNStrOn) {
+		terrain_dlg[tdNameEditIdxCheck].flags |= D_SELECTED;
+	} else {
+		terrain_dlg[tdNameEditIdxCheck].flags &= ~D_SELECTED;
+	}
+	if (tdSDStrOn) {
+		terrain_dlg[tdSideEditIdxCheck].flags |= D_SELECTED;
+	} else {
+		terrain_dlg[tdSideEditIdxCheck].flags &= ~D_SELECTED;
+	}
+	if (tdTTStrMatchOn) {
+		terrain_dlg[tdTypeMatchIdxCheck].flags |= D_SELECTED;
+	} else {
+		terrain_dlg[tdTypeMatchIdxCheck].flags &= ~D_SELECTED;
+	}
+	if (tdRDStrMatchOn) {
+		terrain_dlg[tdRoadMatchIdxCheck].flags |= D_SELECTED;
+	} else {
+		terrain_dlg[tdRoadMatchIdxCheck].flags &= ~D_SELECTED;
+	}
+	if (tdTNStrMatchOn) {
+		terrain_dlg[tdTileMatchIdxCheck].flags |= D_SELECTED;
+	} else {
+		terrain_dlg[tdTileMatchIdxCheck].flags &= ~D_SELECTED;
+	}
+	if (tdGLNStrMatchOn) {
+		terrain_dlg[tdNameMatchIdxCheck].flags |= D_SELECTED;
+	} else {
+		terrain_dlg[tdNameMatchIdxCheck].flags &= ~D_SELECTED;
+	}
+	if (tdSDStrMatchOn) {
+		terrain_dlg[tdSideMatchIdxCheck].flags |= D_SELECTED;
+	} else {
+		terrain_dlg[tdSideMatchIdxCheck].flags &= ~D_SELECTED;
+	}
 
-	 if (tdTTStrMatchOn) terrain_dlg[tdTypeMatchIdxCheck].flags|=D_SELECTED; else
-		terrain_dlg[tdTypeMatchIdxCheck].flags&=~D_SELECTED;
-	 if (tdRDStrMatchOn) terrain_dlg[tdRoadMatchIdxCheck].flags|=D_SELECTED; else
-		terrain_dlg[tdRoadMatchIdxCheck].flags&=~D_SELECTED;
-	 if (tdTNStrMatchOn) terrain_dlg[tdTileMatchIdxCheck].flags|=D_SELECTED; else
-		terrain_dlg[tdTileMatchIdxCheck].flags&=~D_SELECTED;
-	 if (tdGLNStrMatchOn) terrain_dlg[tdNameMatchIdxCheck].flags|=D_SELECTED; else
-		terrain_dlg[tdNameMatchIdxCheck].flags&=~D_SELECTED;
-	 if (tdSDStrMatchOn) terrain_dlg[tdSideMatchIdxCheck].flags|=D_SELECTED; else
-		terrain_dlg[tdSideMatchIdxCheck].flags&=~D_SELECTED;
+	if (tdMatchMatchOn) {
+		terrain_dlg[tdMatchMatchIdxCheck].flags |= D_SELECTED;
+	} else {
+		terrain_dlg[tdMatchMatchIdxCheck].flags &= ~D_SELECTED;
+	}
 
-	 if (tdMatchMatchOn) terrain_dlg[tdMatchMatchIdxCheck].flags|=D_SELECTED; else
-		terrain_dlg[tdMatchMatchIdxCheck].flags&=~D_SELECTED;
-		
-	 if (tdRoadEditIdxCheck){
-		mask_RC=atoi(tdRDStr);
-		if ((mask_RC&0x01)==0x01) 	terrain_dlg[tdRoadNCheck].flags|=D_SELECTED; else
-								terrain_dlg[tdRoadNCheck].flags&=~D_SELECTED;
-		if ((mask_RC&0x80)==0x80) 	terrain_dlg[tdRoadNWCheck].flags|=D_SELECTED; else
-								terrain_dlg[tdRoadNWCheck].flags&=~D_SELECTED;
-		if ((mask_RC&0x02)==0x02) 	terrain_dlg[tdRoadNECheck].flags|=D_SELECTED; else
-								terrain_dlg[tdRoadNECheck].flags&=~D_SELECTED;
-		if ((mask_RC&0x20)==0x20) 	terrain_dlg[tdRoadSWCheck].flags|=D_SELECTED; else
-								terrain_dlg[tdRoadSWCheck].flags&=~D_SELECTED;
-		if ((mask_RC&0x08)==0x08) 	terrain_dlg[tdRoadSECheck].flags|=D_SELECTED; else
-								terrain_dlg[tdRoadSECheck].flags&=~D_SELECTED;
-		if ((mask_RC&0x10)==0x10) 	terrain_dlg[tdRoadSCheck].flags|=D_SELECTED; else
-								terrain_dlg[tdRoadSCheck].flags&=~D_SELECTED;
-
+	if (tdRoadEditIdxCheck) {
+		mask_RC = atoi(tdRDStr);
+		if ((mask_RC & 0x01) == 0x01) {
+			terrain_dlg[tdRoadNCheck].flags |= D_SELECTED;
+		} else {
+			terrain_dlg[tdRoadNCheck].flags &= ~D_SELECTED;
 		}
-	 
-	 if (GUI_fill_default_tt)
-		 terrain_dlg[tdFillDefaults].flags|=D_SELECTED;
-	 else
-		 terrain_dlg[tdFillDefaults].flags&=~D_SELECTED;
+		if ((mask_RC & 0x80) == 0x80) {
+			terrain_dlg[tdRoadNWCheck].flags |= D_SELECTED;
+		} else {
+			terrain_dlg[tdRoadNWCheck].flags &= ~D_SELECTED;
+		}
+		if ((mask_RC & 0x02) == 0x02) {
+			terrain_dlg[tdRoadNECheck].flags |= D_SELECTED;
+		} else {
+			terrain_dlg[tdRoadNECheck].flags &= ~D_SELECTED;
+		}
+		if ((mask_RC & 0x20) == 0x20) {
+			terrain_dlg[tdRoadSWCheck].flags |= D_SELECTED;
+		} else {
+			terrain_dlg[tdRoadSWCheck].flags &= ~D_SELECTED;
+		}
+		if ((mask_RC & 0x08) == 0x08) {
+			terrain_dlg[tdRoadSECheck].flags |= D_SELECTED;
+		} else {
+			terrain_dlg[tdRoadSECheck].flags &= ~D_SELECTED;
+		}
+		if ((mask_RC & 0x10) == 0x10) {
+			terrain_dlg[tdRoadSCheck].flags |= D_SELECTED;
+		} else {
+			terrain_dlg[tdRoadSCheck].flags &= ~D_SELECTED;
+		}
+	}
 
-	 if (GUI_use_brush)
-		 terrain_dlg[tdUseBrushIdx].flags|=D_SELECTED;
-	 else
-		 terrain_dlg[tdUseBrushIdx].flags&=~D_SELECTED;
+	if (GUI_fill_default_tt) {
+		terrain_dlg[tdFillDefaults].flags |= D_SELECTED;
+	} else {
+		terrain_dlg[tdFillDefaults].flags &= ~D_SELECTED;
+	}
 
-	 if (GUI_only_on_clear)
-		 terrain_dlg[tdOnlyClearIdx].flags|=D_SELECTED;
-	 else
-		 terrain_dlg[tdOnlyClearIdx].flags&=~D_SELECTED;
+	if (GUI_use_brush) {
+		terrain_dlg[tdUseBrushIdx].flags |= D_SELECTED;
+	} else {
+		terrain_dlg[tdUseBrushIdx].flags &= ~D_SELECTED;
+	}
+
+	if (GUI_only_on_clear) {
+		terrain_dlg[tdOnlyClearIdx].flags |= D_SELECTED;
+	} else {
+		terrain_dlg[tdOnlyClearIdx].flags &= ~D_SELECTED;
+	}
 
 	 update_name_label();
 	 update_terrain_label();
@@ -309,70 +373,74 @@ int d_start_proc(int msg, DIALOG *d, int c)
 	int idx,idx1;
 	BITMAP *tile_to_draw;
 
-   if (msg==MSG_START)
-   {
-	   clear_all();
-   }
+	if (msg == MSG_START) {
+		clear_all();
+	}
 
-   if (msg==MSG_DRAW){
-		   tdLastTileID=-5;
-		   tdLastNameID=-5;
-		   tdLastTTID=-5;
-		   tdLastRoad=-5;
-	   }
+	if (msg == MSG_DRAW) {
+		tdLastTileID = -5;
+		tdLastNameID = -5;
+		tdLastTTID = -5;
+		tdLastRoad = -5;
+	}
 
-   if (msg==MSG_IDLE ){
-	   idx =atoi(tdTNStr);
-	   idx1 =atoi(tdRDStr);
+	if (msg == MSG_IDLE) {
+		idx = atoi(tdTNStr);
+		idx1 = atoi(tdRDStr);
 
-	   if (idx!=tdLastTileID || idx1!=tdLastRoad){
-		   //printf("msg=%d idx=%d t=%d\n",msg,idx,tdLastTileID);
-		   //print tile
-		   if (idx>-1 && idx<total_tiles){
-				switch(showWeather){
-					case 0:tile_to_draw = til_bmp[idx];break;
-					case 1:tile_to_draw = til_bmp_mud[idx];break;
-					case 2:tile_to_draw = til_bmp_snow[idx];break;
+		if (idx != tdLastTileID || idx1 != tdLastRoad) {
+			//printf("msg=%d idx=%d t=%d\n",msg,idx,tdLastTileID);
+			//print tile
+			if (idx > -1 && idx < total_tiles) {
+				switch (showWeather) {
+				case 0:
+					tile_to_draw = til_bmp[idx];
+					break;
+				case 1:
+					tile_to_draw = til_bmp_mud[idx];
+					break;
+				case 2:
+					tile_to_draw = til_bmp_snow[idx];
+					break;
 
-					default:tile_to_draw = 0;break;
+				default:
+					tile_to_draw = 0;
+					break;
 				}
 
-			masked_blit(tile_to_draw,screen,
-					0,0,
-					terrain_dlg[0].x+10,
-					terrain_dlg[0].y+TD_LINE1,
-					TILE_FULL_WIDTH,TILE_HEIGHT);
+				masked_blit(tile_to_draw, screen, 0, 0, terrain_dlg[0].x + 10, terrain_dlg[0].y + TD_LINE1,
+				TILE_FULL_WIDTH, TILE_HEIGHT);
 
-				draw_road_connections(screen, terrain_dlg[0].x+10,terrain_dlg[0].y+TD_LINE1, atoi(tdRDStr));
-				tdLastTileID=idx;
-				tdLastRoad=idx1;
-		   }
-		   if ( GUI_fill_default_tt ){
-			   //fill default type
-			   if (idx<total_tiles && TTData_Max_Tiles[idx]>-1) {
-				   sprintf(tdTTStr,"%d",TTData_Max_Tiles[idx]);
-				   terrain_dlg[tdTypeEditIdx].flags|=D_DIRTY;
-			   }
-			   //fill default name
-			   if (idx<total_tiles && NData_Max_Tiles[idx]>-1) {
-				   sprintf(tdGLNStr,"%d",NData_Max_Tiles[idx]);
-				   terrain_dlg[tdNameEditIdx].flags|=D_DIRTY;
-			   }
-		   }
-	   }
+				draw_road_connections(screen, terrain_dlg[0].x + 10, terrain_dlg[0].y + TD_LINE1, atoi(tdRDStr));
+				tdLastTileID = idx;
+				tdLastRoad = idx1;
+			}
+			if (GUI_fill_default_tt) {
+				//fill default type
+				if (idx < total_tiles && TTData_Max_Tiles[idx] > -1) {
+					sprintf(tdTTStr, "%d", TTData_Max_Tiles[idx]);
+					terrain_dlg[tdTypeEditIdx].flags |= D_DIRTY;
+				}
+				//fill default name
+				if (idx < total_tiles && NData_Max_Tiles[idx] > -1) {
+					sprintf(tdGLNStr, "%d", NData_Max_Tiles[idx]);
+					terrain_dlg[tdNameEditIdx].flags |= D_DIRTY;
+				}
+			}
+		}
 
 	   //
-	   idx =atoi(tdGLNStr);
-	   if (idx!=tdLastNameID){
-		   update_name_label();
-		   tdLastNameID=idx;
-	   }
+		idx = atoi(tdGLNStr);
+		if (idx != tdLastNameID) {
+			update_name_label();
+			tdLastNameID = idx;
+		}
 
-	   idx =atoi(tdTTStr);
-	   if (idx!=tdLastTTID){
-		   update_terrain_label();
-		   tdLastTTID=idx;
-	   }
+		idx = atoi(tdTTStr);
+		if (idx != tdLastTTID) {
+			update_terrain_label();
+			tdLastTTID = idx;
+		}
    }
 
    return d_textbox_proc(msg,d,c);
@@ -388,17 +456,57 @@ int d_coreT_proc(int msg, DIALOG *d, int c)
    if ((msg==MSG_CLICK)||(msg==MSG_KEY))
    {
 		int y= d_check_proc(msg,d,c);
-		if (&(terrain_dlg[tdTypeEditIdxCheck])==d) { tdTTStrOn = ((terrain_dlg[tdTypeEditIdxCheck].flags&D_SELECTED)==D_SELECTED?1:0); group=1; item=tdTypeEditIdxCheck; }
-		if (&(terrain_dlg[tdRoadEditIdxCheck])==d) { tdRDStrOn = ((terrain_dlg[tdRoadEditIdxCheck].flags&D_SELECTED)==D_SELECTED?1:0); group=1; item=tdRoadEditIdxCheck; }
-		if (&(terrain_dlg[tdTileEditIdxCheck])==d) { tdTNStrOn = ((terrain_dlg[tdTileEditIdxCheck].flags&D_SELECTED)==D_SELECTED?1:0); group=1; item=tdTileEditIdxCheck; }
-		if (&(terrain_dlg[tdNameEditIdxCheck])==d) { tdGLNStrOn = ((terrain_dlg[tdNameEditIdxCheck].flags&D_SELECTED)==D_SELECTED?1:0); group=1; item=tdNameEditIdxCheck; }
-		if (&(terrain_dlg[tdSideEditIdxCheck])==d) { tdSDStrOn = ((terrain_dlg[tdSideEditIdxCheck].flags&D_SELECTED)==D_SELECTED?1:0); group=1; item=tdSideEditIdxCheck; }
+		if (&(terrain_dlg[tdTypeEditIdxCheck]) == d) {
+			tdTTStrOn = ((terrain_dlg[tdTypeEditIdxCheck].flags & D_SELECTED) == D_SELECTED ? 1 : 0);
+			group = 1;
+			item = tdTypeEditIdxCheck;
+		}
+		if (&(terrain_dlg[tdRoadEditIdxCheck]) == d) {
+			tdRDStrOn = ((terrain_dlg[tdRoadEditIdxCheck].flags & D_SELECTED) == D_SELECTED ? 1 : 0);
+			group = 1;
+			item = tdRoadEditIdxCheck;
+		}
+		if (&(terrain_dlg[tdTileEditIdxCheck]) == d) {
+			tdTNStrOn = ((terrain_dlg[tdTileEditIdxCheck].flags & D_SELECTED) == D_SELECTED ? 1 : 0);
+			group = 1;
+			item = tdTileEditIdxCheck;
+		}
+		if (&(terrain_dlg[tdNameEditIdxCheck]) == d) {
+			tdGLNStrOn = ((terrain_dlg[tdNameEditIdxCheck].flags & D_SELECTED) == D_SELECTED ? 1 : 0);
+			group = 1;
+			item = tdNameEditIdxCheck;
+		}
+		if (&(terrain_dlg[tdSideEditIdxCheck]) == d) {
+			tdSDStrOn = ((terrain_dlg[tdSideEditIdxCheck].flags & D_SELECTED) == D_SELECTED ? 1 : 0);
+			group = 1;
+			item = tdSideEditIdxCheck;
+		}
 
-		if (&(terrain_dlg[tdTypeMatchIdxCheck])==d) { tdTTStrMatchOn = ((terrain_dlg[tdTypeMatchIdxCheck].flags&D_SELECTED)==D_SELECTED?1:0); group=2; item=tdTypeMatchIdxCheck; }
-		if (&(terrain_dlg[tdRoadMatchIdxCheck])==d) { tdRDStrMatchOn = ((terrain_dlg[tdRoadMatchIdxCheck].flags&D_SELECTED)==D_SELECTED?1:0); group=2; item=tdRoadMatchIdxCheck; }
-		if (&(terrain_dlg[tdTileMatchIdxCheck])==d) { tdTNStrMatchOn = ((terrain_dlg[tdTileMatchIdxCheck].flags&D_SELECTED)==D_SELECTED?1:0); group=2; item=tdTileMatchIdxCheck; }
-		if (&(terrain_dlg[tdNameMatchIdxCheck])==d) { tdGLNStrMatchOn = ((terrain_dlg[tdNameMatchIdxCheck].flags&D_SELECTED)==D_SELECTED?1:0); group=2; item=tdNameMatchIdxCheck; }
-		if (&(terrain_dlg[tdSideMatchIdxCheck])==d) { tdSDStrMatchOn = ((terrain_dlg[tdSideMatchIdxCheck].flags&D_SELECTED)==D_SELECTED?1:0); group=2; item=tdSideMatchIdxCheck; }
+		if (&(terrain_dlg[tdTypeMatchIdxCheck]) == d) {
+			tdTTStrMatchOn = ((terrain_dlg[tdTypeMatchIdxCheck].flags & D_SELECTED) == D_SELECTED ? 1 : 0);
+			group = 2;
+			item = tdTypeMatchIdxCheck;
+		}
+		if (&(terrain_dlg[tdRoadMatchIdxCheck]) == d) {
+			tdRDStrMatchOn = ((terrain_dlg[tdRoadMatchIdxCheck].flags & D_SELECTED) == D_SELECTED ? 1 : 0);
+			group = 2;
+			item = tdRoadMatchIdxCheck;
+		}
+		if (&(terrain_dlg[tdTileMatchIdxCheck]) == d) {
+			tdTNStrMatchOn = ((terrain_dlg[tdTileMatchIdxCheck].flags & D_SELECTED) == D_SELECTED ? 1 : 0);
+			group = 2;
+			item = tdTileMatchIdxCheck;
+		}
+		if (&(terrain_dlg[tdNameMatchIdxCheck]) == d) {
+			tdGLNStrMatchOn = ((terrain_dlg[tdNameMatchIdxCheck].flags & D_SELECTED) == D_SELECTED ? 1 : 0);
+			group = 2;
+			item = tdNameMatchIdxCheck;
+		}
+		if (&(terrain_dlg[tdSideMatchIdxCheck]) == d) {
+			tdSDStrMatchOn = ((terrain_dlg[tdSideMatchIdxCheck].flags & D_SELECTED) == D_SELECTED ? 1 : 0);
+			group = 2;
+			item = tdSideMatchIdxCheck;
+		}
 
 		if ((key_shifts & KB_SHIFT_FLAG) && group){
 
@@ -406,37 +514,41 @@ int d_coreT_proc(int msg, DIALOG *d, int c)
 
 			if (val) {
 				//is set so clear
-				for (i=0;i<5;i++)
-					terrain_dlg[groups[group-1][i]].flags &=~D_SELECTED;
+				for (i = 0; i < 5; i++) {
+					terrain_dlg[groups[group - 1][i]].flags &= ~D_SELECTED;
+				}
 				//recover
-				terrain_dlg[item].flags|=D_SELECTED;
+				terrain_dlg[item].flags |= D_SELECTED;
 
-			}else{
+			} else {
 				//is unset so set
-				for (i=0;i<5;i++)
-					terrain_dlg[groups[group-1][i]].flags |=D_SELECTED;
+				for (i = 0; i < 5; i++) {
+					terrain_dlg[groups[group - 1][i]].flags |= D_SELECTED;
+				}
 				//recover
-				terrain_dlg[item].flags&=~D_SELECTED;
+				terrain_dlg[item].flags &= ~D_SELECTED;
 			}
-			for (i=0;i<5;i++)
-				terrain_dlg[groups[group-1][i]].flags |=D_DIRTY;
-
-			if (group==1){
-				tdTTStrOn = ((terrain_dlg[tdTypeEditIdxCheck].flags&D_SELECTED)==D_SELECTED?1:0);
-				tdRDStrOn = ((terrain_dlg[tdRoadEditIdxCheck].flags&D_SELECTED)==D_SELECTED?1:0);
-				tdTNStrOn = ((terrain_dlg[tdTileEditIdxCheck].flags&D_SELECTED)==D_SELECTED?1:0);
-				tdGLNStrOn = ((terrain_dlg[tdNameEditIdxCheck].flags&D_SELECTED)==D_SELECTED?1:0);
-				tdSDStrOn = ((terrain_dlg[tdSideEditIdxCheck].flags&D_SELECTED)==D_SELECTED?1:0);
-			}else{
-				tdTTStrMatchOn = ((terrain_dlg[tdTypeMatchIdxCheck].flags&D_SELECTED)==D_SELECTED?1:0);
-				tdRDStrMatchOn = ((terrain_dlg[tdRoadMatchIdxCheck].flags&D_SELECTED)==D_SELECTED?1:0);
-				tdTNStrMatchOn = ((terrain_dlg[tdTileMatchIdxCheck].flags&D_SELECTED)==D_SELECTED?1:0);
-				tdGLNStrMatchOn = ((terrain_dlg[tdNameMatchIdxCheck].flags&D_SELECTED)==D_SELECTED?1:0);
-				tdSDStrMatchOn = ((terrain_dlg[tdSideMatchIdxCheck].flags&D_SELECTED)==D_SELECTED?1:0);
+			for (i = 0; i < 5; i++) {
+				terrain_dlg[groups[group - 1][i]].flags |= D_DIRTY;
+			}
+			if (group == 1) {
+				tdTTStrOn = ((terrain_dlg[tdTypeEditIdxCheck].flags & D_SELECTED) == D_SELECTED ? 1 : 0);
+				tdRDStrOn = ((terrain_dlg[tdRoadEditIdxCheck].flags & D_SELECTED) == D_SELECTED ? 1 : 0);
+				tdTNStrOn = ((terrain_dlg[tdTileEditIdxCheck].flags & D_SELECTED) == D_SELECTED ? 1 : 0);
+				tdGLNStrOn = ((terrain_dlg[tdNameEditIdxCheck].flags & D_SELECTED) == D_SELECTED ? 1 : 0);
+				tdSDStrOn = ((terrain_dlg[tdSideEditIdxCheck].flags & D_SELECTED) == D_SELECTED ? 1 : 0);
+			} else {
+				tdTTStrMatchOn = ((terrain_dlg[tdTypeMatchIdxCheck].flags & D_SELECTED) == D_SELECTED ? 1 : 0);
+				tdRDStrMatchOn = ((terrain_dlg[tdRoadMatchIdxCheck].flags & D_SELECTED) == D_SELECTED ? 1 : 0);
+				tdTNStrMatchOn = ((terrain_dlg[tdTileMatchIdxCheck].flags & D_SELECTED) == D_SELECTED ? 1 : 0);
+				tdGLNStrMatchOn = ((terrain_dlg[tdNameMatchIdxCheck].flags & D_SELECTED) == D_SELECTED ? 1 : 0);
+				tdSDStrMatchOn = ((terrain_dlg[tdSideMatchIdxCheck].flags & D_SELECTED) == D_SELECTED ? 1 : 0);
 			}
 		}
 
-		if (&(terrain_dlg[tdMatchMatchIdxCheck])==d) tdMatchMatchOn = ((terrain_dlg[tdMatchMatchIdxCheck].flags&D_SELECTED)==D_SELECTED?1:0);
+		if (&(terrain_dlg[tdMatchMatchIdxCheck]) == d) {
+			tdMatchMatchOn = ((terrain_dlg[tdMatchMatchIdxCheck].flags & D_SELECTED) == D_SELECTED ? 1 : 0);
+		}
 
 		return y;
    }
@@ -451,19 +563,18 @@ int d_roadB_proc(int msg, DIALOG *d, int c)
 	{
 		// toggle
 		//terrain_dlg[tdRoadButton].flags^=D_SELECTED;
-		road_RC =  ((terrain_dlg[ tdRoadNCheck].flags&D_SELECTED)==D_SELECTED?0x01:0);
-		road_RC += ((terrain_dlg[tdRoadNWCheck].flags&D_SELECTED)==D_SELECTED?0x80:0);
-		road_RC += ((terrain_dlg[tdRoadNECheck].flags&D_SELECTED)==D_SELECTED?0x02:0);
-		road_RC += ((terrain_dlg[tdRoadSWCheck].flags&D_SELECTED)==D_SELECTED?0x20:0);
-		road_RC += ((terrain_dlg[tdRoadSECheck].flags&D_SELECTED)==D_SELECTED?0x08:0);
-		road_RC += (( terrain_dlg[tdRoadSCheck].flags&D_SELECTED)==D_SELECTED?0x10:0);
-		sprintf(tdRDStr,"%d",road_RC);
+		road_RC = ((terrain_dlg[ tdRoadNCheck].flags & D_SELECTED) == D_SELECTED ? 0x01 : 0);
+		road_RC += ((terrain_dlg[tdRoadNWCheck].flags & D_SELECTED) == D_SELECTED ? 0x80 : 0);
+		road_RC += ((terrain_dlg[tdRoadNECheck].flags & D_SELECTED) == D_SELECTED ? 0x02 : 0);
+		road_RC += ((terrain_dlg[tdRoadSWCheck].flags & D_SELECTED) == D_SELECTED ? 0x20 : 0);
+		road_RC += ((terrain_dlg[tdRoadSECheck].flags & D_SELECTED) == D_SELECTED ? 0x08 : 0);
+		road_RC += ((terrain_dlg[tdRoadSCheck].flags & D_SELECTED) == D_SELECTED ? 0x10 : 0);
+		sprintf(tdRDStr, "%d", road_RC);
 		terrain_dlg[tdRoadEditIdx].dp = tdRDStr;
 		terrain_dlg[tdRoadEditIdx].flags |= D_DIRTY;
 		//terrain_dlg[tdRoadEditIdx].flags |= D_DIRTY;
 		//broadcast_dialog_message(MSG_DRAW,0);
 		return D_O_K;
-		
 	}
 	return d_button_proc(msg,d,c);
 }
@@ -493,11 +604,12 @@ int d_default_tt_proc(int msg, DIALOG *d, int c)
 {
 	if ((msg==MSG_CLICK)||(msg==MSG_KEY))
 	{
-		d_check_proc(msg,d,c);
-		if ( (terrain_dlg[tdFillDefaults].flags&D_SELECTED)==D_SELECTED )
-			GUI_fill_default_tt=1;
-		else
-			GUI_fill_default_tt=0;
+		d_check_proc(msg, d, c);
+		if ((terrain_dlg[tdFillDefaults].flags & D_SELECTED) == D_SELECTED) {
+			GUI_fill_default_tt = 1;
+		} else {
+			GUI_fill_default_tt = 0;
+		}
 		return D_O_K;
 	}
 	return d_check_proc(msg,d,c);
@@ -508,10 +620,11 @@ int d_use_brush_proc(int msg, DIALOG *d, int c)
 	if ((msg==MSG_CLICK)||(msg==MSG_KEY))
 	{
 		d_check_proc(msg,d,c);
-		if ( (terrain_dlg[tdUseBrushIdx].flags&D_SELECTED)==D_SELECTED )
-			GUI_use_brush=1;
-		else
-			GUI_use_brush=0;
+		if ((terrain_dlg[tdUseBrushIdx].flags & D_SELECTED) == D_SELECTED) {
+			GUI_use_brush = 1;
+		} else {
+			GUI_use_brush = 0;
+		}
 		return D_O_K;
 	}
 	return d_check_proc(msg,d,c);
@@ -522,10 +635,11 @@ int d_only_clear_proc(int msg, DIALOG *d, int c)
 	if ((msg==MSG_CLICK)||(msg==MSG_KEY))
 	{
 		d_check_proc(msg,d,c);
-		if ( (terrain_dlg[tdOnlyClearIdx].flags&D_SELECTED)==D_SELECTED )
-			GUI_only_on_clear=1;
-		else
-			GUI_only_on_clear=0;
+		if ((terrain_dlg[tdOnlyClearIdx].flags & D_SELECTED) == D_SELECTED) {
+			GUI_only_on_clear = 1;
+		} else {
+			GUI_only_on_clear = 0;
+		}
 		return D_O_K;
 	}
 	return d_check_proc(msg,d,c);
@@ -533,8 +647,7 @@ int d_only_clear_proc(int msg, DIALOG *d, int c)
 
 int d_defaults_proc(int msg, DIALOG *d, int c)
 {
-	if ((msg==MSG_CLICK)||(msg==MSG_KEY))
-	{
+	if ((msg == MSG_CLICK) || (msg == MSG_KEY)) {
 		GUI_fill_default_tt=0;
 		GUI_only_on_clear=0;
 		GUI_use_brush=0;

@@ -658,8 +658,6 @@ extern int total_countries;
 
 extern int total_strength_counters;
 
-extern RGB pacgen_pal[];
-extern RGB pgpal[];
 extern int pix_pos,max_pix_x,max_pix_y;
 //extern void set_in_radius(int x, int y, int r, int value);
 

@@ -479,9 +479,9 @@ int load_pfpdata_idx(){
 
 							unit_bmp[j]=create_bitmap(TILE_FULL_WIDTH,TILE_HEIGHT);
 							if (tempx==TILE_FULL_WIDTH)
-							blit(bmp,unit_bmp[j],(header.width+1)/2-TILE_FULL_WIDTH/2,0,0,0,TILE_FULL_WIDTH,TILE_HEIGHT);
+								blit(bmp,unit_bmp[j],(header.width+1)/2-TILE_FULL_WIDTH/2,0,0,0,TILE_FULL_WIDTH,TILE_HEIGHT);
 							else
-							stretch_blit(bmp,unit_bmp[j],header.xstart,0,header.xend-header.xstart,TILE_HEIGHT,0,0,TILE_FULL_WIDTH,TILE_HEIGHT);
+								stretch_blit(bmp,unit_bmp[j],header.xstart,0,header.xend-header.xstart,TILE_HEIGHT,0,0,TILE_FULL_WIDTH,TILE_HEIGHT);
 
 							//blit(bmp,unit_bmp[j],0,0, 0,0, TILE_FULL_WIDTH,TILE_HEIGHT);
 							destroy_bitmap(bmp);

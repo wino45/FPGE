@@ -79,19 +79,20 @@ char pac_pacequip_txt[]="pacequip.txt";
 
 //PZC
 char pzc_equip_file[]="equipment.pzeqp";
-char pgu2pzcu_file[]="pgu2pzcu.txt";
-char pgc2pzcc_file[]="pgc2pzcc.txt";
-char pgtt2pzctt_file[]="pgtt2pzctt.txt";
+char pgu2pzcu_file[]="pgu2pzcu.txt"; //uint IDs
+char pgc2pzcc_file[]="pgc2pzcc.txt"; //countries IDs
+char pgtt2pzctt_file[]="pgtt2pzctt.txt"; //terrain type IDs
 
 //PG2
 char pg2_equip_file[]="equip97.eqp";
 char pg2_equip_name_file[]="equip97.txt";
+char pg2_icons_name_file[]="panzer2.dat";
 char pg2u2pgu_file[]="pg2u2pgu.txt";
 
 char pg2tt2pgtr_file[]="pg2tt2pgtr.txt";
-char pg2tt2pgtt_file[]="pg2tt2pgtt.txt";
-char pg2c2pgc_file[]="pg2c2pgc.txt";
-char pg2cl2pgcl_file[]="pg2cl2pgcl.txt";
+char pg2tt2pgtt_file[]="pg2tt2pgtt.txt"; //terrain type
+char pg2c2pgc_file[]="pg2c2pgc.txt"; //countries IDs
+char pg2cl2pgcl_file[]="pg2cl2pgcl.txt"; // class ID
 
 int ScenarioNumber;
 char ScenarioName[SCN_NAME_LEN];

@@ -100,7 +100,7 @@ Same meaning as road column but for river connections. Used in Panzer Coprs map 
 
 * Flag
 
-Thsi column can have only two possible values:
+This column can have only two possible values:
 O - ocean tile that should be named as ocean, eg coast tiles with terrain type 4,5,6. 
 R - passive road tile: airport or city or port. Used in automatic road layer generation.
 

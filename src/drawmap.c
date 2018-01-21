@@ -723,10 +723,12 @@ void draw_map_shift(BITMAP *map_to_draw,int x0, int y0, int tiles_high, int tile
 		for (y = y0 - 1; y < y0 + tiles_high + 1; ++y)
 			for (x = x0 - 1; x < x0 + tiles_wide + 1; ++x)
 				if (x >= 0 && x < mapx && y >= 0 && y < mapy) {
+
+					xs=(x-x0)*TILE_WIDTH+shift_x;
+					ys=(y-y0)*TILE_HEIGHT+shift_y;
+
 					if (move_points_transport[x][y] < MOVE_NOT_CHECKED) {
 
-						xs=(x-x0)*TILE_WIDTH+shift_x;
-						ys=(y-y0)*TILE_HEIGHT+shift_y;
 						if ((x)%2) ys+=TILE_HEIGHT/2;
 						fg_color = COLOR_PURPLE;
 						bg_color = COLOR_WHITE;
@@ -748,8 +750,8 @@ void draw_map_shift(BITMAP *map_to_draw,int x0, int y0, int tiles_high, int tile
 						 if (move_directions_transport_RC[x][y]&0x80) line(map_to_draw,xs+TILE_FULL_WIDTH/2,ys+TILE_HEIGHT/2,xs+(float)TILE_FULL_WIDTH/2.0*0.3,ys+TILE_HEIGHT/4,line_color);
 				}
 					if (move_points[x][y] < MOVE_NOT_CHECKED ) {
-						xs=(x-x0)*TILE_WIDTH+shift_x;
-						ys=(y-y0)*TILE_HEIGHT+shift_y;
+						//xs=(x-x0)*TILE_WIDTH+shift_x;
+						//ys=(y-y0)*TILE_HEIGHT+shift_y;
 						if ((x)%2) ys+=TILE_HEIGHT/2;
 						fg_color = COLOR_WHITE;
 						bg_color = COLOR_BLACK;

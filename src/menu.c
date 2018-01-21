@@ -81,6 +81,7 @@ MENU pg2_menu[] =
 	{ "Import MAP/SCN",    (void *)import_pg2_map_scn_gui,       NULL,       0,  NULL  },
 	{ "",     NULL,       NULL,       0,  NULL  },
 	{ "Convert campaign",    (void *)convert_pg2_campaign_gui,       NULL,       0,  NULL  },
+	{ "Convert icons",    (void *)convert_pg2_icons,       NULL,       0,  NULL  },
 	{ NULL,   NULL,       NULL,       0,  NULL  }
 };
 

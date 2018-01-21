@@ -71,19 +71,25 @@ int find_pal_element92(int color_to_find){
 	return -1;
 }
 
-
 int make_color_fpge(int r, int g, int b){
-	if (fpge_colors_bits_shift){
-		if (fpge_colors_bits_shift==1)
+	return make_color_fpge_ex(r,g,b,fpge_colors_bits_shift);
+}
+
+int make_color_fpge_ex(int r, int g, int b, int local_fpge_colors_bits_shift){
+	if (local_fpge_colors_bits_shift){
+		if (local_fpge_colors_bits_shift==1)
 		// for saving BMP only
 			return makecol24(r,g,b)/*+(0xff << _rgb_a_shift_32)*/;
 		else
 			return makecol24(r,g,b)+0xff000000;
-		}else
+		}
+		else
+		{
 			//for interactive mode
 			//return makecol(pgpal[color_to_convert].r,pgpal[color_to_convert].g,pgpal[color_to_convert].b);
 			//return makeacol32(r,g,b,0xff);
 			return (r<<16)+(g<<8)+b;
+		}
 }
 
 int colors_to24bits(int color_to_convert){
@@ -101,21 +107,24 @@ int colors_to24bits_ex(int color_to_convert, int mask_color_present){
 
 		//I do not know why this must be done like this !!!
 		if (color_to_convert<=GUI_EDIT_COLOR){
-		if (fpge_colors_bits_shift){
-			if (fpge_colors_bits_shift==1)
-			// for saving BMP only
-				return makecol24(pgpal[color_to_convert].r,pgpal[color_to_convert].g,pgpal[color_to_convert].b);
-			else
-				return makecol24(pgpal[color_to_convert].r,pgpal[color_to_convert].g,pgpal[color_to_convert].b)+0xff000000;
-			}
-			else
-				//for interactive mode
-				//return makeacol32(pgpal[color_to_convert].r,pgpal[color_to_convert].g,pgpal[color_to_convert].b,0xff);
-				return (pgpal[color_to_convert].r<<16)+(pgpal[color_to_convert].g<<8)+pgpal[color_to_convert].b;
+			if (fpge_colors_bits_shift){
+					if (fpge_colors_bits_shift==1)
+					// for saving BMP only
+						return makecol24(pgpal[color_to_convert].r,pgpal[color_to_convert].g,pgpal[color_to_convert].b);
+					else
+						return makecol24(pgpal[color_to_convert].r,pgpal[color_to_convert].g,pgpal[color_to_convert].b)+0xff000000;
+				}
+				else
+				{
+					//for interactive mode
+					//return makeacol32(pgpal[color_to_convert].r,pgpal[color_to_convert].g,pgpal[color_to_convert].b,0xff);
+					return (pgpal[color_to_convert].r<<16)+(pgpal[color_to_convert].g<<8)+pgpal[color_to_convert].b;
+				}
 		}
 		else
-			//error
-			return 0;
+		{
+			return 0; //error
+		}
 	}else{
 		//8bit mode
 		if (color_to_convert==GUI_FG_COLOR) return fpge_gui_fg_color;

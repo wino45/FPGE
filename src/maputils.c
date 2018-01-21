@@ -126,7 +126,7 @@ void debug_dump_hex_pattern_bit(int N, int NE, int SE, int S, int SW, int NW, in
 
 void dump_scenario_to_csv(int dump_type,int dump_name,int dump_road,int dump_tiles,int dump_owner,int dump_victory,int dump_units, int dump_deploy){
 	int x,y;
-	char line[MAX_LINE_SIZE],tmp[MAX_LINE_SIZE];
+	char line[MAX_LINE_SIZE+1],tmp[MAX_LINE_SIZE+1];
 
 	snprintf(line,MAX_LINE_SIZE,"x,y");
 	if (dump_type){

@@ -1829,7 +1829,6 @@ int cli_parsing(int argc, char *argv[]) {
 					end_bmp_idx=0;
 					country_idx=0;
 
-
 					if (units_bmp && argc>=3)
 						bmp_idx=atoi(argv[2]);
 

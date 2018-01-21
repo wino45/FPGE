@@ -19,6 +19,7 @@
 #include "pzc.h"
 #include "filename.h"
 #include "unitutil.h"
+#include "fpge_colors.h"
 
 /*
  * http://luis-guzman.com/links/PG2_FilesSpec.html
@@ -174,6 +175,17 @@ struct pg2_eqp {
 	uint8_t uk3[20];
 };
 
+struct pg2_dat_idx {
+	uint32_t offset;
+	char icon_name[13];//above is loaded directly from file, do not change order or size (that is 17 octets long)
+	uint32_t new_pic_idx;
+} pg2_dat_idx_t;
+
+struct pg2_dat_idx panzer2_data_file_idx[PG2_MAX_FILES_IN_DAT_FILE];
+uint32_t panzer2_data_file_idx_max;
+uint32_t panzer2_file_icon_off_2_local_icon_idx[PG2_MAX_FILES_IN_DAT_FILE];
+uint32_t panzer2_file_icon_off_2_local_icon_idx_max;
+
 char pg2_gln[MAX_NAMES][MAX_PG2_NAME_SIZE];
 char pg2_equip_names[MAX_UNITS][MAX_PG2_NAME_SIZE];
 int total_pg2_equip_names;
@@ -274,7 +286,7 @@ void canonicalize_filename_pg2(char *dest, const char *filename, int size){
 	//char buf[MAX_PATH];
 
 	canonicalize_filename(dest, filename,  size);
-	//in case of wrong filename all path will be lower cased. To minimize probability of thie event first we do canonicalize_filename.
+	//in case of wrong filename all path will be lower cased. To minimize probability of the event first we do canonicalize_filename.
 	strlwr(get_filename(dest));
 
 	//strncpy(dest, buf,  size);
@@ -399,8 +411,9 @@ int d_pg2_list_proc(int msg, DIALOG *d, int c) {
 	int d1;
 
 	if (msg == MSG_START) {
-		if (d->d1 > pg2id_to_display_number)
+		if (d->d1 > pg2id_to_display_number) {
 			d->d1 = -1;
+		}
 
 		if (d->d1 > -1) {
 			sprintf(pg2_new_id, "%d", equ_id_to_display[findpg2id_dlg[1].d1]);
@@ -418,13 +431,15 @@ int d_pg2_list_proc(int msg, DIALOG *d, int c) {
 			sprintf(pg2_new_id, "%d", equ_id_to_display[findpg2id_dlg[1].d1]);
 			findpg2id_dlg[4].flags |= D_DIRTY;
 
-			if (msg == MSG_CLICK)
+			if (msg == MSG_CLICK) {
 				return D_O_K;
+			}
 			if (msg == MSG_CHAR) {
-				if (d1 != d->d1)
+				if (d1 != d->d1) {
 					return D_USED_CHAR;
-				else
+				} else {
 					return D_O_K;
+				}
 			}
 		}
 		return D_O_K;
@@ -445,11 +460,9 @@ void filter_pg_units(int pg_country, int pg_class, int pg_type) {
 	//equip[i]
 
 	for (i = 0; i < total_equip; i++)
-		if ((pg_country == equip_country[i] || pg_country == -1) &&
-				pg_class == equip[i][CLASS] &&
-				pg_type == equip[i][TARGET_TYPE])
+		if ((pg_country == equip_country[i] || pg_country == -1) && pg_class == equip[i][CLASS] && pg_type == equip[i][TARGET_TYPE]) {
 			equ_id_to_display_filter[i] = i;
-
+		}
 	for (i = 0; i < MAX_UNITS; i++)
 		if (equ_id_to_display_filter[i] != -1) {
 			equ_id_to_display[pg2id_to_display_number] = equ_id_to_display_filter[i];
@@ -462,6 +475,7 @@ int import_pg2_equip_names_file(char *name) {
 	FILE *inf;
 	int max_names_file_size = MAX_UNITS * MAX_PG2_NAME_SIZE;
 	char *end_of_line, path[MAX_PATH];
+	char buff[1024];
 
 	strncpy(path, name, MAX_PATH);
 	canonicalize_filename_pg2(path, path, MAX_PATH);
@@ -488,18 +502,16 @@ int import_pg2_equip_names_file(char *name) {
 		fclose(inf);
 		return ERROR_PG2_EQUIP_NAMES_LOAD_BASE + ERROR_FPGE_PG2_FILE_TOO_BIG;
 	}
-
 	while (feof(inf) == 0) {
-		fgets(pg2_equip_names[total_pg2_equip_names], MAX_PG2_NAME_SIZE, inf);
-		//clear eofl = \n
-		end_of_line = strchr(pg2_equip_names[total_pg2_equip_names], '\n');
-		if (end_of_line != NULL)
+		fgets(buff, 1024, inf);
+		end_of_line = strchr(buff, '\n');
+		if (end_of_line != NULL){
 			*end_of_line = 0;
-		//fscanf(inf, "%s\n", pg2_gln[total_pg2_names]);
-		//print_str(pg2_gln[total_pg2_names]);
+		}
+		strncpy(pg2_equip_names[total_pg2_equip_names], buff, MAX_PG2_NAME_SIZE-1);
+		pg2_equip_names[total_pg2_equip_names][MAX_PG2_NAME_SIZE-1]=0;
 		++total_pg2_equip_names;
 	}
-
 	fclose(inf);
 	return 0;
 }
@@ -508,8 +520,9 @@ int pg2_get_new_id_gui(int pg2_unum, int pg2_country, int pg2_unit_unique_name, 
 
 	int need_to_save = 0;
 
-	if (pg2_country == -1)
+	if (pg2_country == -1) {
 		pg_country = -1;
+	}
 
 	//save current search
 	c_pg_country = pg_country;
@@ -521,20 +534,23 @@ int pg2_get_new_id_gui(int pg2_unum, int pg2_country, int pg2_unit_unique_name, 
 	//printf("Not found : PG2ID=%d PG2FLAG=%d PGFLAG=%d PGCLASS=%d PGTT=%d ---> OLDNAME=%s\n", pg2_unum, pg2_country, pg_country, pg_class, pg_type, pg2_equip_names[pg2_unum]);
 
 	strncpy(pg2_old_id, pg2_equip_names[pg2_unum],256);
-	if (pg2_unit_unique_name != -1)
-		strncpy(pg2_unit_name, pg2_gln[pg2_unit_unique_name],256);
-	else
-		strncpy(pg2_unit_name, "",256);
+	if (pg2_unit_unique_name != -1) {
+		strncpy(pg2_unit_name, pg2_gln[pg2_unit_unique_name], 256);
+	} else {
+		strncpy(pg2_unit_name, "", 256);
+	}
 
-	if (pg_country != -1)
-		strncpy(pg2_unit_country, country_names[pg_country],256);
-	else
-		strncpy(pg2_unit_country, "*ANY*",256);
+	if (pg_country != -1) {
+		strncpy(pg2_unit_country, country_names[pg_country], 256);
+	} else {
+		strncpy(pg2_unit_country, "*ANY*", 256);
+	}
 
-	if (pg_class != -1)
-		strncpy(pg2_unit_class_name, pg_class_names[pg_class],256);
-	else
-		strncpy(pg2_unit_class_name, "*UNKNOWN*",256);
+	if (pg_class != -1) {
+		strncpy(pg2_unit_class_name, pg_class_names[pg_class], 256);
+	} else {
+		strncpy(pg2_unit_class_name, "*UNKNOWN*", 256);
+	}
 
 	filter_pg_units(pg_country, pg_class, pg_type);
 
@@ -550,6 +566,62 @@ int pg2_get_new_id_gui(int pg2_unum, int pg2_country, int pg2_unit_unique_name, 
 
 	broadcast_dialog_message(MSG_DRAW, 0);
 	return need_to_save;
+}
+
+int import_pg2_icons_idx(int probe_file_only, char *fname) {
+	char path[MAX_PATH];
+	FILE *inf;
+	int i;
+
+	strncpy(path,fname,MAX_PATH);
+	canonicalize_filename_pg2(path, path, MAX_PATH);
+	inf = fopen(path, "rb");
+	if (!inf) {
+		return ERROR_PG2_ICONS_BASE + ERROR_FPGE_FILE_NOT_FOUND;
+	}
+	fread(&panzer2_data_file_idx_max, 4, 1, inf);
+	if (panzer2_data_file_idx_max < PG2_MAX_FILES_IN_DAT_FILE){
+		for(i=0; i<panzer2_data_file_idx_max; i++){
+			fread(&panzer2_data_file_idx[i], 17, 1, inf);
+		}
+	}
+	fclose(inf);
+	return 0;
+}
+
+int get_pg2_icon_idx(struct pg2_eqp *equip_buffer){
+	int result = -1;
+	char buf[13];//8+1+3+1
+	int i,j,found;
+
+	strncpy(buf,equip_buffer->icon_name,6);
+
+	buf[6]=0;
+	strncat(buf,".SHP",5);
+	for(i=0; i < panzer2_data_file_idx_max; i++){
+		if (strncasecmp(buf, panzer2_data_file_idx[i].icon_name, 13)==0){
+			//index found, now build or check local index
+			found=-1;
+			//check if this icon got local id
+			for (j=0; j <panzer2_file_icon_off_2_local_icon_idx_max; j++ ){
+				if (panzer2_file_icon_off_2_local_icon_idx[j]==panzer2_data_file_idx[i].offset){
+					found=j;
+					break;
+				}
+			}
+			if (found == -1) {
+				//not found, add a new one
+				panzer2_file_icon_off_2_local_icon_idx[panzer2_file_icon_off_2_local_icon_idx_max]=panzer2_data_file_idx[i].offset;
+				//if (panzer2_file_icon_off_2_local_icon_idx_max<10)
+				//	print_dec(panzer2_file_icon_off_2_local_icon_idx[panzer2_file_icon_off_2_local_icon_idx_max]);
+				panzer2_file_icon_off_2_local_icon_idx_max++;
+				return panzer2_file_icon_off_2_local_icon_idx_max-1;
+			}else{
+				return found;
+			}
+		}
+	}
+	return result;
 }
 
 int import_pg2_equip(int probe_file_only, char *fname) {
@@ -602,9 +674,16 @@ int import_pg2_equip(int probe_file_only, char *fname) {
 			equip[i][FUEL] = equip_buffer.fuel;
 			equip[i][AMMO] = equip_buffer.ammunition;
 			equip[i][COST] = equip_buffer.cost;
-			//no BMP
-			equip[i][BMP] = 0;
-			equip[i][BMP + 1] = 0;
+			//BMP
+			int bmp_idx = get_pg2_icon_idx(&equip_buffer);
+			if (bmp_idx > 0 ){
+				uint16_t b = (uint16_t)bmp_idx;
+				equip[i][BMP] = b & 0xFF;
+				equip[i][BMP + 1] = b >> 8;
+			}else{
+				equip[i][BMP] = 0;
+				equip[i][BMP + 1] = 0;
+			}
 			//no ANI
 			equip[i][ANI] = 0;
 			equip[i][ANI + 1] = 0;
@@ -618,10 +697,10 @@ int import_pg2_equip(int probe_file_only, char *fname) {
 
 			equip_flags[i] = 0;
 
-			equip_flags[i] |= equip_buffer.special[0] & 0x04 ? EQUIPMENT_IGNORES_ENTRENCHMENT : 0;
-			equip_flags[i] |= equip_buffer.special[0] & 0x08 ? EQUIPMENT_CAN_BRIDGE_RIVERS : 0;
-			equip_flags[i] |= equip_buffer.special[0] & 0x80 ? EQUIPMENT_CANNOT_BE_PURCHASED : 0;
-			equip_flags[i] |= equip_buffer.special[1] & 0x04 ? EQUIPMENT_RECON_MOVEMENT : 0;
+			equip_flags[i] |= (equip_buffer.special[0] & 0x04 )? EQUIPMENT_IGNORES_ENTRENCHMENT : 0;
+			equip_flags[i] |= (equip_buffer.special[0] & 0x08 )? EQUIPMENT_CAN_BRIDGE_RIVERS : 0;
+			equip_flags[i] |= (equip_buffer.special[0] & 0x80 )? EQUIPMENT_CANNOT_BE_PURCHASED : 0;
+			equip_flags[i] |= (equip_buffer.special[1] & 0x04 )? EQUIPMENT_RECON_MOVEMENT : 0;
 
 			// convert from cp1250 to utf8
 			//convert_from_cp1250_to_utf8(equip_name_utf8[i],equip[i],20);
@@ -632,16 +711,12 @@ int import_pg2_equip(int probe_file_only, char *fname) {
 				for (j = 0; j < 8; j++) {
 					if (equip_buffer.country[k] & mask) {
 						int new_country = j + k * 8;
-						if (new_country == 0)
-							new_country = -1;
-
-						equip_country[i] = pg2nation_to_pgnation[new_country];
-						//print_dec(j+k*8);
+						if (new_country == 0) {
+							equip_country[i]= -1;
+						}else{
+							equip_country[i] = pg2nation_to_pgnation[new_country];
+						}
 						//we want to stop search
-//						if (equip_buffer.country[0]!=0) print_dec(equip_buffer.country[0]);
-//						if (equip_buffer.country[1]!=0) print_dec(equip_buffer.country[1]);
-//						if (equip_buffer.country[2]!=0) print_dec(equip_buffer.country[2]);
-//						if (equip_buffer.country[3]!=0) print_dec(equip_buffer.country[3]);
 						k = 4;
 						break;
 					}
@@ -673,8 +748,9 @@ int import_pg2_equip(int probe_file_only, char *fname) {
 				for (j = 0; j < 8; j++) {
 					if (equip_buffer.country[k] & mask) {
 						int new_country = j + k * 8;
-						if (new_country == 0)
+						if (new_country == 0) {
 							new_country = -1;
+						}
 
 						pg2_equip_conversion[i].flag = new_country;
 						//print_dec(j+k*8);
@@ -732,8 +808,9 @@ int import_pg2_map_file(char *path, int convert_terrain_type, int convert_roads_
 					map[x][y].auidx = -1;
 
 					k = pg2tt_to_pgtilesrange[rec_buff.tt];
-					if (k == -1)
-						k = 6; //clear
+					if (k == -1) {
+						k = 6;//clear
+					}
 
 					if (rec_buff.road > 0 && rec_buff.tt != 1 && rec_buff.tt != 2 && rec_buff.tt != 12 ) {
 						if (convert_roads_layer ) {
@@ -755,11 +832,13 @@ int import_pg2_map_file(char *path, int convert_terrain_type, int convert_roads_
 						}
 					}
 
-					if (generate_tiles && k>-1)
+					if (generate_tiles && k > -1) {
 						map[x][y].tile = tiles_for_bmp[k][rand() % 3];
+					}
 
-					if (convert_terrain_type)
+					if (convert_terrain_type) {
 						map[x][y].utr = pg2tt_to_pgtt[rec_buff.tt];
+					}
 				}
 		} else {
 			printf("Wrong PG2 map file size %ld, expected at least %d.\n", file_size, PG2_MAP_FILE_SIZE);
@@ -778,6 +857,7 @@ int import_pg2_names_file(char *path) {
 	FILE *inf;
 	int max_names_file_size = MAX_NAMES * MAX_PG2_NAME_SIZE;
 	char *end_of_line;
+	char buff[1024];
 
 	canonicalize_filename_pg2(path, path, MAX_PATH);
 	inf = fopen(path, "rt");
@@ -798,13 +878,13 @@ int import_pg2_names_file(char *path) {
 	}
 
 	while (feof(inf) == 0) {
-		fgets(pg2_gln[total_pg2_names], MAX_PG2_NAME_SIZE, inf);
-		//clear eofl = \n
-		end_of_line = strchr(pg2_gln[total_pg2_names], '\n');
-		if (end_of_line != NULL)
+		fgets(buff, 1024, inf);
+		end_of_line = strchr(buff, '\n');
+		if (end_of_line != NULL){
 			*end_of_line = 0;
-		//fscanf(inf, "%s\n", pg2_gln[total_pg2_names]);
-		//print_str(pg2_gln[total_pg2_names]);
+		}
+		strncpy(pg2_gln[total_pg2_names], buff, MAX_PG2_NAME_SIZE-1);
+		pg2_gln[total_pg2_names][MAX_PG2_NAME_SIZE-1]=0;
 		++total_pg2_names;
 	}
 
@@ -820,7 +900,7 @@ int convert_pg2_unit_to_pg_unit(struct pg2_unit *pg2_unit_cursor, int old_unit_e
 		if (pg2_get_new_id_gui(old_unit_equ_id, //PG2 unit ID
 				//-1,
 				pg2_unit_cursor->flag, //PG2 flag
-				pg2_unit_cursor->status_2 & 0x04 ? pg2_unit_cursor->name : -1, //units unique(scenario) name ID
+				(pg2_unit_cursor->status_2 & 0x04) ? pg2_unit_cursor->name : -1, //units unique(scenario) name ID
 				pg2nation_to_pgnation[pg2_unit_cursor->flag], //PG2 flag converted to PG
 				pg2class_to_pgclass[pg2_equip_conversion[old_unit_equ_id].class], //class of PG2 unit converted to PG
 				//PG2 target type == PG target type so no conversion needed
@@ -1013,13 +1093,14 @@ int import_pg2_scenario_file(char *path, int convert_terrain_type, int convert_r
 			current_pg2_owner = pg2nation_to_pgnation[map_cursor->flag & 0x1F];
 			map[x][y].own = current_pg2_owner;
 			current_pg2_owner = map_cursor->flag >> 5; //side
-			if (current_pg2_owner == 2)
+			if (current_pg2_owner == 2) {
 				map[x][y].side = 1;
+			}
 			//if (current_pg2_owner) print_dec(current_pg2_owner);
 			//victory
-			map[x][y].vic = map_cursor->victory & 0x7E ? 1 : 0;
+			map[x][y].vic = (map_cursor->victory & 0x7E) ? 1 : 0;
 			//deployment, only for player 1
-			map[x][y].deploy = map_cursor->deployment & 0x04 ? 1 : 0;
+			map[x][y].deploy = (map_cursor->deployment & 0x04 )? 1 : 0;
 
 		}
 	//finally save vic hexes to scn_buffer
@@ -1080,11 +1161,13 @@ int import_pg2_scenario_file(char *path, int convert_terrain_type, int convert_r
 				all_units[where_add_new].exp = pg2_unit_cursor->experience_level_indicator;
 
 				all_units[where_add_new].orgtnum =0;
-				if (pg2_unit_cursor->transport_type >0 && pg2unit_to_pgunit[pg2_unit_cursor->transport_type]!=-1)
-					all_units[where_add_new].orgtnum =pg2unit_to_pgunit[pg2_unit_cursor->transport_type];
-				all_units[where_add_new].auxtnum =0;
-				if (pg2_unit_cursor->unit_appearance >0 && pg2unit_to_pgunit[pg2_unit_cursor->unit_appearance]!=-1)
-					all_units[where_add_new].auxtnum =pg2unit_to_pgunit[pg2_unit_cursor->unit_appearance];
+				if (pg2_unit_cursor->transport_type > 0 && pg2unit_to_pgunit[pg2_unit_cursor->transport_type] != -1) {
+					all_units[where_add_new].orgtnum = pg2unit_to_pgunit[pg2_unit_cursor->transport_type];
+				}
+				all_units[where_add_new].auxtnum = 0;
+				if (pg2_unit_cursor->unit_appearance > 0 && pg2unit_to_pgunit[pg2_unit_cursor->unit_appearance] != -1) {
+					all_units[where_add_new].auxtnum = pg2unit_to_pgunit[pg2_unit_cursor->unit_appearance];
+				}
 			}
 		}
 
@@ -1095,10 +1178,11 @@ int import_pg2_scenario_file(char *path, int convert_terrain_type, int convert_r
 			}
 
 		for(i=0;i<total_units;i++)
-			if (equip[all_units[i].unum][GAF]) //1 if air unit
+			if (equip[all_units[i].unum][GAF]) { //1 if air unit
 				map[all_units[i].x][all_units[i].y].auidx = i;
-			else
+			} else {
 				map[all_units[i].x][all_units[i].y].guidx = i;
+			}
 
 		//save conversion table when needed
 		if (need_to_save) {
@@ -1126,7 +1210,7 @@ int import_pg2_scenario_file(char *path, int convert_terrain_type, int convert_r
 
 int import_pg2_map_scn_gui() {
 
-	int i, result=0;
+	int i, result = 0;
 	char path[MAX_PATH];
 	char path2[MAX_PATH];
 	char ext[MAX_EXT];
@@ -1161,68 +1245,67 @@ int import_pg2_map_scn_gui() {
 			if (do_dialog(pg2_convert_dlg, -1) == PG2_DLG_OK) {
 
 				//if (result == 0) {
-					clear_all_units();
+				clear_all_units();
 
-					//in case of PG2_DLG_COPY_UNITS ratio is set
-					if (pg2_convert_dlg[PG2_DLG_COPY_UNITS].flags & D_SELECTED){
-						for (i = 0; i < MAX_UNITS; i++) {
-							pg2unit_to_pgunit[i] = i;
-						}
+				//in case of PG2_DLG_COPY_UNITS ratio is set
+				if (pg2_convert_dlg[PG2_DLG_COPY_UNITS].flags & D_SELECTED) {
+					for (i = 0; i < MAX_UNITS; i++) {
+						pg2unit_to_pgunit[i] = i;
 					}
-					//in case of PG2_DLG_COPY_UNITS ratio is set
-					if (pg2_convert_dlg[PG2_DLG_CONVERT_UNITS].flags & D_SELECTED){
-						//try to load equ from the same as FPGE dir
-						//equ
-						printf("Trying to load '%s' file.\n", pg2_equip_name_file);
-						result=import_pg2_equip_names_file(pg2_equip_name_file);
-						if (!result) {
-								printf("'%s' file loaded.\n", pg2_equip_name_file);
-							}
-						else{
-							//error, cannot continue without pg2_equip_name_file
-							sprintf(error_str, "Cannot load '%s' file !",pg2_equip_name_file);
-							alert(error_str, NULL, NULL, "&Continue", NULL, 'c', 0);
-							sprintf(MapStatusTxt, "Cannot load '%s' file !\nPick an Operation.",pg2_equip_name_file);
-							d_mapstatus_proc(MSG_DRAW, &(main_dlg[dmMapStatusIdx]), 0);
-							return D_REDRAW;
-						}
-						printf("Trying to load '%s' file in conversion mode.\n", pg2_equip_file);
-						result=import_pg2_equip(LOAD_CONVERSION_TABLE_ONLY, pg2_equip_file);
-						if (!result) {
-								printf("'%s' file loaded in conversion mode.\n", pg2_equip_file);
-							}else{
-								//error, cannot continue without pg2_equip_file
-								sprintf(error_str, "Cannot load '%s' file !",pg2_equip_file);
-								alert(error_str, NULL, NULL, "&Continue", NULL, 'c', 0);
-								sprintf(MapStatusTxt, "Cannot load '%s' file !\nPick an Operation.",pg2_equip_file);
-								d_mapstatus_proc(MSG_DRAW, &(main_dlg[dmMapStatusIdx]), 0);
-								return D_REDRAW;
-							}
+				}
+				//in case of PG2_DLG_COPY_UNITS ratio is set
+				if (pg2_convert_dlg[PG2_DLG_CONVERT_UNITS].flags & D_SELECTED) {
+					//try to load equ from the same as FPGE dir
+					//equ
+					printf("Trying to load '%s' file.\n", pg2_equip_name_file);
+					result = import_pg2_equip_names_file(pg2_equip_name_file);
+					if (!result) {
+						printf("'%s' file loaded.\n", pg2_equip_name_file);
+					} else {
+						//error, cannot continue without pg2_equip_name_file
+						sprintf(error_str, "Cannot load '%s' file !", pg2_equip_name_file);
+						alert(error_str, NULL, NULL, "&Continue", NULL, 'c', 0);
+						sprintf(MapStatusTxt, "Cannot load '%s' file !\nPick an Operation.", pg2_equip_name_file);
+						d_mapstatus_proc(MSG_DRAW, &(main_dlg[dmMapStatusIdx]), 0);
+						return D_REDRAW;
 					}
+					printf("Trying to load '%s' file in conversion mode.\n", pg2_equip_file);
+					result = import_pg2_equip(LOAD_CONVERSION_TABLE_ONLY, pg2_equip_file);
+					if (!result) {
+						printf("'%s' file loaded in conversion mode.\n", pg2_equip_file);
+					} else {
+						//error, cannot continue without pg2_equip_file
+						sprintf(error_str, "Cannot load '%s' file !", pg2_equip_file);
+						alert(error_str, NULL, NULL, "&Continue", NULL, 'c', 0);
+						sprintf(MapStatusTxt, "Cannot load '%s' file !\nPick an Operation.", pg2_equip_file);
+						d_mapstatus_proc(MSG_DRAW, &(main_dlg[dmMapStatusIdx]), 0);
+						return D_REDRAW;
+					}
+				}
 
-					//scn
-					result = import_pg2_scenario_file(path,
-							pg2_convert_dlg[PG2_DLG_TERRAIN_TYPE].flags & D_SELECTED ? 1:0,
-							pg2_convert_dlg[PG2_DLG_ROADS].flags & D_SELECTED ? 1:0,
-							pg2_convert_dlg[PG2_DLG_GEN_TILES].flags & D_SELECTED ? 1:0,
-							pg2_convert_dlg[PG2_DLG_GEN_ROAD_TILES].flags & D_SELECTED ? 1:0,
-							pg2_convert_dlg[PG2_DLG_CONVERT_UNITS].flags & D_SELECTED ? PG2_UNITMODE_CONVERT:
-							pg2_convert_dlg[PG2_DLG_COPY_UNITS].flags & D_SELECTED ? PG2_UNITMODE_COPY:PG2_UNITMODE_NOUNITS
-					);
+				//scn
+				result = import_pg2_scenario_file(path, 
+						(pg2_convert_dlg[PG2_DLG_TERRAIN_TYPE].flags & D_SELECTED) ? 1 : 0, 
+						(pg2_convert_dlg[PG2_DLG_ROADS].flags & D_SELECTED) ? 1 : 0,
+						(pg2_convert_dlg[PG2_DLG_GEN_TILES].flags & D_SELECTED) ? 1 : 0, 
+						(pg2_convert_dlg[PG2_DLG_GEN_ROAD_TILES].flags & D_SELECTED) ? 1 : 0,
+						(pg2_convert_dlg[PG2_DLG_CONVERT_UNITS].flags & D_SELECTED) ? PG2_UNITMODE_CONVERT : (pg2_convert_dlg[PG2_DLG_COPY_UNITS].flags & D_SELECTED) ? PG2_UNITMODE_COPY : PG2_UNITMODE_NOUNITS
+						);
 				//}
 			}
 		} else {
 			//map
 			centre_dialog(pg2_convert_map_dlg);
-			if (do_dialog(pg2_convert_map_dlg, -1) == PG2_DLG_OK-3) {
+			if (do_dialog(pg2_convert_map_dlg, -1) == PG2_DLG_OK - 3) {
 				//PG2_DLG_TERRAIN_TYPE etc will work here
-			result = import_pg2_map_file(path,
-					pg2_convert_map_dlg[PG2_DLG_TERRAIN_TYPE].flags & D_SELECTED ? 1:0,
-					pg2_convert_map_dlg[PG2_DLG_ROADS].flags & D_SELECTED ? 1:0,
-					pg2_convert_map_dlg[PG2_DLG_GEN_TILES].flags & D_SELECTED ? 1:0,
-					pg2_convert_map_dlg[PG2_DLG_GEN_ROAD_TILES].flags & D_SELECTED ? 1:0);
-			if (result==0)
-				clear_all_units();
+				result = import_pg2_map_file(path, 
+						(pg2_convert_map_dlg[PG2_DLG_TERRAIN_TYPE].flags & D_SELECTED) ? 1 : 0, 
+						(pg2_convert_map_dlg[PG2_DLG_ROADS].flags & D_SELECTED) ? 1 : 0,
+						(pg2_convert_map_dlg[PG2_DLG_GEN_TILES].flags & D_SELECTED) ? 1 : 0, 
+						(pg2_convert_map_dlg[PG2_DLG_GEN_ROAD_TILES].flags & D_SELECTED) ? 1 : 0);
+				if (result == 0) {
+					clear_all_units();
+				}
 			}
 		}
 
@@ -1240,7 +1323,7 @@ int import_pg2_map_scn_gui() {
 }
 
 int import_pg2_equip_dialog() {
-	char path[MAX_PATH], path2[MAX_PATH];
+	char path[MAX_PATH], path2[MAX_PATH], path3[MAX_PATH];
 	char error_str[256];
 
 	sprintf(path, ".\\%s", pg2_equip_file);
@@ -1251,10 +1334,22 @@ int import_pg2_equip_dialog() {
 		sprintf(MapStatusTxt, "Loading PG2 '%s' and '%s' files.\nPlease wait...",pg2_equip_file,pg2_equip_name_file);
 		d_mapstatus_proc(MSG_DRAW, &(main_dlg[dmMapStatusIdx]), 0);
 
+		//panzer2.dat - load index only
+		replace_filename(path3, path, pg2_icons_name_file, sizeof(path3));
+
+		int error =  import_pg2_icons_idx(LOAD_FILE, path3);
+		if (error) {
+			sprintf(error_str, "Cannot load '%s' file !",pg2_icons_name_file);
+			alert(error_str, NULL, NULL, "&Continue", NULL, 'c', 0);
+			sprintf(MapStatusTxt, "Cannot load '%s' file !\nPick an Operation.",pg2_icons_name_file);
+			d_mapstatus_proc(MSG_DRAW, &(main_dlg[dmMapStatusIdx]), 0);
+			return D_REDRAW;
+		}
+
 		//txt
 		replace_filename(path2, path, pg2_equip_name_file, sizeof(path2));
 
-		int error = import_pg2_equip_names_file(path2);
+		error = import_pg2_equip_names_file(path2);
 		if (error) {
 			sprintf(error_str, "Cannot load '%s' file !",pg2_equip_name_file);
 			alert(error_str, NULL, NULL, "&Continue", NULL, 'c', 0);
@@ -1272,7 +1367,7 @@ int import_pg2_equip_dialog() {
 			d_mapstatus_proc(MSG_DRAW, &(main_dlg[dmMapStatusIdx]), 0);
 			return D_REDRAW;
 		} else {
-			sprintf(MapStatusTxt, "'%s' loaded\n'%s' loaded\nPick an Operation.",pg2_equip_file,pg2_equip_name_file);
+			sprintf(MapStatusTxt, "'%s' loaded\n'%s' loaded\n'%s' loaded\nPick an Operation.",pg2_equip_file,pg2_equip_name_file, pg2_icons_name_file);
 			d_mapstatus_proc(MSG_DRAW, &(main_dlg[dmMapStatusIdx]), 0);
 		}
 	}
@@ -1281,7 +1376,7 @@ int import_pg2_equip_dialog() {
 
 int save_pg2unit_to_pgunit() {
 	int i;
-	char line[1024], temp_str[1024];
+	char line[1024+1], temp_str[1024+1];
 	char path[MAX_PATH];
 	FILE *outf;
 
@@ -1326,10 +1421,18 @@ int load_pg2_to_pg_conversion_file(int probe_file_only, char *fname, int mode) {
 	char path[MAX_PATH];
 	int error_base = ERROR_PG2UNIT_TO_PGUNIT_BASE;
 
-	if (mode == PG2_LOAD_TT2TRID) error_base=ERROR_PG2TT_TO_PGTR_BASE;
-	if (mode == PG2_LOAD_TT2TTID) error_base=ERROR_PG2TT_TO_PGTT_BASE;
-	if (mode == PG2_LOAD_C2CID)   error_base=ERROR_PG2COUNTRY_TO_PGCOUNTRY_BASE;
-	if (mode == PG2_LOAD_CL2CLID) error_base=ERROR_PG2CLASS_TO_PGCLASS_BASE;
+	if (mode == PG2_LOAD_TT2TRID) {
+		error_base = ERROR_PG2TT_TO_PGTR_BASE;
+	}
+	if (mode == PG2_LOAD_TT2TTID) {
+		error_base = ERROR_PG2TT_TO_PGTT_BASE;
+	}
+	if (mode == PG2_LOAD_C2CID) {
+		error_base = ERROR_PG2COUNTRY_TO_PGCOUNTRY_BASE;
+	}
+	if (mode == PG2_LOAD_CL2CLID) {
+		error_base = ERROR_PG2CLASS_TO_PGCLASS_BASE;
+	}
 
 	strncpy(path, fname,MAX_PATH);
 	canonicalize_filename_pg2(path, path, MAX_PATH);
@@ -1371,31 +1474,36 @@ int load_pg2_to_pg_conversion_file(int probe_file_only, char *fname, int mode) {
 			int idx = atoi(tokens[0]);
 			int value = atoi(tokens[1]);
 
-			if (mode == PG2_LOAD_UNITSID)
+			if (mode == PG2_LOAD_UNITSID) {
 				if (idx > -1 && idx < MAX_UNITS) {
 					pg2unit_to_pgunit[idx] = value;
 					count++;
 				}
-			if (mode == PG2_LOAD_TT2TRID)
+			}
+			if (mode == PG2_LOAD_TT2TRID) {
 				if (idx > -1 && idx < MAX_TERRAIN_TYPE) {
 					pg2tt_to_pgtilesrange[idx] = value;
 					count++;
 				}
-			if (mode == PG2_LOAD_TT2TTID)
+			}
+			if (mode == PG2_LOAD_TT2TTID) {
 				if (idx > -1 && idx < MAX_TERRAIN_TYPE) {
 					pg2tt_to_pgtt[idx] = value;
 					count++;
 				}
-			if (mode == PG2_LOAD_C2CID)
+			}
+			if (mode == PG2_LOAD_C2CID) {
 				if (idx > -1 && idx < MAX_COUNTRY) {
 					pg2nation_to_pgnation[idx] = value;
 					count++;
 				}
-			if (mode == PG2_LOAD_CL2CLID)
+			}
+			if (mode == PG2_LOAD_CL2CLID) {
 				if (idx > -1 && idx < MAX_PG2_CLASS_TYPE) {
 					pg2class_to_pgclass[idx] = value;
 					count++;
 				}
+			}
 		}
 	}
 	fclose(inf);
@@ -1439,7 +1547,7 @@ void load_pg2_conversion_tables() {
 
 int convert_txt_to_brf(char *path, int out_format){
 	FILE *inf, *outf;
-	char path2[1024], line[8*1024], outline[8*1024];
+	char path2[1024+1], line[8*1024+1], outline[8*1024+1];
 
 	if (out_format){
 		//PZC
@@ -1471,22 +1579,24 @@ int convert_txt_to_brf(char *path, int out_format){
 	}
 	  while (fgets(line, sizeof(line), inf) != NULL) {
 
-		if (line[strlen(line) - 1] == 0x0a)
+		if (line[strlen(line) - 1] == 0x0a) {
 			line[strlen(line) - 1] = 0;
-		if (line[strlen(line) - 1] == 0x0d)
+		}
+		if (line[strlen(line) - 1] == 0x0d) {
 			line[strlen(line) - 1] = 0;
+		}
 
 		if (strlen(line) > 0) {
 			strncpy(outline, "<p>",8*1024);
-			strncat(outline, line,8*1024);
-			strncat(outline, "</p>",8*1024);
+			strncat(outline, line,8*1024-strlen(outline));
+			strncat(outline, "</p>",8*1024-strlen(outline));
 
 			if (out_format) {
 				//PZC
 				fake_UTF_write_string_with_eol(outf, outline);
 			} else {
 				//PGF
-				strncat(outline, "\r\n",8*1024);
+				strncat(outline, "\r\n",8*1024-strlen(outline));
 				fputs(outline, outf);
 			}
 		}
@@ -1503,15 +1613,17 @@ int is_file_existing(char *path){
 }
 
 char *change_ext(char *in, char *ext){
-	static char out_buff[1024];
+	static char out_buff[1024+1];
 
 	if (in==NULL || strlen(in)==0){
 		//return empty, do not try to add ext
 		out_buff[0]=0;
 	}else{
-		strncpy(out_buff,in,1024);
-		if (strchr(out_buff,'.')!=NULL) *strchr(out_buff,'.')=0;
-		strncat(out_buff,ext,1024);
+		strncpy(out_buff, in, 1024);
+		if (strchr(out_buff, '.') != NULL) {
+			*strchr(out_buff, '.') = 0;
+		}
+		strncat(out_buff, ext, 1024);
 	}
 	return out_buff;
 }
@@ -1521,7 +1633,7 @@ int parse_pg2_cam_file(char *path, int out_format){
 	uint16_t no_of_scenarios,i,j,k,start_cash;
 	uint8_t flag;
 	unsigned char buf[636];
-	char path2[1024], line[1024], tmp[1024];
+	char path2[1024+1], line[1024+1], tmp[1024+1];
 	char scenario_names[52][20];
 
 	canonicalize_filename_pg2(path, path, MAX_PATH);
@@ -1537,7 +1649,7 @@ int parse_pg2_cam_file(char *path, int out_format){
 	}else{
 		//PGF
 		strncpy(line,pgf_pg_pgcam,1024);
-		strncat(line,".fpge",1024);
+		strncat(line,".fpge",1024-strlen(line));
 	}
 
 	replace_filename(path2,path,line,1024);
@@ -1577,7 +1689,7 @@ int parse_pg2_cam_file(char *path, int out_format){
 			convert_txt_to_brf(path2, out_format);
 		}
 		//print_str(&buf[8+60]);
-		//briliant
+		//brilliant
 		strlwr(&buf[8+80+2+40]);
 		replace_filename(path2,path,&buf[8+80+2+40],1024);
 		if (is_file_existing(path2)){
@@ -1591,7 +1703,7 @@ int parse_pg2_cam_file(char *path, int out_format){
 			convert_txt_to_brf(path2, out_format);
 		}
 		//print_str(&buf[8+80+2+80+2+40]);
-		//tactictal victory
+		//tactical victory
 		strlwr(&buf[8+80+2+80+2+80+2+40]);
 		replace_filename(path2,path,&buf[8+80+2+80+2+80+2+40],1024);
 		if (is_file_existing(path2)){
@@ -1626,8 +1738,8 @@ int parse_pg2_cam_file(char *path, int out_format){
 	if (out_format) {
 		//PZC
 		strncpy(line, "FormatVersion",1024);
-		strncat(line, "\t",1024);
-		strncat(line, "1",1024);
+		strncat(line, "\t",1024-strlen(line));
+		strncat(line, "1",1024-strlen(line));
 	} else {
 		//PGF
 		strncpy(line, "# Format version",1024);
@@ -1652,44 +1764,44 @@ int parse_pg2_cam_file(char *path, int out_format){
 
 	//label
 	strncpy(line,change_ext(scenario_names[0],""),1024);
-	strncat(line,"\t",1024);
+	strncat(line,"\t",1024-strlen(line));
 	//start point
 	if (out_format){
 		//PZC
-		strncat(line,"1",1024);
+		strncat(line,"1",1024-strlen(line));
 	}else{
 		//PGF
-		strncat(line,change_ext(scenario_names[0],""),1024);
+		strncat(line,change_ext(scenario_names[0],""),1024-strlen(line));
 	}
 
-	strncat(line,"\t",1024);
+	strncat(line,"\t",1024-strlen(line));
 	//description
-	strncat(line,"IDS_CAMPAIGN_DESCRIPTION1",1024);
-	strncat(line,"\t",1024);
+	strncat(line,"IDS_CAMPAIGN_DESCRIPTION1",1024-strlen(line));
+	strncat(line,"\t",1024-strlen(line));
 	//side
-	strncat(line,"0",1024);
-	strncat(line,"\t",1024);
+	strncat(line,"0",1024-strlen(line));
+	strncat(line,"\t",1024-strlen(line));
 	//nation
 	//start over
 	fseek(inf,2+2+20+20+31800+20+78,SEEK_SET);
 	fread(&flag,1,1,inf);
 	//TODO flag
-	strncat(line,"0",1024);
-	strncat(line,"\t",1024);
+	strncat(line,"0",1024-strlen(line));
+	strncat(line,"\t",1024-strlen(line));
 	if (out_format) {
 		//PZC
 		//cash
 		sprintf(tmp, "%d", start_cash);
-		strncat(line, tmp,1024);
-		strncat(line, "\t",1024);
+		strncat(line, tmp,1024-strlen(line));
+		strncat(line, "\t",1024-strlen(line));
 		//name
-		strncat(line, "IDS_CAMPAIGN_NAME1",1024);
-		strncat(line, "\t",1024);
+		strncat(line, "IDS_CAMPAIGN_NAME1",1024-strlen(line));
+		strncat(line, "\t",1024-strlen(line));
 		//strncat(line,"\n",1024);
 	} else {
 		//PGF
 		//Free elite replacements
-		strncat(line, "1",1024);
+		strncat(line, "1",1024-strlen(line));
 	}
 	fake_UTF_write_string_with_eol(outf,line);
 	strncpy(line,"",1024);
@@ -1733,12 +1845,12 @@ int parse_pg2_cam_file(char *path, int out_format){
 			//label
 			strlwr(&buf[8]);
 			strncpy(line,change_ext(&buf[8],""),1024);
-			strncat(line,"\t",1024);
+			strncat(line,"\t",1024-strlen(line));
 			//scenario file
-			strncat(line,change_ext(&buf[8],".pgscn"),1024);
-			strncat(line,"\t",1024);
+			strncat(line,change_ext(&buf[8],".pgscn"),1024-strlen(line));
+			strncat(line,"\t",1024-strlen(line));
 			//Fake VC
-			strncat(line,"3\t0\t\t2\t0\t\t1\t0\t\t",1024);
+			strncat(line,"3\t0\t\t2\t0\t\t1\t0\t\t",1024-strlen(line));
 
 			fake_UTF_write_string_with_eol(outf,line);
 		}
@@ -1770,47 +1882,51 @@ int parse_pg2_cam_file(char *path, int out_format){
 		//label
 		strlwr(&buf[8]);
 		strncpy(line,change_ext(&buf[8],""),1024);
-		strncat(line,"\t",1024);
+		strncat(line,"\t",1024-strlen(line));
 		//briefing
 		strlwr(&buf[8+60]);
 		if (out_format) {
 			//PZC
-			strncat(line, change_ext(&buf[8 + 60], ".pzbrf"),1024);
+			strncat(line, change_ext(&buf[8 + 60], ".pzbrf"),1024-strlen(line));
 		} else {
 			//PGF
-			strncat(line, change_ext(&buf[8 + 60], ".pgbrf"),1024);
+			strncat(line, change_ext(&buf[8 + 60], ".pgbrf"),1024-strlen(line));
 		}
-		strncat(line,"\t",1024);
+		strncat(line,"\t",1024-strlen(line));
 		//scenario
 		if (out_format){
 			//PZC
-			strncat(line,change_ext(scenario_names[i],".pzscn"),1024);
+			strncat(line,change_ext(scenario_names[i],".pzscn"),1024-strlen(line));
 		}
-		strncat(line,"\t",1024);
+		strncat(line,"\t",1024-strlen(line));
 
 		for(k=0;k<4;k++){
 			//Brilliant, victory, tactical, lose
 			//next label
 			j=buf[8+80+2+80+2+80+2+80+2+80+30*k];
-			if (j==255) j=50; // loose
-			if (j==254) j=51; // end
-			strncat(line,change_ext(scenario_names[j],""),1024);
-			strncat(line,"\t",1024);
+			if (j == 255) {
+				j = 50; // loose
+			}
+			if (j == 254) {
+				j = 51; // end
+			}
+			strncat(line,change_ext(scenario_names[j],""),1024-strlen(line));
+			strncat(line,"\t",1024-strlen(line));
 			//prestige
 			j=buf[8+80+82*k]+buf[8+80+1+82*k]*256;
 			sprintf(tmp,"%d", j);
-			strncat(line,tmp,1024);
-			strncat(line,"\t",1024);
+			strncat(line,tmp,1024-strlen(line));
+			strncat(line,"\t",1024-strlen(line));
 			//briefing
 			strlwr(&buf[8 + 80 + 2 + 40 + 82 * k]);
 			if (out_format) {
 				//PZC
-				strncat(line, change_ext(&buf[8 + 80 + 2 + 40 + 82 * k], ".pzbrf"),1024);
+				strncat(line, change_ext(&buf[8 + 80 + 2 + 40 + 82 * k], ".pzbrf"),1024-strlen(line));
 			} else {
 				//PGF
-				strncat(line, change_ext(&buf[8 + 80 + 2 + 40 + 82 * k], ".pgbrf"),1024);
+				strncat(line, change_ext(&buf[8 + 80 + 2 + 40 + 82 * k], ".pgbrf"),1024-strlen(line));
 			}
-			strncat(line,"\t",1024);
+			strncat(line,"\t",1024-strlen(line));
 		}
 		//strncat(line,"\n",1024);
 		fake_UTF_write_string_with_eol(outf,line);
@@ -1820,21 +1936,219 @@ int parse_pg2_cam_file(char *path, int out_format){
 	return 0;
 }
 
-int convert_pg2_campaign_gui() {
+void draw_pg2_units_bmp(FILE *inf, BITMAP *draw_bmp, int bmp_x, int tile_width, int tile_height){
+	int idx, c, bmp_y, x, y, i, j;
+	BITMAP *bmp, *b;
+	uint32_t icon_off = 0;
+	uint32_t icon_4_off;
+	RGB temp_pal[PAL_SIZE], pg2_pal[PAL_SIZE];
 
-	//int  result;
+	int found = 0;
+	for (i = 0; i < panzer2_data_file_idx_max; i++) {
+		if (strcmp(panzer2_data_file_idx[i].icon_name, "GAME.PAL") == 0) {
+			found = 1;
+			icon_off = panzer2_data_file_idx[i].offset;
+			break;
+		}
+	}
+	if (found) {
+		//use the PG2 palette
+		fseek(inf, icon_off, SEEK_SET);
+		fread(&pg2_pal, PAL_SIZE * sizeof(RGB), 1, inf);
+
+		memcpy(temp_pal, pgpal, sizeof(temp_pal));
+		memcpy(pgpal, pg2_pal, sizeof(pgpal));
+	}
+
+	bmp_y = panzer2_file_icon_off_2_local_icon_idx_max / bmp_x + ((panzer2_file_icon_off_2_local_icon_idx_max % bmp_x) ? 1 : 0);
+
+	for (y = 0; y < bmp_y; y++) {
+		for (x = 0; x < bmp_x; x++) {
+			idx = y * bmp_x + x;
+			if (idx < panzer2_file_icon_off_2_local_icon_idx_max) {
+				rectfill(draw_bmp, x * tile_width, y * tile_height, (x + 1) * tile_width - 1, (y + 1) * tile_height - 1, make_color_fpge_ex(0xff, 0xe1, 0xe1, 1));
+
+				//load SHP
+				icon_off = panzer2_file_icon_off_2_local_icon_idx[idx];
+
+				//take 4th icon
+				fseek(inf, icon_off + 8 * (1 + 4), SEEK_SET);
+				fread(&icon_4_off, 4, 1, inf); //icon 4th offset vs icon_off
+
+				icon_off += icon_4_off;
+				read_header(inf, icon_off);
+				header.lines++;
+				bmp = create_bitmap(header.width, header.lines);
+				rectfill(bmp, 0, 0, header.width, header.lines, fpge_mask_color);
+				read_shp_ex(bmp, inf, icon_off, SHP_NO_SWAP_COLOR);
+
+				int off_x = (header.width - TILE_FULL_WIDTH) / 2;
+				if (header.xend - header.xstart > TILE_FULL_WIDTH) {
+					off_x = header.xstart + (header.xend - header.xstart - TILE_FULL_WIDTH) / 2;
+				}
+				if (header.xend - header.xstart > TILE_FULL_WIDTH || header.lines > TILE_HEIGHT) {
+					b = create_bitmap(TILE_FULL_WIDTH, TILE_HEIGHT);
+					rectfill(b, 0, 0, TILE_FULL_WIDTH - 1, TILE_HEIGHT - 1, make_color_fpge_ex(0xff, 0xe1, 0xe1, 1));
+
+					masked_stretch_blit(bmp, b, header.xstart, 0, header.xend - header.xstart, header.lines, 0, 0, TILE_FULL_WIDTH, TILE_HEIGHT);
+
+					for (i = 0; i < TILE_HEIGHT; i++) {
+						for (j = 0; j < TILE_FULL_WIDTH; j++) {
+							c = getpixel(b, j, i);
+							if (c == fpge_mask_color) {
+								continue;
+							}
+							c = make_color_fpge_ex((c >> 16) & 0xff, (c >> 8) & 0xff, c & 0xff, 0);
+							putpixel(draw_bmp, x * tile_width + j, y * tile_height + i, c);
+						}
+					}
+					destroy_bitmap(b);
+				} else {
+					int max_y = Min(TILE_HEIGHT, header.lines);
+					int max_x = Min(TILE_FULL_WIDTH, header.width);
+					for (i = 0; i < max_y; i++) {
+						for (j = 0; j < max_x; j++) {
+							c = getpixel(bmp, j + off_x, i);
+							if (c == fpge_mask_color) {
+								continue;
+							}
+							c = make_color_fpge_ex((c >> 16) & 0xff, (c >> 8) & 0xff, c & 0xff, 0);
+							putpixel(draw_bmp, x * tile_width + j, y * tile_height + i, c);
+						}
+					}
+				}
+				//cleanup
+				destroy_bitmap(bmp);
+			} else {
+				//blank
+				rectfill(draw_bmp, x * tile_width, y * tile_height, (x + 1) * tile_width - 1, (y + 1) * tile_height - 1, make_color_fpge_ex(0xff, 0xe1, 0xe1, 1));
+			}
+		}
+	}
+	//fpge_colors_bits_shift=temp_shift;
+	if (found) {
+		memcpy(pgpal, temp_pal, sizeof(pgpal)); //restore palette
+	}
+}
+
+/*
+int pg_dg(){
+//PG2 icons debug
+	FILE *inf;
+	BITMAP *pgf_tacicons_bmp;
+
+
+	//----------
+	char path[MAX_PATH], path2[MAX_PATH], path3[MAX_PATH];
+
+
+	sprintf(path, ".\\%s", pg2_equip_file);
+	canonicalize_filename_pg2(path, path, MAX_PATH);
+
+		//panzer2.dat - load index only
+		replace_filename(path3, path, pg2_icons_name_file, sizeof(path3));
+
+		int error =  import_pg2_icons_idx(LOAD_FILE, path3);
+		if (error) {
+			return 1;
+		}
+
+		//txt
+		replace_filename(path2, path, pg2_equip_name_file, sizeof(path2));
+
+		error = import_pg2_equip_names_file(path2);
+		if (error) {
+			return 1;
+		}
+
+		//equ
+		error = import_pg2_equip(LOAD_FILE, path);
+		if (error) {
+			return 1;
+		}
+
+	//---------
+	strncpy(path,"tacicons6.bmp",MAX_PATH);
+	canonicalize_filename(path,path,MAX_PATH);
+
+	sprintf(path2, ".\\%s", pg2_icons_name_file);
+	canonicalize_filename_pg2(path2, path2, MAX_PATH);
+	inf = fopen(path2, "rb");
+	if (!inf) {
+		//alert("ERROR: Cannot open PG2 'panzer2.dat' file.", NULL, NULL,"&Continue", NULL, 'c', 0);
+		return 1;
+	}
+	pgf_tacicons_bmp = create_bitmap_ex(24, 20 * TILE_FULL_WIDTH, (panzer2_file_icon_off_2_local_icon_idx_max / 20 + ((panzer2_file_icon_off_2_local_icon_idx_max % 20) ? 1 : 0)) * TILE_HEIGHT);
+
+	draw_pg2_units_bmp(inf, pgf_tacicons_bmp, 20, TILE_FULL_WIDTH, TILE_HEIGHT);
+
+	if (save_bmp(path, pgf_tacicons_bmp, pgpal)) {
+		alert("ERROR: Cannot save PGF 'tacicons.bmp' file.", "File cannot be saved.", NULL,"&Continue", NULL, 'c', 0);
+	}
+	destroy_bitmap(pgf_tacicons_bmp);
+	return 0;
+}
+*/
+
+int convert_pg2_icons(){
 	char path[MAX_PATH];
-	//char path2[MAX_PATH];
-	//char ext[MAX_EXT];
+	BITMAP *pgf_tacicons_bmp;
+	FILE *inf;
+	char path2[MAX_PATH];
+	char error[256];
+
+	if (panzer2_file_icon_off_2_local_icon_idx_max == 0){
+		alert("ERROR: Cannot save PGF 'tacicons.bmp' file.", "Load PG2 EQU and then", "export it to PGF PGEQP.","&Continue", NULL, 'c', 0);
+		return D_REDRAW;
+	}
+
+	sprintf(path2, ".\\%s", pg2_icons_name_file);
+	canonicalize_filename_pg2(path2, path2, MAX_PATH);
+	inf = fopen(path2, "rb");
+	if (!inf) {
+		alert("ERROR: Cannot open PG2 'panzer2.dat' file.", NULL, NULL,"&Continue", NULL, 'c', 0);
+		return D_REDRAW;
+	}
+
+	strncpy(path,pgf_units_bmp,MAX_PATH);
+	canonicalize_filename(path,path,MAX_PATH);
+	if (file_select_ex("Save PGF 'tacicons.bmp' file",path,"bmp", MAX_PATH, OLD_FILESEL_WIDTH, OLD_FILESEL_HEIGHT)){
+
+		pgf_tacicons_bmp = create_bitmap_ex(24, 20 * TILE_FULL_WIDTH, (panzer2_file_icon_off_2_local_icon_idx_max / 20 + ((panzer2_file_icon_off_2_local_icon_idx_max % 20) ? 1 : 0)) * TILE_HEIGHT);
+		sprintf(error,"ERROR: Cannot save PGF '%s' file.", get_filename(path));
+		if (!pgf_tacicons_bmp){
+			alert(error, "Not enough memory.", NULL,"&Continue", NULL, 'c', 0);
+		}else{
+			sprintf(MapStatusTxt,"Exporting PG2 icons to\n'%s' file.\nPlease wait...", get_filename(path));
+			d_mapstatus_proc(MSG_DRAW,&(main_dlg[dmMapStatusIdx]),0);
+
+			draw_pg2_units_bmp(inf, pgf_tacicons_bmp, 20, TILE_FULL_WIDTH, TILE_HEIGHT);
+
+			if (save_bmp(path, pgf_tacicons_bmp, pgpal)) {
+				alert(error, "File cannot be saved.", NULL,"&Continue", NULL, 'c', 0);
+			}
+			destroy_bitmap(pgf_tacicons_bmp);
+
+			sprintf(MapStatusTxt,"PG2 icons exported to\n'%s' file.\nPick an Operation.", get_filename(path));
+			main_dlg[dmMapStatusIdx].flags |= D_DIRTY;
+			//d_mapstatus_proc(MSG_DRAW,&(main_dlg[dmMapStatusIdx]),0);
+		}
+	}
+	fclose(inf);
+
+	return D_REDRAW;
+}
+
+int convert_pg2_campaign_gui() {
+	char path[MAX_PATH];
 
 	strncpy(path, ".\\", MAX_PATH);
 	canonicalize_filename_pg2(path, path, MAX_PATH);
 	if (file_select_ex("Select CAM file", path, "cam", MAX_PATH, OLD_FILESEL_WIDTH, OLD_FILESEL_HEIGHT)) {
-
 		centre_dialog(pg2_cam_dlg);
-		if (do_dialog(pg2_cam_dlg, -1) == PG2_CAM_DLG_OK)
-			parse_pg2_cam_file(path,pg2_cam_dlg[1].flags&D_SELECTED?0:1);
-
+		if (do_dialog(pg2_cam_dlg, -1) == PG2_CAM_DLG_OK) {
+			parse_pg2_cam_file(path, (pg2_cam_dlg[1].flags & D_SELECTED) ? 0 : 1);
+		}
 	}
 	return D_REDRAW;
 }

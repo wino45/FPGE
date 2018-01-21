@@ -31,7 +31,7 @@ DIALOG rotate_dlg[] =
 };
 
 int rotate_map_dialog() {
-	int x,y,tmp,dest_x,dest_y;
+	int x,y,tmp,dest_x,dest_y,is_set;
 
 	centre_dialog(rotate_dlg);
 	if (do_dialog(rotate_dlg, -1) == ROT_ROTATE) {
@@ -67,29 +67,30 @@ int rotate_map_dialog() {
 				memcpy(tempmap+x+mapx*y,&map[x][y],sizeof(struct MAP));
 			}
 
-		for (y = 0; y < mapy; y++)
+		for (y = 0; y < mapy; y++) {
 			for (x = 0; x < mapx; x++) {
-				dest_x=-1; //just in case of GUI problem
-				dest_y=-1; //
+				is_set = 0; //just in case of GUI problem
 
-				if(rotate_dlg[ROT_ROT90].flags&D_SELECTED){
-					dest_x=mapy - (y + 1);
-					dest_y=x;
+				if (rotate_dlg[ROT_ROT90].flags & D_SELECTED) {
+					dest_x = mapy - (y + 1);
+					dest_y = x;
+					is_set = 1;
 				}
-				if(rotate_dlg[ROT_ROT180].flags&D_SELECTED){
-					dest_x=mapx - (x + 1);
-					dest_y=mapy - (y + 1);
+				if (rotate_dlg[ROT_ROT180].flags & D_SELECTED) {
+					dest_x = mapx - (x + 1);
+					dest_y = mapy - (y + 1);
+					is_set = 1;
 				}
-				if(rotate_dlg[ROT_ROT270].flags&D_SELECTED){
-					dest_x=y;
-					dest_y=mapx - (x + 1);
+				if (rotate_dlg[ROT_ROT270].flags & D_SELECTED) {
+					dest_x = y;
+					dest_y = mapx - (x + 1);
+					is_set = 1;
 				}
-
-				if (dest_x != -1)
-					memcpy(&map[dest_x][dest_y], tempmap + x + mapx * y,
-							sizeof(struct MAP));
+				if (is_set) {
+					memcpy(&map[dest_x][dest_y], tempmap + x + mapx * y, sizeof(struct MAP));
+				}
 			}
-
+		}
 		//swap mapx,mapy only when rotating 90 or 270
 		if ((rotate_dlg[ROT_ROT90].flags&D_SELECTED)||(rotate_dlg[ROT_ROT270].flags&D_SELECTED)){
 			tmp=mapx;

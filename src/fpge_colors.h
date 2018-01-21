@@ -13,6 +13,7 @@ extern int fpge_colors_bits;
 extern int fpge_colors_bits_shift;
 
 int make_color_fpge(int r, int g, int b);
+int make_color_fpge_ex(int r, int g, int b, int local_fpge_colors_bits_shift);
 int find_pal_element(int color_to_find);
 int find_pal_element92(int color_to_find);
 int colors_to24bits(int color_to_convert);

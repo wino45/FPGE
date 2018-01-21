@@ -591,8 +591,7 @@ int ctrl_b_keycallback() {
 	canonicalize_filename(path, path, MAX_PATH);
 	if (file_select_ex("Save BMP file", path, "bmp", MAX_PATH,
 			OLD_FILESEL_WIDTH, OLD_FILESEL_HEIGHT)) {
-		save_map_bmp = create_bitmap(mapx * TILE_WIDTH + 16,
-				mapy * TILE_HEIGHT + TILE_HEIGHT / 2);
+		save_map_bmp = create_bitmap(mapx * TILE_WIDTH + 16, mapy * TILE_HEIGHT + TILE_HEIGHT / 2);
 		if (!save_map_bmp) {
 			alert("ERROR: Cannot save BMP file.", "Not enough memory.", NULL,
 					"&Continue", NULL, 'c', 0);
@@ -645,64 +644,70 @@ int ctrl_y_keycallback() {
 			//do the map
 			newmapx = new_map_bitmap->w / newmapstep;
 			newmapy = new_map_bitmap->h / newmapstep;
-			for (j = 0; j < newmapy; j++)
-				for (i = 0; i < newmapx; i++) {
-					c = getpixel(
-							new_map_bitmap,
-							i * newmapstep + newmapstep / 2,
-							j * newmapstep + newmapstep / 2
-									+ (i % 2) * newmapstep / 2);
-					//if (j==0 && i<16) printf("%d\n",c);
-					if (bitmap_color_depth(new_map_bitmap) == 8)
-						for (k = 0; k < max_colors_for_bmp; k++) {
-							if ((pal1[c].r == (colors_for_bmp[k][0] >> 2))
-									&& (pal1[c].g == (colors_for_bmp[k][1] >> 2))
-									&& (pal1[c].b == (colors_for_bmp[k][2] >> 2)))
-								break;
-						}
-					if (bitmap_color_depth(new_map_bitmap) == 24)
-						for (k = 0; k < max_colors_for_bmp; k++) {
-							if ((getr24(c) == (colors_for_bmp[k][0]))
-									&& (getg24(c) == (colors_for_bmp[k][1]))
-									&& (getb24(c) == (colors_for_bmp[k][2])))
-								break;
-						}
-					if (bitmap_color_depth(new_map_bitmap) == 32)
-						for (k = 0; k < max_colors_for_bmp; k++) {
-							if ((getr32(c) == (colors_for_bmp[k][0]))
-									&& (getg32(c) == (colors_for_bmp[k][1]))
-									&& (getb32(c) == (colors_for_bmp[k][2])))
-								break;
-						}
-					memset(&map[i][j], 0, sizeof(map[i][j]));
-					map[i][j].tile = tiles_for_bmp[(k == max_colors_for_bmp ? k - 1 : k)][rand() % 3];
-					//the map point was build. Now delete all units, vic points, owner, etc
-					map[i][j].guidx = -1;
-					map[i][j].auidx = -1;
-					//if (j==1 && i<16) printf("(%d,%d) k=%d c=%8x -> %d t_b=%d c_b=%d\n",i,j,k,c,map[i][j].tile,tiles_for_bmp[k][0],colors_for_bmp[k][0]);
-				}
-			mapx = newmapx;
-			mapy = newmapy;
-			map_x0 = 0;
-			map_y0 = 0;
-			//the map was build. Now delete all units, vic points, owner, etc
 
-			//clear all units
-			for (i = 0; i < total_units; i++)
-				all_units[i].unum = -1;
-			total_units = 0;
+			if (newmapx > MAX_MAP_X || newmapy>MAX_MAP_Y) {
+				char buf[1024];
+				snprintf(buf,1024,"%d px X %d px",MAX_MAP_X*newmapstep,MAX_MAP_Y*newmapstep);
+				alert("ERROR: BMP size must be smaller then ", buf, NULL, "&Continue",	NULL, 'c', 0);
+			}else{
+				for (j = 0; j < newmapy; j++)
+					for (i = 0; i < newmapx; i++) {
+						c = getpixel(
+								new_map_bitmap,
+								i * newmapstep + newmapstep / 2,
+								j * newmapstep + newmapstep / 2
+										+ (i % 2) * newmapstep / 2);
+						//if (j==0 && i<16) printf("%d\n",c);
+						if (bitmap_color_depth(new_map_bitmap) == 8)
+							for (k = 0; k < max_colors_for_bmp; k++) {
+								if ((pal1[c].r == (colors_for_bmp[k][0] >> 2))
+										&& (pal1[c].g == (colors_for_bmp[k][1] >> 2))
+										&& (pal1[c].b == (colors_for_bmp[k][2] >> 2)))
+									break;
+							}
+						if (bitmap_color_depth(new_map_bitmap) == 24)
+							for (k = 0; k < max_colors_for_bmp; k++) {
+								if ((getr24(c) == (colors_for_bmp[k][0]))
+										&& (getg24(c) == (colors_for_bmp[k][1]))
+										&& (getb24(c) == (colors_for_bmp[k][2])))
+									break;
+							}
+						if (bitmap_color_depth(new_map_bitmap) == 32)
+							for (k = 0; k < max_colors_for_bmp; k++) {
+								if ((getr32(c) == (colors_for_bmp[k][0]))
+										&& (getg32(c) == (colors_for_bmp[k][1]))
+										&& (getb32(c) == (colors_for_bmp[k][2])))
+									break;
+							}
+						memset(&map[i][j], 0, sizeof(map[i][j]));
+						map[i][j].tile = tiles_for_bmp[(k == max_colors_for_bmp ? k - 1 : k)][rand() % 3];
+						//the map point was build. Now delete all units, vic points, owner, etc
+						map[i][j].guidx = -1;
+						map[i][j].auidx = -1;
+						//if (j==1 && i<16) printf("(%d,%d) k=%d c=%8x -> %d t_b=%d c_b=%d\n",i,j,k,c,map[i][j].tile,tiles_for_bmp[k][0],colors_for_bmp[k][0]);
+					}
+				mapx = newmapx;
+				mapy = newmapy;
+				map_x0 = 0;
+				map_y0 = 0;
+				//the map was build. Now delete all units, vic points, owner, etc
 
+				//clear all units
+				for (i = 0; i < total_units; i++)
+					all_units[i].unum = -1;
+				total_units = 0;
+
+				main_dlg[dmHSlideIdx].d1 = get_h_slide_max();
+				vslide_max = get_v_slide_max();
+
+				main_dlg[dmVSlideIdx].d1 = vslide_max;
+				main_dlg[dmVSlideIdx].d2 = vslide_max;
+				//finally draw map
+				draw_map(map_bmp, map_x0, map_y0, tiles_high, tiles_wide);
+			}
 			destroy_bitmap(new_map_bitmap);
-			main_dlg[dmHSlideIdx].d1 = get_h_slide_max();
-			vslide_max = get_v_slide_max();
-			;
-			main_dlg[dmVSlideIdx].d1 = vslide_max;
-			main_dlg[dmVSlideIdx].d2 = vslide_max;
-			//finally draw map
-			draw_map(map_bmp, map_x0, map_y0, tiles_high, tiles_wide);
 		} else {
-			alert("ERROR: Cannot load this BMP file.", path, NULL, "&Continue",
-					NULL, 'c', 0);
+			alert("ERROR: Cannot load this BMP file.", path, NULL, "&Continue",	NULL, 'c', 0);
 		}
 	}
 	return D_REDRAW;
@@ -830,6 +835,7 @@ int ctrl_c_keycallback() {
 }
 
 int ctrl_i_keycallback() {
+
 	drawNames = 0;
 	drawAllNames = 0;
 	drawTerrain = 0;
@@ -867,11 +873,10 @@ int ctrl_i_keycallback() {
 
 	//clear all filters for tiles matrix
 	memset(filter_number_current_ingroup,0,sizeof(filter_number_current_ingroup));
-    if (tile_mode==1) draw_tiles_matrix();
+	if (tile_mode==1) draw_tiles_matrix();
 	//setup_show_filters_info();
 	//draw_map(map_bmp,map_x0,map_y0,tiles_high,tiles_wide);
 	setup_menu_ticks();
-
 	return D_REDRAW;
 }
 

@@ -18,7 +18,7 @@ int convert_equipment_hard(int *new_unit_id, int *new_country, int equipment_ID,
 	struct conversion_equipment search;
 	struct conversion_equipment *found;
 	char tmp[64];
-	char no_first_token[64];
+	char no_first_token[64+1];
 	char * pch;
 
 	strncpy(search.name,equip_name_utf8[equipment_ID],20*3);
@@ -31,8 +31,8 @@ int convert_equipment_hard(int *new_unit_id, int *new_country, int equipment_ID,
 	{
 	   pch = strtok (NULL, " ");
 	   if (pch != NULL){
-		   strncat(no_first_token," ",64);
-		   strncat(no_first_token,pch,64);
+		   strncat(no_first_token," ",64-strlen(no_first_token));
+		   strncat(no_first_token,pch,64-strlen(no_first_token));
 		   //i++;
 	   }
 	   //printf ("%s\n",pch);

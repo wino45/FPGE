@@ -31,6 +31,7 @@
 #include "app6.h"
 #include "undo.h"
 #include "pg.h"
+#include "pg2.h"
 #include "move.h"
 #include "bintables.h"
 #include "maputils.h"
@@ -38,7 +39,7 @@
 
 char MapInfoTxt[256];
 char AboutTxt1[256] = "Fred's Panzer General Editor";
-char AboutTxt2[256] = "Version 0.7.4";
+char AboutTxt2[256] = "Version 0.7.5";
 char AboutTxt3[256] = "Modified by Wino";
 char MapStatusTxt[256];
 char FilterStatusTxt[256];
@@ -304,14 +305,18 @@ int isNotAux(enum UTYPES uflag) {
 
 int d_coreRB_proc(int msg, DIALOG *d, int c) {
 	if ((msg == MSG_CLICK) || (msg == MSG_KEY)) {
-		if (&(main_dlg[dmCoreRBIdx]) == d)
+		if (&(main_dlg[dmCoreRBIdx]) == d) {
 			ubelongs = axis_core;
-		if (&(main_dlg[dmAuxRBIdx]) == d)
+		}
+		if (&(main_dlg[dmAuxRBIdx]) == d) {
 			ubelongs = axis_aux;
-		if (&(main_dlg[dmAlliedRBIdx]) == d)
+		}
+		if (&(main_dlg[dmAlliedRBIdx]) == d) {
 			ubelongs = allied_core;
-		if (&(main_dlg[dmAlliedAuxRBIdx]) == d)
+		}
+		if (&(main_dlg[dmAlliedAuxRBIdx]) == d) {
 			ubelongs = allied_aux;
+		}
 	}
 	return d_radio_proc(msg, d, c);
 }
@@ -335,32 +340,38 @@ void strength_click() {
 	gidx = map[x][y].guidx;
 	aidx = map[x][y].auidx;
 
-	if (pgf_mode) str_limit=20;
+	if (pgf_mode) {
+		str_limit = 20;
+	}
 
 	//left click with ground units showing and unit there
-	if ((mouse_b & 1) && show_unit_layer_type != 1 && gidx >= 0)
+	if ((mouse_b & 1) && show_unit_layer_type != 1 && gidx >= 0) {
 		if (all_units[gidx].str < str_limit) {
 			++all_units[gidx].str;
 			changed = 1;
 		}
+	}
 	//left click for air unit
-	if ((mouse_b & 1) && show_unit_layer_type == 1 && aidx > +0)
+	if ((mouse_b & 1) && show_unit_layer_type == 1 && aidx > +0) {
 		if (all_units[aidx].str < str_limit) {
 			++all_units[aidx].str;
 			changed = 1;
 		}
+	}
 	//rigt click on ground
-	if ((mouse_b & 2) && show_unit_layer_type != 1 && gidx >= 0)
+	if ((mouse_b & 2) && show_unit_layer_type != 1 && gidx >= 0) {
 		if (all_units[gidx].str > 1) {
 			--all_units[gidx].str;
 			changed = 1;
 		}
+	}
 	//right click on air
-	if ((mouse_b & 2) && show_unit_layer_type == 1 && aidx >= 0) //there's an air unit
+	if ((mouse_b & 2) && show_unit_layer_type == 1 && aidx >= 0) { //there's an air unit
 		if (all_units[aidx].str > 1) {
 			--all_units[aidx].str;
 			changed = 1;
 		}
+	}
 
 	if ((changed) && (showCounter == 0)) {
 		draw_map(map_bmp, map_x0, map_y0, tiles_high, tiles_wide);
@@ -378,36 +389,38 @@ void experience_click() {
 	aidx = map[x][y].auidx;
 
 	//left click with ground units showing and unit there
-	if ((mouse_b & 1) && show_unit_layer_type != 1 && gidx >= 0)
+	if ((mouse_b & 1) && show_unit_layer_type != 1 && gidx >= 0) {
 		if (all_units[gidx].exp < 5) {
 			++all_units[gidx].exp;
 			changed = 1;
 		}
+	}
 	//left click fro air unit
-	if ((mouse_b & 1) && show_unit_layer_type == 1 && aidx > +0)
+	if ((mouse_b & 1) && show_unit_layer_type == 1 && aidx > +0) {
 		if (all_units[aidx].exp < 5) {
 			++all_units[aidx].exp;
 			changed = 1;
 		}
+	}
 	//rigt click on ground
-	if ((mouse_b & 2) && show_unit_layer_type != 1 && gidx >= 0)
+	if ((mouse_b & 2) && show_unit_layer_type != 1 && gidx >= 0) {
 		if (all_units[gidx].exp > 0) {
 			--all_units[gidx].exp;
 			changed = 1;
 		}
+	}
 	//right click on  air
-	if ((mouse_b & 2) && show_unit_layer_type == 1 && aidx >= 0) //there's an air unit
+	if ((mouse_b & 2) && show_unit_layer_type == 1 && aidx >= 0) { //there's an air unit
 		if (all_units[aidx].exp > 0) {
 			--all_units[aidx].exp;
 			changed = 1;
 		}
-
+	}
 	if ((changed) && (showCounter == 1)) {
 		draw_map(map_bmp, map_x0, map_y0, tiles_high, tiles_wide);
 		main_dlg[dmMapBmpIdx].flags |= D_DIRTY;
 		//broadcast_dialog_message(MSG_DRAW, 0);
 	}
-
 }
 
 void entrench_click() {
@@ -418,17 +431,19 @@ void entrench_click() {
 	gidx = map[x][y].guidx;
 
 	//left click with ground units showing and unit there
-	if ((mouse_b & 1) && show_unit_layer_type != 1 && gidx >= 0)
+	if ((mouse_b & 1) && show_unit_layer_type != 1 && gidx >= 0) {
 		if (all_units[gidx].entrench < 9) {
 			++all_units[gidx].entrench;
 			changed = 1;
 		}
+	}
 	//rigt click on ground
-	if ((mouse_b & 2) && show_unit_layer_type != 1 && gidx >= 0)
+	if ((mouse_b & 2) && show_unit_layer_type != 1 && gidx >= 0) {
 		if (all_units[gidx].entrench > 0) {
 			--all_units[gidx].entrench;
 			changed = 1;
 		}
+	}
 
 	if ((changed) && (showCounter == 2)) {
 		draw_map(map_bmp, map_x0, map_y0, tiles_high, tiles_wide);
@@ -455,7 +470,7 @@ void victory_click() {
 		map[x][y].vic = 0;
 	}
 	sprintf(MapStatusTxt, "Editing Victory Hexes \n Now %d of %d Max\n", count_vic_hexes(), MAX_VICTORY_HEXES);
-	strncat(MapStatusTxt, "Left Click to add\nRight Click to remove",256);
+	strncat(MapStatusTxt, "Left Click to add\nRight Click to remove",256-1);
 	draw_map(map_bmp, map_x0, map_y0, tiles_high, tiles_wide);
 	main_dlg[dmMapBmpIdx].flags |= D_DIRTY;
 	main_dlg[dmMapStatusIdx].flags |= D_DIRTY;
@@ -468,8 +483,8 @@ void frg_select_click() {
 	int x0=0, y0=0;
 	//int x1,y1;
 	int found, tile_to_save, fragment_type;
-	char line[1024];
-	char tmp_line[256];
+	char line[1024+1];
+	char tmp_line[256+1];
 	char path[MAX_PATH] = ".\\";
 	FILE *outf;
 
@@ -480,15 +495,18 @@ void frg_select_click() {
 	if (mouse_b & 1) {
 		if (key_shifts & KB_SHIFT_FLAG) {
 			//clear all
-			for (y = 0; y < mapy ; ++y)
-				for (x = 0; x < mapx ; ++x)
+			for (y = 0; y < mapy; ++y) {
+				for (x = 0; x < mapx; ++x) {
 					map[x][y].shade &= ~SELECTED_FRG_MASK;
+				}
+			}
 		} else {
 			//toggle
-			if (map[x][y].shade & SELECTED_FRG_MASK)
+			if (map[x][y].shade & SELECTED_FRG_MASK) {
 				map[x][y].shade &= ~SELECTED_FRG_MASK;
-			else
+			} else {
 				map[x][y].shade |= SELECTED_FRG_MASK;
+			}
 		}
 	}
 
@@ -496,8 +514,8 @@ void frg_select_click() {
 	if (mouse_b & 2) {
 		//first find is there is anything selected
 		found = 0;
-		for (x = 0; x < mapx; ++x)
-			for (y = 0; y < mapy; ++y)
+		for (x = 0; x < mapx; ++x) {
+			for (y = 0; y < mapy; ++y) {
 				if (map[x][y].shade & SELECTED_FRG_MASK) {
 					found = 1;
 					x0 = x;
@@ -505,14 +523,18 @@ void frg_select_click() {
 					x = mapx;
 					break;
 				}
-		for (y = 0; y < mapy; ++y)
-			for (x = 0; x < mapx; ++x)
+			}
+		}
+		for (y = 0; y < mapy; ++y) {
+			for (x = 0; x < mapx; ++x) {
 				if (map[x][y].shade & SELECTED_FRG_MASK) {
 					found = 1;
 					y0 = y;
 					y = mapy;
 					break;
 				}
+			}
+		}
 
 		/*for (y = mapy-1; y >= 0 ; --y)
 		 for (x = mapx-1; x >= 0 ; --x)
@@ -554,24 +576,20 @@ void frg_select_click() {
 					for (y = y0; y < y0 + FRG_Y_SIZE; ++y) {
 						strncpy(line, "",1024);
 						for (x = x0; x < x0 + FRG_X_SIZE; ++x) {
-							if (x < mapx && y < mapy && (map[x][y].shade & SELECTED_FRG_MASK))
+							if (x < mapx && y < mapy && (map[x][y].shade & SELECTED_FRG_MASK)) {
 								tile_to_save = map[x][y].tile;
-							else
+							} else {
 								tile_to_save = -1;
+							}
 							//printf("%d %d %d\n",x,y,tile_to_save);
 							sprintf(tmp_line, "%d%c", tile_to_save, (x - x0 < FRG_X_SIZE - 1) ? '\t' : ' ');
-							strncat(line, tmp_line,1024);
+							strncat(line, tmp_line, 1024);
 						}
 						fake_UTF_write_string_with_eol(outf, line);
 					}
 					fake_UTF_write_string_with_eol(outf, "");
 					fclose(outf);
 				}//outf ok
-
-				//else{
-				//	return ERROR_TEXT_MAP_FRAGMENT_BASE+ERROR_FPGE_FILE_CANNOT_BE_WRITTEN;
-				//}
-
 			}//file_select_ex
 		}
 	}
@@ -590,45 +608,55 @@ void transport_click() {
 
 	if (key_shifts & KB_SHIFT_FLAG) {
 		idx = -1;
-		if (map[x0][y0].guidx > -1)
+		if (map[x0][y0].guidx > -1) {
 			idx = map[x0][y0].guidx;
-		if (map[x0][y0].auidx > -1 && show_unit_layer_type==1)
+		}
+		if (map[x0][y0].auidx > -1 && show_unit_layer_type == 1) {
 			idx = map[x0][y0].auidx;
+		}
 
-		if ((mouse_b & 1) && idx > -1 && all_units[idx].auxtnum > 0)
+		if ((mouse_b & 1) && idx > -1 && all_units[idx].auxtnum > 0) {
 			all_units[idx].auxtnum = 0;
-		if ((mouse_b & 2) && idx > -1 && all_units[idx].orgtnum > 0)
+		}
+		if ((mouse_b & 2) && idx > -1 && all_units[idx].orgtnum > 0) {
 			all_units[idx].orgtnum = 0;
+		}
 	} else {
 
 		//left click
 		if (mouse_b & 1) {
 			idx = -1;
-			if (map[x0][y0].guidx > -1)
+			if (map[x0][y0].guidx > -1) {
 				idx = map[x0][y0].guidx;
-			if (map[x0][y0].auidx > -1)
+			}
+			if (map[x0][y0].auidx > -1) {
 				idx = map[x0][y0].auidx;
+			}
 			if (idx > -1) {
-				if (all_units[idx].uflag == allied_core || all_units[idx].uflag == allied_aux)
+				if (all_units[idx].uflag == allied_core || all_units[idx].uflag == allied_aux) {
 					all_units[idx].auxtnum = s4_buffer[ALLIED_SEA_TYPE] + 256 * s4_buffer[ALLIED_SEA_TYPE + 1];
-				else
+				} else {
 					all_units[idx].auxtnum = s4_buffer[AXIS_SEA_TYPE] + 256 * s4_buffer[AXIS_SEA_TYPE + 1];
+				}
 			}
 		}
 		//right click
 		if (mouse_b & 2) {
 			idx = -1;
-			if (map[x0][y0].guidx > -1)
+			if (map[x0][y0].guidx > -1) {
 				idx = map[x0][y0].guidx;
-			if (map[x0][y0].auidx > -1)
+			}
+			if (map[x0][y0].auidx > -1) {
 				idx = map[x0][y0].auidx;
+			}
 			//printf("r idx=%d\n",idx);
 			//printf("AXIS_AIR_TYPE=%d\n",s4_buffer[AXIS_AIR_TYPE]+256*s4_buffer[AXIS_AIR_TYPE+1]);
 			if (idx > -1) {
-				if (all_units[idx].uflag == allied_core || all_units[idx].uflag == allied_aux)
+				if (all_units[idx].uflag == allied_core || all_units[idx].uflag == allied_aux) {
 					all_units[idx].auxtnum = s4_buffer[ALLIED_AIR_TYPE] + 256 * s4_buffer[ALLIED_AIR_TYPE + 1];
-				else
+				} else {
 					all_units[idx].auxtnum = s4_buffer[AXIS_AIR_TYPE] + 256 * s4_buffer[AXIS_AIR_TYPE + 1];
+				}
 			}
 		}
 	}
@@ -650,12 +678,13 @@ void frg_place_click() {
 
 	//left click
 	if (mouse_b & 1) {
-
 		if (frg_x0 == x0 && frg_y0 == y0) {
-			if (x0 == 0)
+			if (x0 == 0) {
 				frg_dx0 = (frg_dx0 + 2 * map_frg_dx - 2) % map_frg_dx - map_frg_dx + 1;
-			if (y0 == 0)
+			}
+			if (y0 == 0) {
 				frg_dy0 = (frg_dy0 + 2 * map_frg_dy - 2) % map_frg_dy - map_frg_dy + 1;
+			}
 		} else {
 			frg_dx0 = 0;
 			frg_dy0 = 0;
@@ -667,10 +696,11 @@ void frg_place_click() {
 		frg_x = x0 + frg_dx0;
 		frg_y = y0 + frg_dy0;
 		//we must handle x<0 properly in % so we add 100
-		if ((frg_x + 100) % 2 != map_frg_off)
+		if ((frg_x + 100) % 2 != map_frg_off) {
 			mode = 1;
-		else
+		} else {
 			mode = 0;
+		}
 
 		//clear
 		for (x = 0; x < mapx; x++)
@@ -679,34 +709,38 @@ void frg_place_click() {
 		//mark
 		for (x = 0; x < FRG_X_SIZE; ++x)
 			for (y = 0; y < FRG_Y_SIZE; ++y)
-				if (map_frg[y][x] > -1 && x + frg_x > -1 && y + frg_y + mode * ((x + frg_x + 1) % 2) > -1 && x + frg_x < mapx && y + frg_y + mode * ((x + frg_x + 1) % 2) < mapy)
+				if (map_frg[y][x] > -1 && x + frg_x > -1 && y + frg_y + mode * ((x + frg_x + 1) % 2) > -1 && x + frg_x < mapx && y + frg_y + mode * ((x + frg_x + 1) % 2) < mapy) {
 					map[x + frg_x][y + frg_y + mode * ((x + frg_x + 1) % 2)].shade |= PLACED_FRG_MASK;
+				}
 
 	}
 	//right click
 	if ((mouse_b & 2) && x0 != -1) {
 		//clear
-		for (x = 0; x < mapx; x++)
-			for (y = 0; y < mapy; y++)
+		for (x = 0; x < mapx; x++) {
+			for (y = 0; y < mapy; y++) {
 				map[x][y].shade &= ~PLACED_FRG_MASK;
+			}
+		}
 		//we must handle x<0 properly in % so we add 100
-		if ((frg_x + 100) % 2 != map_frg_off)
+		if ((frg_x + 100) % 2 != map_frg_off) {
 			mode = 1;
-		else
+		} else {
 			mode = 0;
+		}
 		//place
 		open_push_undo_sequenece();
-		for (x = 0; x < FRG_X_SIZE; ++x)
-			for (y = 0; y < FRG_Y_SIZE; ++y)
-				if (map_frg[y][x] > -1 && x + frg_x > -1 && y + frg_y + mode * ((x + frg_x + 1) % 2) > -1 && x + frg_x < mapx && y + frg_y + mode * ((x + frg_x + 1) % 2) < mapy){
-					xx=x + frg_x;
-					yy=y + frg_y + mode * ((x + frg_x + 1) % 2);
-					push_undo_tile(xx,yy);
+		for (x = 0; x < FRG_X_SIZE; ++x) {
+			for (y = 0; y < FRG_Y_SIZE; ++y) {
+				if (map_frg[y][x] > -1 && x + frg_x > -1 && y + frg_y + mode * ((x + frg_x + 1) % 2) > -1 && x + frg_x < mapx && y + frg_y + mode * ((x + frg_x + 1) % 2) < mapy) {
+					xx = x + frg_x;
+					yy = y + frg_y + mode * ((x + frg_x + 1) % 2);
+					push_undo_tile(xx, yy);
 					map[xx][yy].tile = map_frg[y][x];
 				}
-
+			}
+		}
 		close_push_undo_sequenece();
-
 	}
 	draw_map(map_bmp, map_x0, map_y0, tiles_high, tiles_wide);
 	main_dlg[dmMapBmpIdx].flags |= D_DIRTY;
@@ -730,8 +764,9 @@ void neutral_click() {
 		push_undo_one_tile(x,y);
 		map[x][y].side = 0;
 	}
-	if (show_ranges != 2)
+	if (show_ranges != 2) {
 		compute_shade(show_ranges);
+	}
 	draw_map(map_bmp, map_x0, map_y0, tiles_high, tiles_wide);
 	main_dlg[dmMapBmpIdx].flags |= D_DIRTY;
 	//broadcast_dialog_message(MSG_DRAW, 0);
@@ -746,17 +781,17 @@ void deploy_click() {
 	y = map_mouse_y;
 
 	//left click
-	if (mouse_b & 1){
-		push_undo_one_tile(x,y);
+	if (mouse_b & 1) {
+		push_undo_one_tile(x, y);
 		map[x][y].deploy = 1;
 	}
 	//right click
-	if (mouse_b & 2){
-		push_undo_one_tile(x,y);
+	if (mouse_b & 2) {
+		push_undo_one_tile(x, y);
 		map[x][y].deploy = 0;
 	}
 	sprintf(MapStatusTxt, "Editing Deployment Hexes \n Now %d of %d Max\n", count_deploy_hexes(), MAX_DEPLOY_HEXES);
-	strncat(MapStatusTxt, "Left Click to add\nRight Click to remove",256);
+	strncat(MapStatusTxt, "Left Click to add\nRight Click to remove", 256 - strlen(MapStatusTxt));
 	draw_map(map_bmp, map_x0, map_y0, tiles_high, tiles_wide);
 	main_dlg[dmMapBmpIdx].flags |= D_DIRTY;
 	main_dlg[dmMapStatusIdx].flags |= D_DIRTY;
@@ -774,16 +809,19 @@ void owner_click() {
 	if (key_shifts & KB_SHIFT_FLAG) {
 		own = 0;
 	} else {
-		own = (mouse_b & 1 ? scn_buffer[0] : scn_buffer[1]);
-		if (map[x][y].side == 3)
+		own = ((mouse_b & 1) ? scn_buffer[0] : scn_buffer[1]);
+		if (map[x][y].side == 3) {
 			own = Neutral[0];
+		}
 	}
 	if (key_shifts & KB_ALT_FLAG) {
 		//change unit flag
-		if (map[x][y].guidx > -1 && show_unit_layer_type == 0)
+		if (map[x][y].guidx > -1 && show_unit_layer_type == 0) {
 			idx = map[x][y].guidx;
-		if (map[x][y].auidx > -1 && show_unit_layer_type == 1)
+		}
+		if (map[x][y].auidx > -1 && show_unit_layer_type == 1) {
 			idx = map[x][y].auidx;
+		}
 
 		if (idx > -1) {
 			all_units[idx].country = own;
@@ -794,50 +832,56 @@ void owner_click() {
 	if (!done) {
 		//left click
 		if (mouse_b & 1) {
-			push_undo_one_tile(x,y);
+			push_undo_one_tile(x, y);
 			map[x][y].own = own;
-			if (map[x][y].side != 3)
+			if (map[x][y].side != 3) {
 				map[x][y].side = 0;
+			}
 		}
 		//right click
 		if (mouse_b & 2) {
-			push_undo_one_tile(x,y);
+			push_undo_one_tile(x, y);
 			map[x][y].own = own;
-			if (map[x][y].side != 3)
+			if (map[x][y].side != 3) {
 				map[x][y].side = 1;
+			}
 		}
 	}
 	// update scan ranges
-	if (show_ranges != 2)
+	if (show_ranges != 2) {
 		compute_shade(show_ranges);
+	}
 	draw_map(map_bmp, map_x0, map_y0, tiles_high, tiles_wide);
 	main_dlg[dmMapBmpIdx].flags |= D_DIRTY;
 	//d_mapbmp_proc(MSG_DRAW,&(main_dlg[dmMapBmpIdx]),0);
 }
 
 void do_place_status() {
-	 char line1[64], line2[64], tmp[64], tmp2[64];
+	char line1[64+1], line2[64+1], tmp[64+1], tmp2[64+1];
 
-	strncpy(MapStatusTxt, "Left Click to place\nRight Click: copy&remove",256);
-	if (unum_selected > 0)
-		strncpy(tmp2, equip_name_utf8[unum_selected],64);
-	else
-		strncpy(tmp2, "-",64);
-	if (tnum_selected > 0)
-		strncpy(tmp, equip_name_utf8[tnum_selected],64);
-	else
-		strncpy(tmp, "-",64);
+	strncpy(MapStatusTxt, "Left Click to place\nRight Click: copy&remove", 256);
+	if (unum_selected > 0) {
+		strncpy(tmp2, equip_name_utf8[unum_selected], 64);
+	} else {
+		strncpy(tmp2, "-", 64);
+	}
+	if (tnum_selected > 0) {
+		strncpy(tmp, equip_name_utf8[tnum_selected], 64);
+	} else {
+		strncpy(tmp, "-", 64);
+	}
 	sprintf(line1, "\n%s/%s", tmp2, tmp);
-	strncat(MapStatusTxt, line1,64);
-	if (anum_selected > 0)
-		strncpy(tmp, equip_name_utf8[anum_selected],64);
-	else
-		strncpy(tmp, "-",64);
+	strncat(MapStatusTxt, line1, 64);
+	if (anum_selected > 0) {
+		strncpy(tmp, equip_name_utf8[anum_selected], 64);
+	} else {
+		strncpy(tmp, "-", 64);
+	}
 	sprintf(line1, "\nAux. T. %s", tmp);
-	strncat(MapStatusTxt, line1,64);
+	strncat(MapStatusTxt, line1, 64);
 	sprintf(line2, "\n(str=%d exp=%d ent=%d)", ustr_selected, uexp_selected, uent_selected);
 
-	strncat(MapStatusTxt, line2,64);
+	strncat(MapStatusTxt, line2, 64);
 }
 
 void place_unit_click() {
@@ -851,10 +895,11 @@ void place_unit_click() {
 	// process a right click on a ground or air unit
 	if ((map[x][y].guidx >= 0 || map[x][y].auidx >= 0) && (mouse_b & 2)) {
 		//set the current place unit to this unit's data
-		if (show_unit_layer_type == 1)
+		if (show_unit_layer_type == 1) {
 			idx = map[x][y].auidx;
-		else
+		} else {
 			idx = map[x][y].guidx;
+		}
 		unum_selected = all_units[idx].unum;
 		tnum_selected = all_units[idx].orgtnum;
 		anum_selected = all_units[idx].auxtnum;
@@ -865,10 +910,11 @@ void place_unit_click() {
 		uent_selected = all_units[idx].entrench;
 
 		//get rid of the unit
-		if (show_unit_layer_type != 1)
+		if (show_unit_layer_type != 1) {
 			remove_gunit(x, y);
-		else
+		} else {
 			remove_aunit(x, y);
+		}
 
 		do_place_status();
 		main_dlg[dmMapStatusIdx].flags |= D_DIRTY;
@@ -879,12 +925,11 @@ void place_unit_click() {
 		main_dlg[dmSeaRBIdx].flags &= ~D_SELECTED;
 		main_dlg[dmNoneRBIdx].flags &= ~D_SELECTED;
 
-		if (show_unit_layer_type == 1){
+		if (show_unit_layer_type == 1) {
 			main_dlg[dmAirRBIdx].flags |= D_SELECTED;
-		}
-		else{
+		} else {
 			main_dlg[dmGndRBIdx].flags |= D_SELECTED;
-			show_unit_layer_type=0;
+			show_unit_layer_type = 0;
 		}
 
 		main_dlg[dmGndRBIdx].flags |= D_DIRTY;
@@ -927,14 +972,17 @@ void place_unit_click() {
 	}
 	//-----end right click on unit --------------
 	//-------- process a left click ---------------
-	if (unum_selected <= 0)
+	if (unum_selected <= 0) {
 		utype = none;
-	else if (equip[unum_selected][GAF] == 1)
-		utype = air;
-	else
-		utype = ground;
+	} else {
+		if (equip[unum_selected][GAF] == 1) {
+			utype = air;
+		} else {
+			utype = ground;
+		}
+	}
 	//place a ground unit
-	if (/*map[x][y].guidx < 0 &&*/show_unit_layer_type != 1 && utype == ground && (mouse_b & 1)) {
+	if (show_unit_layer_type != 1 && utype == ground && (mouse_b & 1)) {
 		switch (ubelongs) {
 		case axis_core:
 			where_add_new = total_axis_core;
@@ -979,7 +1027,7 @@ void place_unit_click() {
 		++total_units;
 	}
 	//place an air unit
-	if (/*map[x][y].auidx < 0 && */show_unit_layer_type == 1 && utype == air && (mouse_b & 1)) {
+	if (show_unit_layer_type == 1 && utype == air && (mouse_b & 1)) {
 		switch (ubelongs) {
 		case axis_core:
 			where_add_new = total_axis_core;
@@ -1023,8 +1071,9 @@ void place_unit_click() {
 		++total_units;
 	}
 
-	if (show_ranges != 2)
+	if (show_ranges != 2) {
 		compute_shade(show_ranges);
+	}
 
 	draw_map(map_bmp, map_x0, map_y0, tiles_high, tiles_wide);
 	main_dlg[dmMapBmpIdx].flags |= D_DIRTY;
@@ -1050,8 +1099,9 @@ void tile_make_matrix() {
 	map_mouse_y = -1;
 
 	//save all tiles
-	for (i = 0; i < matrix_x * matrix_y; ++i)
+	for (i = 0; i < matrix_x * matrix_y; ++i) {
 		temp[i] = map[i % (matrix_x)][i / (matrix_x)].tile;
+	}
 
 	draw_tiles_matrix();
 	tile_mode = 1; // we must cleanup afterwards
@@ -1079,8 +1129,9 @@ void tile_cleanup() {
 	map_mouse_y = -1;
 
 	tile_mode = 0;
-	for (i = 0; i < matrix_x * matrix_y; ++i)
+	for (i = 0; i < matrix_x * matrix_y; ++i) {
 		map[i % (matrix_x)][i / (matrix_x)].tile = temp[i];
+	}
 	//cleanup
 	map_x0 = x0temp;
 	map_y0 = y0temp;
@@ -1112,8 +1163,9 @@ void tile_click() {
 	main_dlg[dmTileBtnIdx].flags &= ~D_SELECTED;
 	d_btn_proc(MSG_DRAW, &(main_dlg[dmTileBtnIdx]), 0);
 	if (map_mouse_x < matrix_x && map_mouse_y < matrix_y ) {
-		if (map[map_mouse_x][map_mouse_y].tile ==BLACK_TILE)
+		if (map[map_mouse_x][map_mouse_y].tile == BLACK_TILE) {
 			return; //do nothing
+		}
 		idx = map[map_mouse_x][map_mouse_y].tile;
 		sprintf(tdTNStr, "%d", idx);
 
@@ -1147,36 +1199,42 @@ void tile_click() {
 
 void copyToTerrain(int x, int y) {
 
-	if (x<0 || x>=mapx || y<0 || y>=mapy) return; //out of map
+	if (x < 0 || x >= mapx || y < 0 || y >= mapy) {
+		return; //out of map
+	}
 
 	if (tdMatchMatchOn) {
 		if (tdTTStrOn) {
 			if (tdTTStrMatchOn) {
 				if (map[x][y].utr == atoi(tdTTStrMatch))
 					map[x][y].utr = atoi(tdTTStr);
-			} else
+			} else {
 				map[x][y].utr = atoi(tdTTStr);
+			}
 		}
 		if (tdRDStrOn) {
 			if (tdRDStrMatchOn) {
 				if (map[x][y].rc == atoi(tdRDStrMatch))
 					map[x][y].rc = atoi(tdRDStr);
-			} else
+			} else {
 				map[x][y].rc = atoi(tdRDStr);
+			}
 		}
 		if (tdTNStrOn) {
 			if (tdTNStrMatchOn) {
 				if (map[x][y].tile == atoi(tdTNStrMatch))
 					map[x][y].tile = atoi(tdTNStr);
-			} else
+			} else {
 				map[x][y].tile = atoi(tdTNStr);
+			}
 		}
 		if (tdGLNStrOn) {
 			if (tdGLNStrMatchOn) {
 				if (map[x][y].gln == atoi(tdGLNStrMatch))
 					map[x][y].gln = atoi(tdGLNStr);
-			} else
+			} else {
 				map[x][y].gln = atoi(tdGLNStr);
+			}
 		}
 		if (tdSDStrOn) {
 			if (tdSDStrMatchOn) {
@@ -1188,16 +1246,21 @@ void copyToTerrain(int x, int y) {
 			}
 		}
 	} else {
-		if (tdTTStrOn)
+		if (tdTTStrOn) {
 			map[x][y].utr = atoi(tdTTStr);
-		if (tdRDStrOn)
+		}
+		if (tdRDStrOn) {
 			map[x][y].rc = atoi(tdRDStr);
-		if (tdTNStrOn)
+		}
+		if (tdTNStrOn) {
 			map[x][y].tile = atoi(tdTNStr);
-		if (tdGLNStrOn)
+		}
+		if (tdGLNStrOn) {
 			map[x][y].gln = atoi(tdGLNStr);
-		if (tdSDStrOn)
+		}
+		if (tdSDStrOn) {
 			map[x][y].side = atoi(tdSDStr);
+		}
 	}
 }
 
@@ -1217,15 +1280,16 @@ void terrain_click() {
 				esy = (y > last_map_mouse_y) ? y : last_map_mouse_y;
 
 				open_push_undo_sequenece();
-				for (i = ssx; i <= esx; i++)
-					for (j = ssy; j <= esy; j++){
-						if (rand()%100 < prob ){
-							if ( (TTData_Max_Tiles[map[x][y].tile] == 0 && GUI_only_on_clear) || !GUI_only_on_clear){
+				for (i = ssx; i <= esx; i++) {
+					for (j = ssy; j <= esy; j++) {
+						if (rand() % 100 < prob) {
+							if ((TTData_Max_Tiles[map[x][y].tile] == 0 && GUI_only_on_clear) || !GUI_only_on_clear) {
 								push_undo_tile(i, j);
 								copyToTerrain(i, j);
 							}
 						}
 					}
+				}
 				close_push_undo_sequenece();
 			}
 		} else {
@@ -1241,28 +1305,27 @@ void terrain_click() {
 
 			if (GUI_use_brush) {
 				int r=atoi(tdRadiusStr);
-				for (i = 0; i <= r; i++){
-					for (j = -r + i / 2; j <= r - (i + 1) / 2; j++)
-						{
-							if (rand()%100 < prob ){
-								xx0 = x + i;
-								yy0 = y + j + x % 2 * (x + i + 1) % 2;
-								if ( (TTData_Max_Tiles[map[xx0][yy0].tile] == 0 && GUI_only_on_clear) || !GUI_only_on_clear){
-									push_undo_tile(xx0, yy0);
-									copyToTerrain(xx0, yy0);
-								}
+				for (i = 0; i <= r; i++) {
+					for (j = -r + i / 2; j <= r - (i + 1) / 2; j++) {
+						if (rand() % 100 < prob) {
+							xx0 = x + i;
+							yy0 = y + j + x % 2 * (x + i + 1) % 2;
+							if ((TTData_Max_Tiles[map[xx0][yy0].tile] == 0 && GUI_only_on_clear) || !GUI_only_on_clear) {
+								push_undo_tile(xx0, yy0);
+								copyToTerrain(xx0, yy0);
 							}
-							if (rand()%100 < prob ){
-								xx0 = x - i;
-								yy0 = y + j + x % 2 * (x + i + 1) % 2;
-								if ((TTData_Max_Tiles[map[xx0][yy0].tile] == 0 && GUI_only_on_clear) || !GUI_only_on_clear){
-									push_undo_tile(xx0, yy0);
-									copyToTerrain(xx0, yy0);
-								}
+						}
+						if (rand() % 100 < prob) {
+							xx0 = x - i;
+							yy0 = y + j + x % 2 * (x + i + 1) % 2;
+							if ((TTData_Max_Tiles[map[xx0][yy0].tile] == 0 && GUI_only_on_clear) || !GUI_only_on_clear) {
+								push_undo_tile(xx0, yy0);
+								copyToTerrain(xx0, yy0);
 							}
 						}
 					}
 				}
+			}
 			close_push_undo_sequenece();
 		}
 
@@ -1274,16 +1337,21 @@ void terrain_click() {
 	}
 	//right click
 	if (mouse_b & 2) {
-		if (tdTTStrOn)
+		if (tdTTStrOn) {
 			sprintf(tdTTStr, "%d", map[x][y].utr);
-		if (tdRDStrOn)
+		}
+		if (tdRDStrOn) {
 			sprintf(tdRDStr, "%d", map[x][y].rc);
-		if (tdTNStrOn)
+		}
+		if (tdTNStrOn) {
 			sprintf(tdTNStr, "%d", map[x][y].tile);
-		if (tdGLNStrOn)
+		}
+		if (tdGLNStrOn) {
 			sprintf(tdGLNStr, "%d", map[x][y].gln);
-		if (tdSDStrOn)
+		}
+		if (tdSDStrOn) {
 			sprintf(tdSDStr, "%d", map[x][y].side);
+		}
 		//setup_terrain_info();
 		setup_terrain_info();
 		main_dlg[dmMapStatusIdx].flags |= D_DIRTY;
@@ -1319,23 +1387,25 @@ void rimp_click() {
 					fread(&dy, sizeof(dy), 1, inf);
 					fread(&off, sizeof(off), 1, inf);
 					off_now = x % 2;
-					if (off_now != off)
+					if (off_now != off) {
 						mode = 1;
+					}
 					// tile numbers
 					open_push_undo_sequenece();
 
-					for (i = y; i <= y + dy; ++i)
+					for (i = y; i <= y + dy; ++i) {
 						for (j = x; j <= x + dx; ++j) {
 							//read always
 							fread(&tile, 2, 1, inf);
 							//check for map boundary
-							if ((j < mapx) && (i + mode * ((j + 1) % 2) < mapy)){
-								xx=j;
-								yy=i + mode * ((j + 1) % 2);
-								push_undo_tile(xx,yy);
+							if ((j < mapx) && (i + mode * ((j + 1) % 2) < mapy)) {
+								xx = j;
+								yy = i + mode * ((j + 1) % 2);
+								push_undo_tile(xx, yy);
 								map[xx][yy].tile = tile;
 							}
 						}
+					}
 					close_push_undo_sequenece();
 					draw_map(map_bmp, map_x0, map_y0, tiles_high, tiles_wide);
 				} else {
@@ -1399,11 +1469,12 @@ void rexp_click() {
 					off = ssx % 2;
 					fwrite(&off, sizeof(off), 1, outf);
 					// tile numbers
-					for (i = ssy; i <= esy; ++i)
+					for (i = ssy; i <= esy; ++i) {
 						for (j = ssx; j <= esx; ++j) {
 							fputc(map[j][i].tile & 255, outf);
 							fputc(map[j][i].tile / 256, outf);
 						}
+					}
 					fclose(outf);
 
 				} else {
@@ -1432,8 +1503,9 @@ int filter_roads(int x, int y) {
 
 	//find road_tiles index
 	central_tile_idx = get_road_tile_index(map[x][y].tile);
-	if (central_tile_idx == -1)
+	if (central_tile_idx == -1) {
 		return 0; //trying to check non road tile, exit
+	}
 
 	for (i = 0; i < 6; i++) {
 		//printf("nr %d-(%d:%d)\n",i,x+dx_tab[i],y+dy_tab[i][x%2]);
@@ -1469,18 +1541,24 @@ int find_one_way_road(int x, int y) {
 	int rc = map[x][y].rc;
 
 	if (map[x][y].rc > 0) {
-		if ((map[x][y].rc & 0x80) && map[x - 1][y - 1 + x % 2].rc > 0 && !(map[x - 1][y - 1 + x % 2].rc & 0x08))
+		if ((map[x][y].rc & 0x80) && map[x - 1][y - 1 + x % 2].rc > 0 && !(map[x - 1][y - 1 + x % 2].rc & 0x08)) {
 			rc &= ~0x80;
-		if ((map[x][y].rc & 0x01) && map[x][y - 1].rc > 0 && !(map[x][y - 1].rc & 0x10))
+		}
+		if ((map[x][y].rc & 0x01) && map[x][y - 1].rc > 0 && !(map[x][y - 1].rc & 0x10)) {
 			rc &= ~0x01;
-		if ((map[x][y].rc & 0x02) && map[x + 1][y - 1 + x % 2].rc > 0 && !(map[x + 1][y - 1 + x % 2].rc & 0x20))
+		}
+		if ((map[x][y].rc & 0x02) && map[x + 1][y - 1 + x % 2].rc > 0 && !(map[x + 1][y - 1 + x % 2].rc & 0x20)) {
 			rc &= ~0x02;
-		if ((map[x][y].rc & 0x08) && map[x + 1][y + x % 2].rc > 0 && !(map[x + 1][y + x % 2].rc & 0x80))
+		}
+		if ((map[x][y].rc & 0x08) && map[x + 1][y + x % 2].rc > 0 && !(map[x + 1][y + x % 2].rc & 0x80)) {
 			rc &= ~0x08;
-		if ((map[x][y].rc & 0x10) && map[x][y + 1].rc > 0 && !(map[x][y + 1].rc & 0x01))
+		}
+		if ((map[x][y].rc & 0x10) && map[x][y + 1].rc > 0 && !(map[x][y + 1].rc & 0x01)) {
 			rc &= ~0x10;
-		if ((map[x][y].rc & 0x20) && map[x - 1][y + x % 2].rc > 0 && !(map[x - 1][y + x % 2].rc & 0x02))
+		}
+		if ((map[x][y].rc & 0x20) && map[x - 1][y + x % 2].rc > 0 && !(map[x - 1][y + x % 2].rc & 0x02)) {
 			rc &= ~0x20;
+		}
 	}
 	return rc;
 }
@@ -1553,7 +1631,7 @@ void none_click() {
 
 int d_mapbmp_proc(int msg, DIALOG *d, int c) {
 	int column, row, X, Y, idx, v=D_O_K, tt, tn, t;
-	char line1[64], line2[64], line3[64], line4[64];
+	char line1[64+1], line2[64+1], line3[64+1], line4[64+1];
 
 	if (msg == MSG_DRAW) {
 		//print_str("MSG_DRAW");
@@ -1573,49 +1651,68 @@ int d_mapbmp_proc(int msg, DIALOG *d, int c) {
 		X = mouse_x;
 		Y = mouse_y - LINE_2_Y;
 		column = (X - 8) / TILE_WIDTH;
-		if (column < 0)
+		if (column < 0) {
 			column = 0;
-		if ((column + map_x0 % 2) % 2)
+		}
+		if ((column + map_x0 % 2) % 2) {
 			row = (Y - TILE_HEIGHT / 2) / TILE_HEIGHT;
-		else
+		} else {
 			row = Y / TILE_HEIGHT;
+		}
 		column += map_x0;
 		row += map_y0;
 
-		if (edit_op == edit_none)
+		if (edit_op == edit_none) {
 			none_click();
-		if (edit_op == edit_ent)
+		}
+		if (edit_op == edit_ent) {
 			entrench_click();
-		if (edit_op == edit_str)
+		}
+		if (edit_op == edit_str) {
 			strength_click();
-		if (edit_op == edit_exp)
+		}
+		if (edit_op == edit_exp) {
 			experience_click();
-		if (edit_op == edit_place)
+		}
+		if (edit_op == edit_place) {
 			place_unit_click();
-		if (edit_op == edit_vic)
+		}
+		if (edit_op == edit_vic) {
 			victory_click();
-		if (edit_op == edit_deploy)
+		}
+		if (edit_op == edit_deploy) {
 			deploy_click();
-		if (edit_op == edit_own)
+		}
+		if (edit_op == edit_own) {
 			owner_click();
-		if (edit_op == edit_ter)
+		}
+		if (edit_op == edit_ter) {
 			terrain_click();
-		if (edit_op == edit_tile)
+		}
+		if (edit_op == edit_tile) {
 			tile_click();
-		if (edit_op == edit_neutral)
+		}
+		if (edit_op == edit_neutral) {
 			neutral_click();
-		if (edit_op == edit_rimp)
+		}
+		if (edit_op == edit_rimp) {
 			rimp_click();
-		if (edit_op == edit_rexp)
+		}
+		if (edit_op == edit_rexp) {
 			rexp_click();
-		if (edit_op == edit_frg_select)
+		}
+		if (edit_op == edit_frg_select) {
 			frg_select_click();
-		if (edit_op == edit_frg_place)
+		}
+		if (edit_op == edit_frg_place) {
 			frg_place_click();
-		if (edit_op == edit_transport)
+		}
+		if (edit_op == edit_transport) {
 			transport_click();
-		if (edit_op == move_mode)
+		}
+		if (edit_op == move_mode) {
 			move_click();
+		}
 		map_mouse_x = -1; //force a redraw on idle of info
 
 	} //end click msg
@@ -1631,12 +1728,14 @@ int d_mapbmp_proc(int msg, DIALOG *d, int c) {
 		X = mouse_x;
 		Y = mouse_y - LINE_2_Y - top_spacer;
 		column = (X - 8) / TILE_WIDTH;
-		if (column < 0)
+		if (column < 0) {
 			column = 0;
-		if ((column + map_x0 % 2) % 2)
+		}
+		if ((column + map_x0 % 2) % 2) {
 			row = (Y - TILE_HEIGHT / 2) / TILE_HEIGHT;
-		else
+		} else {
 			row = Y / TILE_HEIGHT;
+		}
 		column += map_x0;
 		row += map_y0;
 		if (column != map_mouse_x || row != map_mouse_y) {
@@ -1652,26 +1751,28 @@ int d_mapbmp_proc(int msg, DIALOG *d, int c) {
 						tt = -1;
 						tn = -1;
 					}
-					sprintf(line1, "%2d,%2d\n", map_mouse_x, map_mouse_y);
-					if (t < MAX_TILES)
-						sprintf(line2, "Tile   : %d\n", t);
-					else
-						sprintf(line2, "\n");
-					if (tn > -1)
-						sprintf(line3, "Name   : %s (%d)\n", gln_utf8[tn], tn);
-					else
-						sprintf(line3, "\n");
-					if (tt > -1)
-						sprintf(line4, "Terrain: %s (%d)\n", utr_names[tt], tt);
-					else
-						sprintf(line4, "\n");
+					snprintf(line1, 64, "%2d,%2d\n", map_mouse_x, map_mouse_y);
+					if (t < MAX_TILES) {
+						snprintf(line2, 64, "Tile   : %d\n", t);
+					} else {
+						snprintf(line2, 64, "\n");
+					}
+					if (tn > -1) {
+						snprintf(line3, 64, "Name   : %s (%d)\n", gln_utf8[tn], tn);
+					} else {
+						snprintf(line3, 64, "\n");
+					}
+					if (tt > -1) {
+						snprintf(line4, 64, "Terrain: %s (%d)\n", utr_names[tt], tt);
+					} else {
+						snprintf(line4, 64, "\n");
+					}
 					//strncpy(line4,"",64);
 
 				} else {
-					sprintf(line1, "%2d,%2d %s\n", map_mouse_x, map_mouse_y, gln_utf8[map[map_mouse_x][map_mouse_y].gln]);
+					snprintf(line1, 64, "%2d,%2d %s\n", map_mouse_x, map_mouse_y, gln_utf8[map[map_mouse_x][map_mouse_y].gln]);
 
-					sprintf(line2, "(%2d,%2Xh,%3d,%4d,%d)\n",
-							//sprintf(line2, "(%2d,%2Xh,%2Xh,%4d,%d)\n",
+					snprintf(line2, 64, "(%2d,%2Xh,%3d,%4d,%d)\n",
 							map[map_mouse_x][map_mouse_y].utr, map[map_mouse_x][map_mouse_y].rc, map[map_mouse_x][map_mouse_y].tile, map[map_mouse_x][map_mouse_y].gln,
 							map[map_mouse_x][map_mouse_y].side);
 					//now we take care of the unit info
@@ -1680,39 +1781,40 @@ int d_mapbmp_proc(int msg, DIALOG *d, int c) {
 					if (show_unit_layer_type == 1 && map[map_mouse_x][map_mouse_y].auidx >= 0) //air unit visible and present
 					{
 						idx = map[map_mouse_x][map_mouse_y].auidx;
-						if (all_units[idx].uflag == axis_core || all_units[idx].uflag == allied_core)
+						if (all_units[idx].uflag == axis_core || all_units[idx].uflag == allied_core) {
 							//sprintf(line3,"+%s\n", equip[all_units[idx].unum]);
-							sprintf(line3, "+%s\n", equip_name_utf8[all_units[idx].unum]);
-						else
+							snprintf(line3, 64, "+%s\n", equip_name_utf8[all_units[idx].unum]);
+						} else {
 							//sprintf(line3,"%s\n", equip[all_units[idx].unum]);
-							sprintf(line3, "%s\n", equip_name_utf8[all_units[idx].unum]);
-
-						sprintf(line4, "(str %d,exp %d,ent %d)", all_units[idx].str, all_units[idx].exp, all_units[idx].entrench);
-
+							snprintf(line3, 64, "%s\n", equip_name_utf8[all_units[idx].unum]);
+						}
+						snprintf(line4, 64, "(str %d,exp %d,ent %d)", all_units[idx].str, all_units[idx].exp, all_units[idx].entrench);
 					}
 					if (show_unit_layer_type != 1 && map[map_mouse_x][map_mouse_y].guidx >= 0) //ground unit visible and present
 					{
 						idx = map[map_mouse_x][map_mouse_y].guidx;
-						if (all_units[idx].uflag == axis_core || all_units[idx].uflag == allied_core)
+						if (all_units[idx].uflag == axis_core || all_units[idx].uflag == allied_core) {
 							//sprintf(line3,"+%s", equip[all_units[idx].unum]);
-							sprintf(line3, "+%s", equip_name_utf8[all_units[idx].unum]);
-						else
+							snprintf(line3, 64, "+%s", equip_name_utf8[all_units[idx].unum]);
+						} else {
 							//sprintf(line3,"%s", equip[all_units[idx].unum]);
-							sprintf(line3, "%s", equip_name_utf8[all_units[idx].unum]);
-						if (all_units[idx].orgtnum > 0)
+							snprintf(line3, 64, "%s", equip_name_utf8[all_units[idx].unum]);
+						}
+						if (all_units[idx].orgtnum > 0) {
 							//sprintf(line4,"/%s\n",equip[all_units[idx].orgtnum]);
-							sprintf(line4, "/%s\n", equip_name_utf8[all_units[idx].orgtnum]);
-						else
-							sprintf(line4, "\n");
-						strncat(line3, line4,64);
-						sprintf(line4, "(str %d,exp %d,ent %d)", all_units[idx].str, all_units[idx].exp, all_units[idx].entrench);
+							snprintf(line4, 64, "/%s\n", equip_name_utf8[all_units[idx].orgtnum]);
+						} else {
+							snprintf(line4, 64, "\n");
+						}
+						strncat(line3, line4, 64-strlen(line3));
+						snprintf(line4, 64, "(str %d,exp %d,ent %d)", all_units[idx].str, all_units[idx].exp, all_units[idx].entrench);
 					}
 				}
-				MapInfoTxt[0] = 0;
-				strncat(MapInfoTxt, line1,64);
-				strncat(MapInfoTxt, line2,64);
-				strncat(MapInfoTxt, line3,64);
-				strncat(MapInfoTxt, line4,64);
+				//MapInfoTxt[0] = 0;
+				strncpy(MapInfoTxt, line1,256);
+				strncat(MapInfoTxt, line2,256-strlen(MapInfoTxt));
+				strncat(MapInfoTxt, line3,256-strlen(MapInfoTxt));
+				strncat(MapInfoTxt, line4,256-strlen(MapInfoTxt));
 			} else {
 				MapInfoTxt[0] = 0;
 			}
@@ -1729,14 +1831,18 @@ int d_GndAir_proc(int msg, DIALOG *d, int c) {
 	//int i;
 	if ((msg == MSG_CLICK) || (msg == MSG_KEY)) //calls for each button
 	{
-		if (&(main_dlg[dmGndRBIdx]) == d)
+		if (&(main_dlg[dmGndRBIdx]) == d) {
 			show_unit_layer_type = 0;
-		if (&(main_dlg[dmAirRBIdx]) == d)
+		}
+		if (&(main_dlg[dmAirRBIdx]) == d) {
 			show_unit_layer_type = 1;
-		if (&(main_dlg[dmSeaRBIdx]) == d)
+		}
+		if (&(main_dlg[dmSeaRBIdx]) == d) {
 			show_unit_layer_type = 2;
-		if (&(main_dlg[dmNoneRBIdx]) == d)
+		}
+		if (&(main_dlg[dmNoneRBIdx]) == d) {
 			show_unit_layer_type = 3;
+		}
 
 		//printf("show_unit_layer_type=%d\n",show_unit_layer_type);
 
@@ -1752,8 +1858,9 @@ int d_hslide_proc(int msg, DIALOG *d, int c) {
 	int x0t, y0t, exit_used_char = 0;
 	BYTE scancode;
 
-	if ((msg != MSG_CLICK) && (msg != MSG_CHAR))
+	if ((msg != MSG_CLICK) && (msg != MSG_CHAR)) {
 		return d_slider_proc(msg, d, c);
+	}
 
 	//printf("H slide click or char\n");
 	//process the click on the horizontal slider
@@ -1765,13 +1872,15 @@ int d_hslide_proc(int msg, DIALOG *d, int c) {
 	scancode = (c & 0xff00) >> 8;
 	if (msg == MSG_CHAR) {
 		if (scancode == KEY_UP) {
-			if (map_y0 > 0)
+			if (map_y0 > 0) {
 				--map_y0;
+			}
 			exit_used_char = 1;
 		}
 		if (scancode == KEY_DOWN) {
-			if (get_v_slide_max() > map_y0)
+			if (get_v_slide_max() > map_y0) {
 				map_y0++;
+			}
 			exit_used_char = 1;
 		}
 		//update slider
@@ -1787,8 +1896,9 @@ int d_hslide_proc(int msg, DIALOG *d, int c) {
 		main_dlg[dmMapBmpIdx].flags |= D_DIRTY;
 		//d_bitmap_proc(MSG_DRAW,&main_dlg[dmMapBmpIdx],c);
 	}
-	if ((scancode == KEY_RIGHT) || (scancode == KEY_LEFT))
+	if ((scancode == KEY_RIGHT) || (scancode == KEY_LEFT)) {
 		exit_used_char = 1;
+	}
 	return exit_used_char ? D_USED_CHAR : D_O_K;
 
 }
@@ -1797,8 +1907,9 @@ int d_vslide_proc(int msg, DIALOG *d, int c) {
 	int x0t, y0t, exit_used_char = 0;
 	BYTE scancode;
 
-	if ((msg != MSG_CLICK) && (msg != MSG_CHAR))
+	if ((msg != MSG_CLICK) && (msg != MSG_CHAR)) {
 		return d_slider_proc(msg, d, c);
+	}
 	//process the click on the veritical slider
 	x0t = map_x0;
 	y0t = map_y0;
@@ -1808,17 +1919,21 @@ int d_vslide_proc(int msg, DIALOG *d, int c) {
 	scancode = (c & 0xff00) >> 8;
 	if (msg == MSG_CHAR) {
 		if (scancode == KEY_LEFT) {
-			if (map_x0 > 0)
+			if (map_x0 > 0) {
 				map_x0--;
-			if (map_x0 > 0)
+			}
+			if (map_x0 > 0) {
 				map_x0--;
+			}
 			exit_used_char = 1;
 		}
 		if (scancode == KEY_RIGHT) {
-			if (get_h_slide_max() > map_x0)
+			if (get_h_slide_max() > map_x0) {
 				map_x0++;
-			if (get_h_slide_max() > map_x0)
+			}
+			if (get_h_slide_max() > map_x0) {
 				map_x0++;
+			}
 			exit_used_char = 1;
 		}
 		//update slider
@@ -1834,17 +1949,20 @@ int d_vslide_proc(int msg, DIALOG *d, int c) {
 		main_dlg[dmMapBmpIdx].flags |= D_DIRTY;
 		//d_bitmap_proc(MSG_DRAW,&main_dlg[dmMapBmpIdx],c);
 	}
-	if ((scancode == KEY_UP) || (scancode == KEY_DOWN))
+	if ((scancode == KEY_UP) || (scancode == KEY_DOWN)) {
 		exit_used_char = 1;
+	}
 	return exit_used_char ? D_USED_CHAR : D_O_K;
 }
 
 int count_axis_core() {
 	int i, count = 0;
 
-	for (i = 0; i < total_units; ++i)
-		if (all_units[i].uflag == axis_core)
+	for (i = 0; i < total_units; ++i) {
+		if (all_units[i].uflag == axis_core) {
 			++count;
+		}
+	}
 	return count;
 }
 
@@ -1859,7 +1977,7 @@ void get_victory_hexes() {
 	//get the victory hexes from the map
 	//and put them in the array
 	count = 0;
-	for (x = 0; x < mapx; ++x)
+	for (x = 0; x < mapx; ++x) {
 		for (y = 0; y < mapy; ++y) {
 			if (map[x][y].vic && count < MAX_VICTORY_HEXES) {
 				victory_hexes[count].x = x;
@@ -1868,32 +1986,39 @@ void get_victory_hexes() {
 				++count;
 			}
 		}
+	}
 }
 
 int count_axis_aux() {
 	int i, count = 0;
 
-	for (i = 0; i < total_units; ++i)
-		if (all_units[i].uflag == axis_aux)
+	for (i = 0; i < total_units; ++i) {
+		if (all_units[i].uflag == axis_aux) {
 			++count;
+		}
+	}
 	return count;
 }
 
 int count_allied_core() {
 	int i, count = 0;
 
-	for (i = 0; i < total_units; ++i)
-		if (all_units[i].uflag == allied_core)
+	for (i = 0; i < total_units; ++i) {
+		if (all_units[i].uflag == allied_core) {
 			++count;
+		}
+	}
 	return count;
 }
 
 int count_allied_aux() {
 	int i, count = 0;
 
-	for (i = 0; i < total_units; ++i)
-		if (all_units[i].uflag == allied_aux)
+	for (i = 0; i < total_units; ++i) {
+		if (all_units[i].uflag == allied_aux) {
 			++count;
+		}
+	}
 	return count;
 }
 
@@ -1902,174 +2027,193 @@ void setup_show_filters_info() {
 
 	switch (drawNames) {
 	case 0:
-		strncat(stat, ".", 40);
+		strncat(stat, ".", 40-strlen(stat));
 		break;
 	case 1:
-		strncat(stat, "N", 40);
+		strncat(stat, "N", 40-strlen(stat));
 		break;
 	case 2:
-		strncat(stat, "n", 40);
+		strncat(stat, "n", 40-strlen(stat));
 		break;
 	case 3:
-		strncat(stat, "r", 40);
+		strncat(stat, "r", 40-strlen(stat));
 		break;
 	}
-	if (drawAllNames)
-		strncat(stat, "A", 40);
-	else
-		strncat(stat, ".", 40);
-	if (drawTerrain)
-		strncat(stat, "T", 40);
-	else
-		strncat(stat, ".", 40);
-	if (showFilter)
-		strncat(stat, "F", 40);
-	else
-		strncat(stat, ".", 40);
+
+	if (drawAllNames) {
+		strncat(stat, "A", 40-strlen(stat));
+	} else {
+		strncat(stat, ".", 40-strlen(stat));
+	}
+
+	if (drawTerrain) {
+		strncat(stat, "T", 40-strlen(stat));
+	} else {
+		strncat(stat, ".", 40-strlen(stat));
+	}
+
+	if (showFilter) {
+		strncat(stat, "F", 40-strlen(stat));
+	} else {
+		strncat(stat, ".", 40-strlen(stat));
+	}
+
 	switch (showDecimal) {
 	case 0:
-		strncat(stat, "d", 40);
+		strncat(stat, "d", 40-strlen(stat));
 		break;
 	case 1:
-		strncat(stat, "h", 40);
+		strncat(stat, "h", 40-strlen(stat));
 		break;
 	case 2:
-		strncat(stat, "n", 40);
+		strncat(stat, "n", 40-strlen(stat));
 		break;
 	default:
-		strncat(stat, ".", 40);
+		strncat(stat, ".", 40-strlen(stat));
 		break;
 	}
-	if (drawRoads)
-		strncat(stat, "R", 40);
-	else
-		strncat(stat, ".", 40);
+
+	if (drawRoads) {
+		strncat(stat, "R", 40-strlen(stat));
+	} else {
+		strncat(stat, ".", 40-strlen(stat));
+	}
+
 	switch (showCounter) {
 	case 0:
-		strncat(stat, "S", 40);
+		strncat(stat, "S", 40-strlen(stat));
 		break;
 	case 1:
-		strncat(stat, "X", 40);
+		strncat(stat, "X", 40-strlen(stat));
 		break;
 	case 2:
-		strncat(stat, "E", 40);
+		strncat(stat, "E", 40-strlen(stat));
 		break;
 	default:
-		strncat(stat, ".", 40);
+		strncat(stat, ".", 40-strlen(stat));
 		break;
 	}
-	if (drawGndTransport)
-		strncat(stat, "t", 40);
-	else
-		strncat(stat, ".", 40);
-	//strncat(stat,"\n", 40);
+
+	if (drawGndTransport) {
+		strncat(stat, "t", 40-strlen(stat));
+	} else {
+		strncat(stat, ".", 40-strlen(stat));
+	}
 
 	switch (showWeather) {
 	case 0:
-		strncat(stat, ".", 40);
+		strncat(stat, ".", 40-strlen(stat));
 		break;
 	case 1:
-		strncat(stat, "m", 40);
+		strncat(stat, "m", 40-strlen(stat));
 		break;
 	case 2:
-		strncat(stat, "w", 40);
+		strncat(stat, "w", 40-strlen(stat));
 		break;
 	default:
-		strncat(stat, ".", 40);
+		strncat(stat, ".", 40-strlen(stat));
 		break;
 	}
-	if (showHex)
-		strncat(stat, "H", 40);
-	else
-		strncat(stat, ".", 40);
+
+	if (showHex) {
+		strncat(stat, "H", 40-strlen(stat));
+	} else {
+		strncat(stat, ".", 40-strlen(stat));
+	}
+
 	switch (graphical_overide) {
 	case 0:
-		strncat(stat, "..", 40);
+		strncat(stat, "..", 40-strlen(stat));
 		break;
 	case 1:
-		strncat(stat, "z.", 40);
+		strncat(stat, "z.", 40-strlen(stat));
 		break;
 	case 2:
-		strncat(stat, ".#", 40);
+		strncat(stat, ".#", 40-strlen(stat));
 		break;
 	case 3:
-		strncat(stat, "z#", 40);
+		strncat(stat, "z#", 40-strlen(stat));
 		break;
 	default:
-		strncat(stat, "z#", 40);
+		strncat(stat, "z#", 40-strlen(stat));
 		break;
 	}
+
 	switch (graphical_overide_hex) {
 	case 0:
-		strncat(stat, "0", 40);
+		strncat(stat, "0", 40-strlen(stat));
 		break;
 	case 1:
-		strncat(stat, "1", 40);
+		strncat(stat, "1", 40-strlen(stat));
 		break;
 	case 2:
-		strncat(stat, "2", 40);
+		strncat(stat, "2", 40-strlen(stat));
 		break;
 	case 3:
-		strncat(stat, "3", 40);
+		strncat(stat, "3", 40-strlen(stat));
 		break;
 	case 4:
-		strncat(stat, "4", 40);
+		strncat(stat, "4", 40-strlen(stat));
 		break;
 	case 5:
-		strncat(stat, "5", 40);
+		strncat(stat, "5", 40-strlen(stat));
 		break;
 	case 6:
-		strncat(stat, "6", 40);
+		strncat(stat, "6", 40-strlen(stat));
 		break;
 	case 7:
-		strncat(stat, "7", 40);
+		strncat(stat, "7", 40-strlen(stat));
 		break;
 	default:
-		strncat(stat, "7", 40);
+		strncat(stat, "7", 40-strlen(stat));
 		break;
 	}
-	if (scenarioUnitsMode)
-		strncat(stat, "s", 40);
-	else
-		strncat(stat, ".", 40);
-	if (displayAllUnits)
-		strncat(stat, "+", 40);
-	else
-		strncat(stat, ".", 40);
+
+	if (scenarioUnitsMode) {
+		strncat(stat, "s", 40-strlen(stat));
+	} else {
+		strncat(stat, ".", 40-strlen(stat));
+	}
+
+	if (displayAllUnits) {
+		strncat(stat, "+", 40-strlen(stat));
+	} else {
+		strncat(stat, ".", 40-strlen(stat));
+	}
 
 	switch (displayUnitsOrder) {
 	case 0:
-		strncat(stat, ".", 40);
+		strncat(stat, ".", 40-strlen(stat));
 		break;
 	case 1:
-		strncat(stat, "o", 40);
+		strncat(stat, "o", 40-strlen(stat));
 		break;
 	case 2:
-		strncat(stat, "O", 40);
+		strncat(stat, "O", 40-strlen(stat));
 		break;
 	default:
-		strncat(stat, ".", 40);
+		strncat(stat, ".", 40-strlen(stat));
 		break;
 	}
 
-	strncpy(FilterStatusTxt, stat,256);
+	strncpy(FilterStatusTxt, stat, 256);
 	main_dlg[dmFilterStatusTxtIdx].flags |= D_DIRTY;
 	//d_filterstatus_proc(MSG_DRAW,&(main_dlg[dmFilterStatusTxtIdx]),0);
 }
 
 void setup_terrain_info() {
 	strncpy(MapStatusTxt, "Terrain Edit: ",256);
-	strcat(MapStatusTxt, "Type=");
-	strncat(MapStatusTxt, tdTTStr,8);
-	strcat(MapStatusTxt, "\nRoad=");
-	strncat(MapStatusTxt, tdRDStr,8);
-	strcat(MapStatusTxt, "  Tile#=");
-	strncat(MapStatusTxt, tdTNStr,8);
-	strcat(MapStatusTxt, "\nName=");
-	strncat(MapStatusTxt, tdGLNStr,8);
-	strcat(MapStatusTxt, "  Side=");
-	strncat(MapStatusTxt, tdSDStr,8);
-	strcat(MapStatusTxt, "\nLeft-change Right-pick");
+	strncat(MapStatusTxt, "Type=",256-strlen(MapStatusTxt));
+	strncat(MapStatusTxt, tdTTStr,256-strlen(MapStatusTxt));
+	strncat(MapStatusTxt, "\nRoad=",256-strlen(MapStatusTxt));
+	strncat(MapStatusTxt, tdRDStr,256-strlen(MapStatusTxt));
+	strncat(MapStatusTxt, "  Tile#=",256-strlen(MapStatusTxt));
+	strncat(MapStatusTxt, tdTNStr,256-strlen(MapStatusTxt));
+	strncat(MapStatusTxt, "\nName=",256-strlen(MapStatusTxt));
+	strncat(MapStatusTxt, tdGLNStr,256-strlen(MapStatusTxt));
+	strncat(MapStatusTxt, "  Side=",256-strlen(MapStatusTxt));
+	strncat(MapStatusTxt, tdSDStr,256-strlen(MapStatusTxt));
+	strncat(MapStatusTxt, "\nLeft-change Right-pick",256-strlen(MapStatusTxt));
 }
 
 //load scenario dialog
@@ -2432,38 +2576,31 @@ int d_btn_proc(int msg, DIALOG *d, int c) {
 			//}
 		}
 		//entrench
-		if (&(main_dlg[dmEntBtnIdx]) == d) //entrench
-		{
+		if (&(main_dlg[dmEntBtnIdx]) == d) {
 			entrench_mode();
 		}
 		//strength
-		if (&(main_dlg[dmStrBtnIdx]) == d) //strength
-		{
+		if (&(main_dlg[dmStrBtnIdx]) == d) {
 			strength_mode();
 		}
 		//experience
-		if (&(main_dlg[dmExpBtnIdx]) == d) //experience
-		{
+		if (&(main_dlg[dmExpBtnIdx]) == d) {
 			expirience_mode();
 		}
 		//place unit
-		if (&(main_dlg[dmPlaceBtnIdx]) == d) //place unit
-		{
+		if (&(main_dlg[dmPlaceBtnIdx]) == d) {
 			units_place_mode();
 		}
 		//unit dialog
-		if (&(main_dlg[dmUnitBtnIdx]) == d) //unit dialog
-		{
+		if (&(main_dlg[dmUnitBtnIdx]) == d) {
 			return unit_dialog();
 		}
 		//unit list dialog
-		if (&(main_dlg[dmUlistBtnIdx]) == d) //unit dialog
-		{
+		if (&(main_dlg[dmUlistBtnIdx]) == d) {
 			return unit_list_dialog();
 		}
 		//scenario dialog
-		if (&(main_dlg[dmScenBtnIdx]) == d) //scenario dialog
-		{
+		if (&(main_dlg[dmScenBtnIdx]) == d) {
 			return do_scenario_dialog();
 		}
 		//Load
@@ -2504,24 +2641,30 @@ int d_arrow_proc(int msg, DIALOG *d, int c) {
 
 		switch (d->d1) {
 		case 'U':
-			if (map_y0 > 0)
+			if (map_y0 > 0) {
 				--map_y0;
+			}
 			break;
 		case 'D':
-			if (get_v_slide_max() > map_y0)
+			if (get_v_slide_max() > map_y0) {
 				map_y0++;
+			}
 			break;
 		case 'L':
-			if (map_x0 > 0)
+			if (map_x0 > 0) {
 				map_x0--;
-			if (map_x0 > 0)
+			}
+			if (map_x0 > 0) {
 				map_x0--;
+			}
 			break;
 		case 'R':
-			if (get_h_slide_max() > map_x0)
+			if (get_h_slide_max() > map_x0) {
 				map_x0++;
-			if (get_h_slide_max() > map_x0)
+			}
+			if (get_h_slide_max() > map_x0) {
 				map_x0++;
+			}
 			break;
 		}
 		if (tx != map_x0 || ty != map_y0) //avoid redraw if nothing changed
@@ -2568,10 +2711,13 @@ int str_bmp_offset(int idx) {
 int count_deploy_hexes() {
 	int x, y, count = 0;
 
-	for (y = 0; y < mapy; ++y)
-		for (x = 0; x < mapx; ++x)
-			if (map[x][y].deploy)
+	for (y = 0; y < mapy; ++y) {
+		for (x = 0; x < mapx; ++x) {
+			if (map[x][y].deploy) {
 				++count;
+			}
+		}
+	}
 
 	return count;
 }
@@ -2579,10 +2725,13 @@ int count_deploy_hexes() {
 int count_deploy_hexes_on_sea() {
 	int x, y, count = 0;
 
-	for (y = 0; y < mapy; ++y)
-		for (x = 0; x < mapx; ++x)
-			if (map[x][y].deploy && map[x][y].utr>=4 && map[x][y].utr<=7 )
+	for (y = 0; y < mapy; ++y) {
+		for (x = 0; x < mapx; ++x) {
+			if (map[x][y].deploy && map[x][y].utr >= 4 && map[x][y].utr <= 7) {
 				++count;
+			}
+		}
+	}
 
 	return count;
 }
@@ -2598,10 +2747,13 @@ int is_aux_unit(int idx){
 int count_deploy_hexes_occupied() {
 	int x, y, count = 0;
 
-	for (y = 0; y < mapy; ++y)
-		for (x = 0; x < mapx; ++x)
-			if (map[x][y].deploy && ( (map[x][y].guidx>=0 && is_aux_unit(map[x][y].guidx)) || (map[x][y].auidx>=0 && is_aux_unit(map[x][y].auidx))) )
+	for (y = 0; y < mapy; ++y) {
+		for (x = 0; x < mapx; ++x) {
+			if (map[x][y].deploy && ((map[x][y].guidx >= 0 && is_aux_unit(map[x][y].guidx)) || (map[x][y].auidx >= 0 && is_aux_unit(map[x][y].auidx)))) {
 				++count;
+			}
+		}
+	}
 
 	return count;
 }
@@ -2609,10 +2761,13 @@ int count_deploy_hexes_occupied() {
 int count_deploy_hexes_occupied_on_sea() {
 	int x, y, count = 0;
 
-	for (y = 0; y < mapy; ++y)
-		for (x = 0; x < mapx; ++x)
-			if (map[x][y].deploy && map[x][y].utr>=4 && map[x][y].utr<=7 && ( (map[x][y].guidx>=0 && is_aux_unit(map[x][y].guidx)) || (map[x][y].auidx>=0 && is_aux_unit(map[x][y].auidx))) )
+	for (y = 0; y < mapy; ++y) {
+		for (x = 0; x < mapx; ++x) {
+			if (map[x][y].deploy && map[x][y].utr >= 4 && map[x][y].utr <= 7 && ((map[x][y].guidx >= 0 && is_aux_unit(map[x][y].guidx)) || (map[x][y].auidx >= 0 && is_aux_unit(map[x][y].auidx)))) {
 				++count;
+			}
+		}
+	}
 
 	return count;
 }
@@ -2620,10 +2775,13 @@ int count_deploy_hexes_occupied_on_sea() {
 int count_vic_hexes() {
 	int x, y, count = 0;
 
-	for (y = 0; y < mapy; ++y)
-		for (x = 0; x < mapx; ++x)
-			if (map[x][y].vic)
+	for (y = 0; y < mapy; ++y) {
+		for (x = 0; x < mapx; ++x) {
+			if (map[x][y].vic) {
 				++count;
+			}
+		}
+	}
 
 	return count;
 }
@@ -2707,11 +2865,11 @@ int main(int argc, char *argv[]) {
 		country_active[i]=0;
 
 	strncpy(MapStatusTxt, AboutTxt1,256);
-	strncat(MapStatusTxt, "\n",256);
-	strncat(MapStatusTxt, AboutTxt2,256);
-	strncat(MapStatusTxt, "\n",256);
-	strncat(MapStatusTxt, AboutTxt3,256);
-	strncat(MapStatusTxt, "\n",256);
+	strncat(MapStatusTxt, "\n",256-strlen(MapStatusTxt));
+	strncat(MapStatusTxt, AboutTxt2,256-strlen(MapStatusTxt));
+	strncat(MapStatusTxt, "\n",256-strlen(MapStatusTxt));
+	strncat(MapStatusTxt, AboutTxt3,256-strlen(MapStatusTxt));
+	strncat(MapStatusTxt, "\n",256-strlen(MapStatusTxt));
 
 	my_log("%s%s", AboutTxt1, "\n");
 	my_log("%s%s", AboutTxt2, "\n");
@@ -2754,16 +2912,19 @@ int main(int argc, char *argv[]) {
 		draw_app6 = 1;
 		draw_app6_tiles = 1;
 		for (i = 0; i < strlen(argv[1]); i++) {
-			if (argv[1][i] == 'n')
+			if (argv[1][i] == 'n') {
 				draw_app6_tiles = 0;
-			if (argv[1][i] == 'c')
+			}
+			if (argv[1][i] == 'c') {
 				draw_app6_tiles = 2;
-			if (argv[1][i] == 'u')
+			}
+			if (argv[1][i] == 'u') {
 				draw_app6_units = 0;
-			if (argv[1][i] == 'g')
+			}
+			if (argv[1][i] == 'g') {
 				draw_app6_color = 1;
+			}
 		}
-
 	}
 	set_color_mode();
 
@@ -2811,10 +2972,10 @@ int main(int argc, char *argv[]) {
 			nupl_present = 1;
 			my_log("All loaded.\nStarting PacGen mode.\n");
 		} else {
-			if (pacgen_mode){
+			if (pacgen_mode) {
 				my_log("Loading of PacGen data failed. Aborting.\n");
 				exit_with_key(error);
-			}else{
+			} else {
 				my_log("Not found...\n");
 			}
 		}
@@ -2834,12 +2995,9 @@ int main(int argc, char *argv[]) {
 				pgf_mode = 1;
 				nupl_present = 1;
 			}
-			//if (error) {
-			//	printf("ERROR ID : %d\n",error);
-			//}
-		} else
+		} else {
 			error = 0;
-
+		}
 		if (error != 0) {
 			error = load_tiles(SHOW_LOGS);
 			if (error) {
@@ -2853,10 +3011,11 @@ int main(int argc, char *argv[]) {
 		//--------------------------------------------------
 		my_log("Loading unit icons...\n");
 
-		if (fpge_colors_bits > 8)
+		if (fpge_colors_bits > 8) {
 			error = load_bmp_tacticons();
-		else
+		} else {
 			error = 0;
+		}
 
 		if (error != 0) {
 			error = load_uicons();
@@ -2871,10 +3030,11 @@ int main(int argc, char *argv[]) {
 		//--------------------------------------------------
 
 		my_log("Loading stack unit icons...\n");
-		if (fpge_colors_bits > 8)
+		if (fpge_colors_bits > 8) {
 			error = load_bmp_stackicn();
-		else
+		} else {
 			error = 0;
+		}
 
 		if (error != 0) {
 			error = load_sicons();
@@ -2890,10 +3050,11 @@ int main(int argc, char *argv[]) {
 		//--------------------------------------------------
 
 		my_log("Loading flags...\n");
-		if (fpge_colors_bits > 8)
+		if (fpge_colors_bits > 8) {
 			error = load_bmp_flags();
-		else
+		} else {
 			error = 0;
+		}
 
 		if (error != 0) {
 			error = load_flags();
@@ -2907,10 +3068,11 @@ int main(int argc, char *argv[]) {
 		//--------------------------------------------------
 
 		my_log("Loading strength icons...\n");
-		if (fpge_colors_bits > 8)
+		if (fpge_colors_bits > 8) {
 			error = load_bmp_strength();
-		else
+		} else {
 			error = 0;
+		}
 
 		if (error != 0) {
 			error = load_strength();
@@ -2918,7 +3080,6 @@ int main(int argc, char *argv[]) {
 				exit_with_key(error);
 			}
 			my_log("PG 'strength.shp' loaded.\n");
-
 		} else {
 			my_log("PGF 'strength.bmp' loaded.\n");
 		}
@@ -2939,22 +3100,24 @@ int main(int argc, char *argv[]) {
 	if (!pacgen_mode && !pgf_mode) {
 		//PG and AG modes
 		my_log("Loading equipment...\n");
-		if (!ag_mode) pg_mode = 1;
+		if (!ag_mode) {
+			pg_mode = 1;
+		}
 		error = load_equip(LOAD_FILE, equip_file);
 		if (error) {
-			my_log("ERROR: %s equipment file '%s' not loaded!\n",(ag_mode?"AG":"PG"),equip_file);
+			my_log("ERROR: %s equipment file '%s' not loaded!\n", (ag_mode ? "AG" : "PG"), equip_file);
 			exit_with_key(error);
 		}
-		my_log("%s equipment file loaded.\n",(ag_mode?"AG":"PG"));
+		my_log("%s equipment file loaded.\n", (ag_mode ? "AG" : "PG"));
 	}
 
-	if (pgf_mode){
+	if (pgf_mode) {
 		my_log("Loading equipment...\n");
 		error = load_pgf_equipment(LOAD_FILE, pgf_equip_file);
 		if (error) {
-			my_log("ERROR: PGF equipment file '%s' not loaded!\n",pgf_equip_file);
+			my_log("ERROR: PGF equipment file '%s' not loaded!\n", pgf_equip_file);
 			exit_with_key(error);
-		}else {
+		} else {
 			my_log("PGF equipment file loaded.\n");
 		}
 	}
@@ -2967,38 +3130,38 @@ int main(int argc, char *argv[]) {
 		if (error) {
 			exit_with_key(error);
 		}
-	}else{
-			total_names=0;
-		}
+	} else {
+		total_names = 0;
+	}
 		//--------------------------------------------------
 		//this is not needed for PGF
 
-		if (!pgf_mode) {
-			my_log("Loading scenario description...\n");
-			if (ag_mode) {
-				error = load_ag_scenario_desc();
-				if (error) {
-					//ignore file not found
-					sprintf(tmp_str, "AG scenario description not loaded.\n");
-					my_log(tmp_str);
-					//exit_with_key(error);
-				} else {
-					sprintf(tmp_str, "AG scenario description loaded.\n");
-					my_log(tmp_str);
-				}
+	if (!pgf_mode) {
+		my_log("Loading scenario description...\n");
+		if (ag_mode) {
+			error = load_ag_scenario_desc();
+			if (error) {
+				//ignore file not found
+				sprintf(tmp_str, "AG scenario description not loaded.\n");
+				my_log(tmp_str);
+				//exit_with_key(error);
 			} else {
-				error = load_description(SHOW_LOGS);
-				if (error) {
-					//ignore file not found
-					sprintf(tmp_str, "PG %s not loaded.\n", description_file);
-					my_log(tmp_str);
-					//exit_with_key(error);
-				} else {
-					sprintf(tmp_str, "PG %s loaded.\n", description_file);
-					my_log(tmp_str);
-				}
+				sprintf(tmp_str, "AG scenario description loaded.\n");
+				my_log(tmp_str);
+			}
+		} else {
+			error = load_description(SHOW_LOGS);
+			if (error) {
+				//ignore file not found
+				sprintf(tmp_str, "PG %s not loaded.\n", description_file);
+				my_log(tmp_str);
+				//exit_with_key(error);
+			} else {
+				sprintf(tmp_str, "PG %s loaded.\n", description_file);
+				my_log(tmp_str);
 			}
 		}
+	}
 
 	//--------------------------------------------------
 
@@ -3160,16 +3323,20 @@ int main(int argc, char *argv[]) {
 	 */
 
 	strncpy(tmp_str,"",128);
-	if (pg_mode)
-		strncpy(tmp_str, "PG mode",128);
-	if (pgf_mode)
-		strncpy(tmp_str, "PGF mode",128);
-	if (ag_mode)
-		strncpy(tmp_str, "AG mode",128);
-	if (pacgen_mode)
-		strncpy(tmp_str, "PacGen mode",128);
+	if (pg_mode) {
+		strncpy(tmp_str, "PG mode", 128);
+	}
+	if (pgf_mode) {
+		strncpy(tmp_str, "PGF mode", 128);
+	}
+	if (ag_mode) {
+		strncpy(tmp_str, "AG mode", 128);
+	}
+	if (pacgen_mode) {
+		strncpy(tmp_str, "PacGen mode", 128);
+	}
 
-	strncat(MapStatusTxt,tmp_str,256);
+	strncat(MapStatusTxt,tmp_str,256-strlen(MapStatusTxt));
 
 	my_log("%s\n",tmp_str);
 
@@ -3228,10 +3395,13 @@ int main(int argc, char *argv[]) {
 			} else {
 				error = cli_parsing(argc, argv);
 				//my_log("%d\n",error);
-				if (error > 1)
+				if (error > 1) {
 					exit_with_key(error);
-				else if (error == 1)
-					exit(0);
+				} else {
+					if (error == 1) {
+						exit(0);
+					}
+				}
 			}
 		}
 	} else {
@@ -3252,6 +3422,8 @@ int main(int argc, char *argv[]) {
 	fpge_gui_fg_color = FPGE_FG_COLOR;
 	fpge_gui_bg_color = FPGE_SCREEN_COLOR;
 	fpge_gui_edit_color = MAP_COLOR; //BG_COLOR;
+
+	panzer2_file_icon_off_2_local_icon_idx_max = 0;
 
 	prepare_dialogs();
 
@@ -3317,10 +3489,9 @@ int main(int argc, char *argv[]) {
 			//printf("i=%d bmp_idx=%d c=%d\n",i, bmp_idx,c);
 
 			if (bmp_idx > 0 && bmp_idx < MAX_UICONS && is_app6_bmp[bmp_idx] == 0 && unit_bmp[bmp_idx] != NULL) { //convert BMP
-				if (c > 0)
-					draw_app6_unit_symbol(unit_bmp[bmp_idx], 0, 0, i, country_side[c] == 0 ? 0 : 1
-					//0
-					);
+				if (c > 0) {
+					draw_app6_unit_symbol(unit_bmp[bmp_idx], 0, 0, i, country_side[c] == 0 ? 0 : 1);
+				}
 				is_app6_bmp[bmp_idx] = 1;
 			}
 		}
@@ -3377,7 +3548,8 @@ int main(int argc, char *argv[]) {
 	init_undo();
 
 	//load_wtiles();
-
+	//PG2 Icons debug
+	//pg_dg();
 	while (really_exit) {
 		do_dialog(main_dlg, -1);
 		really_exit = (alert("Do you really want to exit FPGE ?", NULL, NULL, "&Yes", "&No", 'y', 'n') + 1) % 2;
@@ -3387,10 +3559,10 @@ int main(int argc, char *argv[]) {
 	free_undo();
 	allegro_exit();
 
-	if (save_config())
+	if (save_config()) {
 		my_log("Error in writing FPGE config file.\n");
-	else
-		my_log("Writing FPGE config file succeeded.\n");
+	} else {
+		my_log("Writing FPGE config file succeeded.\n");}
 	return 0;
 }
 END_OF_MAIN()
