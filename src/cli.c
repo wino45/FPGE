@@ -21,6 +21,7 @@
 #include "loadpng.h"
 #include "pg.h"
 #include "unitlist.h"
+#include "lgeneral.h"
 
 int hide_names = 0;
 
@@ -98,6 +99,7 @@ void CLIHelp(char *VersionName)
     printf("-X[cuAI] [ID] [MONTH] [YEAR] save resource as bmp file:\n");
     printf("  Use one of : u-units         c-units of given country\n");
     printf("  Use any of : A-annotation of bmps\n");
+    printf("  Use any of : F-flip icons when needed. Use icons.txt or/and unit efile name.\n");
     printf("  Use any of : I-show aux unit icons description (-Xu only)\n");
     printf("  Optionally : numerical ID of the unit to be saved or 'UALL' for all units.\n");
     printf("  Example: To save GE units as of Dec 39 use : FPGE -Xc 8 12 39 \n");
@@ -1184,29 +1186,34 @@ void checking_terrain_types(){
 */
 
 
-void handle_units_bmp_saving(int units_bmp, int units_per_country_bmp, int bmp_idx, int end_bmp_idx, int country_idx, int m, int y, int comment_bmps) {
+void handle_units_bmp_saving(int units_bmp, int units_per_country_bmp, int bmp_idx, int end_bmp_idx, int country_idx, int m, int y, int comment_bmps, int flipIcons, int bmp_x, int tile_width, int tile_height) {
 	char bmp_name[256];
 	BITMAP *bmp;
-	int j,k,limit;
+	int j,k,limit, flip_this_icon=0;
 
 	if (units_bmp) {
 		if (bmp_idx != 0) {
 			if (bmp_idx >0){
-
-			//one unit(s) only
-			if (end_bmp_idx <= bmp_idx) {
-					limit = bmp_idx;
-				} else {
-					limit = Min(end_bmp_idx,total_uicons-1);
-				}
+				if (end_bmp_idx <= bmp_idx) {
+						//one unit(s) only
+						limit = bmp_idx;
+					} else {
+						//unit range
+						limit = Min(end_bmp_idx,total_uicons-1);
+					}
 			}
 			else{
+				//all units
 				bmp_idx=0;
 				limit=total_uicons-1;
 			}
 			for(k=bmp_idx;k<=limit;k++){
-				bmp = create_bitmap_ex(24, TILE_FULL_WIDTH + 3 * TILE_FULL_WIDTH * (comment_bmps > 0), TILE_HEIGHT);
-				draw_one_unit_bmp(bmp, k, comment_bmps);
+				bmp = create_bitmap_ex(24, tile_width + 3 * tile_width * (comment_bmps > 0), tile_height);
+				if (flipIcons){
+					flip_this_icon=0;
+					if (isFlipNeeded(k)) flip_this_icon=1;
+				}
+				draw_one_unit_bmp(bmp,k,comment_bmps,flip_this_icon,tile_width,tile_height);
 				snprintf(bmp_name, 256, "u%04d.bmp", k);
 				if (save_bmp(bmp_name, bmp, NULL))
 					printf("ERROR writing file %s !!\n", bmp_name);
@@ -1217,8 +1224,8 @@ void handle_units_bmp_saving(int units_bmp, int units_per_country_bmp, int bmp_i
 			}
 		} else {
 			//whole stuff, bmp_idx == 0
-			bmp = create_bitmap_ex(24, 20 * TILE_FULL_WIDTH + (comment_bmps == 1) * 2 * 24, (total_uicons / 20 + ((total_uicons % 20) ? 1 : 0)) * TILE_HEIGHT + (comment_bmps == 1) * 2 * 24);
-			draw_units_bmp(bmp, comment_bmps);
+			bmp = create_bitmap_ex(24, bmp_x * tile_width + (comment_bmps == 1) * 2 * 24, (total_uicons / bmp_x + ((total_uicons % bmp_x) ? 1 : 0)) * tile_height + (comment_bmps == 1) * 2 * 24);
+			draw_units_bmp(bmp, comment_bmps, flipIcons, bmp_x,tile_width,tile_height);
 			if (save_bmp(pgf_units_bmp, bmp, NULL))
 				printf("ERROR writing file %s !!\n", pgf_units_bmp);
 			else
@@ -1230,10 +1237,10 @@ void handle_units_bmp_saving(int units_bmp, int units_per_country_bmp, int bmp_i
 		if (country_idx != 0) {
 			//one country only
 			if (country_idx == -1 || (country_idx <= total_countries && country_idx > 0))
-				draw_units_per_country_bmp(country_idx, m, y);
+				draw_units_per_country_bmp(country_idx, m, y, flipIcons);
 		} else {
 			for (j = 0; j <= total_countries; j++)
-				draw_units_per_country_bmp(j == 0 ? -1 : j, m, y);
+				draw_units_per_country_bmp(j == 0 ? -1 : j, m, y, flipIcons);
 		}
 	}
 }
@@ -1273,6 +1280,7 @@ int cli_parsing(int argc, char *argv[]) {
 	int show_stats=0;
 	int side_save=0;
 	int list_units_mode=0;
+	int flip_icons=0;
 
 	//layers
 	//int layer_tiles=0;
@@ -1626,6 +1634,8 @@ int cli_parsing(int argc, char *argv[]) {
 				return 1;
 			case 'X':
 
+				flip_icons=0;
+
 				if (strlen(argv[1]) > 2) {
 					for (i = 2; i < strlen(argv[1]); i++) {
 						switch (argv[1][i]) {
@@ -1634,6 +1644,9 @@ int cli_parsing(int argc, char *argv[]) {
 							break;
 						case 'I':
 							comment_bmps|=2;
+							break;
+						case 'F':
+							flip_icons=1;
 							break;
 						case 'u':
 							units_bmp=1;
@@ -1650,6 +1663,7 @@ int cli_parsing(int argc, char *argv[]) {
 					end_bmp_idx=0;
 					country_idx=0;
 
+
 					if (units_bmp && argc>=3)
 						bmp_idx=atoi(argv[2]);
 
@@ -1659,7 +1673,7 @@ int cli_parsing(int argc, char *argv[]) {
 					if (units_per_country_bmp && argc>=3)
 						country_idx=atoi(argv[2]);
 
-					//print_dec(bmp_idx);
+					//print_dec(flip_icons);
 					//print_dec(end_bmp_idx);
 
 					//display all units, do not filter by month and year
@@ -1670,7 +1684,7 @@ int cli_parsing(int argc, char *argv[]) {
 						y=atoi(argv[4]);
 						//printf("c=%d, y=%d, m=%d\n",i,y,m);
 					}
-					handle_units_bmp_saving(units_bmp, units_per_country_bmp, bmp_idx, end_bmp_idx, country_idx,  m,  y, comment_bmps);
+					handle_units_bmp_saving(units_bmp, units_per_country_bmp, bmp_idx, end_bmp_idx, country_idx,  m,  y, comment_bmps, flip_icons, 20,TILE_FULL_WIDTH , TILE_HEIGHT);
 				}
 				return 1;
 			case 'E':

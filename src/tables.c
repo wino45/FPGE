@@ -45,11 +45,20 @@ char country_names[MAX_COUNTRY][MAX_COUNTRY_NAME_SIZE]={
 };
 
 char country_names_short[MAX_COUNTRY][MAX_COUNTRY_SHORT_NAME_SIZE]={
-   "..","A","BE","BG","L", //0-4
-   "DK","FI","FR","DE","GR", //5-9
-   "US","H","TR","IT","NL", //10-14
+   "..", "A" ,"BE", "BG","L",  //0-4
+   "DK", "FI","FR", "DE","GR", //5-9
+   "US", "H" ,"TR", "IT","NL", //10-14
    "NOR","PO","POR","RU","ES", //15-19
-   "ST","S","CH","GB","Y"//20-24
+   "ST", "S" ,"CH", "GB","Y"   //20-24
+};
+
+// -1 not valid, 0 AXIS, 1 ALLIED, 3 NEUTRAL
+char country_side[MAX_COUNTRY]={
+  -1,0,1,0,3,
+   1,0,1,0,1,
+   1,0,0,0,1,
+   1,1,3,0,3,
+   1,3,3,1,1
 };
 
 char pacgen_country_names[MAX_COUNTRY][MAX_COUNTRY_NAME_SIZE]={
@@ -97,14 +106,7 @@ char pacgen_country_names_short[MAX_COUNTRY][MAX_COUNTRY_SHORT_NAME_SIZE]={
    "GB","VFR"                //30-31
    };
 
-// -1 not valid, 0 AXIS, 1 ALLIED, 3 NEUTRAL
-char country_side[MAX_COUNTRY]={
-   -1,0,1,0,3,
-   1,0,1,0,1,
-   1,0,0,0,1,
-   1,1,3,0,3,
-   1,3,3,1,1
-};
+
 
 char country_active[MAX_COUNTRY]={
 		1,1,1,1,1,

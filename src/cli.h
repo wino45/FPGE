@@ -22,6 +22,6 @@ void checking_units(int no_log);
 void checking_flags(int no_log);
 void checking_ocean(int no_log, int);
 void checking_river_names(int no_log);
-void handle_units_bmp_saving(int units_bmp, int units_per_country_bmp, int bmp_idx,int end_bmp_idx, int country_idx, int m, int y, int comment_bmps);
+void handle_units_bmp_saving(int units_bmp, int units_per_country_bmp, int bmp_idx,int end_bmp_idx, int country_idx, int m, int y, int comment_bmps, int flipIcons,int,int,int);
 
 #endif /* CLI_H_ */

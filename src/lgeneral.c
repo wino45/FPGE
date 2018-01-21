@@ -18,6 +18,39 @@
 #include "maingui.h"
 #include "scenario_name.h"
 #include "tables.h"
+#include "lgeneral.h"
+
+DIALOG lgen_uicons_dlg[LG_U_DLG] =
+{
+   /* (proc)        (x)  (y)  (w)  (h)  (fg)           (bg)        (key) (flags)     (d1) (d2)  (dp)                         (dp2) (dp3) */
+   { d_textbox_proc, 0,  0,  228, 124+16, GUI_FG_COLOR, GUI_BG_COLOR,   0,    0,          0,   0,   NULL,                        NULL, NULL },
+   { d_text_proc,    12, 12, 176, 8,   GUI_FG_COLOR, GUI_BG_COLOR,   0,    0,          0,   0,   "Export unit icons to LGen", NULL, NULL },
+   { d_edit_proc,    72, 28, 96,  8,   GUI_FG_COLOR, GUI_EDIT_COLOR, 0,    0,         11,   1,   "pg",                        NULL, NULL },
+   { d_text_proc,    12, 28, 56,  8,   GUI_FG_COLOR, GUI_BG_COLOR,   0,    0,          0,   0,   "Domain",                    NULL, NULL },
+   { d_radio_proc,   12, 48, 148, 12,  GUI_FG_COLOR, GUI_BG_COLOR,   'f',    D_SELECTED, 0,   0,   "&Flip icons",                NULL, NULL },
+   { d_radio_proc,   12, 64, 148, 12,  GUI_FG_COLOR, GUI_BG_COLOR,   'n',    0,          0,   0,   "&No icons flip",             NULL, NULL },
+   { d_button_proc,  12, 92+16, 80,  20,  GUI_FG_COLOR, GUI_BG_COLOR,   'c',    D_EXIT,     0,   0,   "&Cancel",                    NULL, NULL },
+   { d_button_proc, 132, 92+16, 80,  20,  GUI_FG_COLOR, GUI_BG_COLOR,   'e',    D_EXIT,     0,   0,   "&Export",                    NULL, NULL },
+   { d_check_proc,   12, 64+16+4, 148+20, 12,  GUI_FG_COLOR, GUI_BG_COLOR, 's',    0,          1,   0,   "&Skip not used icons",       NULL, NULL },
+   { d_yield_proc, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+   { NULL,           0,   0,   0,   0,   0,   0,   0,    0,          0,   0,   NULL,                        NULL, NULL }
+};
+
+DIALOG lgen_equip_dlg[LG_EQP_DLG] =
+{
+   /* (proc)        (x)  (y)  (w)  (h)  (fg)           (bg)        (key) (flags)     (d1) (d2)  (dp)                         (dp2) (dp3) */
+   { d_textbox_proc, 0,  0,  228, 124, GUI_FG_COLOR, GUI_BG_COLOR,   0,    0,          0,   0,   NULL,                        NULL, NULL },
+   { d_text_proc,    12, 12, 176, 8,   GUI_FG_COLOR, GUI_BG_COLOR,   0,    0,          0,   0,   "Export equipment to LGen", NULL, NULL },
+   { d_edit_proc,    72, 28, 96,  8,   GUI_FG_COLOR, GUI_EDIT_COLOR, 0,    0,         11,   1,   "pg",                        NULL, NULL },
+   { d_text_proc,    12, 28, 56,  8,   GUI_FG_COLOR, GUI_BG_COLOR,   0,    0,          0,   0,   "Domain",                    NULL, NULL },
+   { d_check_proc,   12, 48, 148+20, 12,  GUI_FG_COLOR, GUI_BG_COLOR, 's',    0,          1,   0,   "&Skip not used icons",       NULL, NULL },
+   { d_button_proc,  12, 92, 80,  20,  GUI_FG_COLOR, GUI_BG_COLOR,   'c',    D_EXIT,     0,   0,   "&Cancel",                    NULL, NULL },
+   { d_button_proc, 132, 92, 80,  20,  GUI_FG_COLOR, GUI_BG_COLOR,   'e',    D_EXIT,     0,   0,   "&Export",                    NULL, NULL },
+   { d_yield_proc, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+   { NULL,           0,   0,   0,   0,   0,   0,   0,    0,          0,   0,   NULL,                        NULL, NULL }
+};
+
+int new_icon_number[MAX_UICONS];
 
 char lgeneral_tile_type[] = {
     'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o',
@@ -190,6 +223,19 @@ char *add_flags[] = {
 };
 
 
+void find_new_icon_numbers(){
+	int i,bmp_idx,j=0;
+
+	for(i=0;i<MAX_UICONS;i++) new_icon_number[i]=-1;
+
+	for(i=0;i<total_equip;i++){
+		bmp_idx = equip[i][BMP] + 256 * equip[i][BMP + 1];
+		if (new_icon_number[bmp_idx]==-1 && bmp_idx<MAX_UICONS && bmp_idx>-1){
+			new_icon_number[bmp_idx]=j;
+			j++;
+		}
+	}
+}
 /*
 ====================================================================
 Write unitclasses, target types, movement types to file.
@@ -410,15 +456,15 @@ appended to single scenario.
 'tac_icons' is the file name of the tactical icons.
 ====================================================================
 */
-int units_convert_database(char *name, char *domain)
+int units_convert_database(char *name, char *domain, int discard_not_used_icons)
 {
 	//int single_scen=0;
 
-	char tac_icons[] =  "pg.bmp";
+	//char tac_icons[] =  "pg.bmp";
 	//char dest_path[MAX_PATH];
 	//char source_path[MAX_PATH];
 	//char target_name[128];
-	int apply_unit_mods=1;
+	int apply_unit_mods=0;
 
     int id = 0, ini_bonus, equ_idx;
     short entry_count;
@@ -430,6 +476,10 @@ int units_convert_database(char *name, char *domain)
     FILE *source_file = 0, *dest_file = 0;
 
     printf( "Unit data base...\n" );
+
+    if (discard_not_used_icons) {
+    	find_new_icon_numbers();
+    }
 
     //if (pg_mode) //quick and dirty
     //	apply_unit_mods=1;
@@ -444,18 +494,18 @@ int units_convert_database(char *name, char *domain)
         goto failure;
     }
 
-    entry_count = total_equip;
+    entry_count = total_equip-1;
 
     fprintf( dest_file, "@\n" ); /* only a new file needs this magic */
     /* domain */
     fprintf( dest_file, "domain»%s\n",domain );
-    fprintf( dest_file, "icons»%s\nicon_type»%s\n", tac_icons,
+    fprintf( dest_file, "icons»%s\nicon_type»%s\n", name,
                                         apply_unit_mods?"single":"fixed");
-    fprintf( dest_file, "strength_icons»pg_strength.bmp\n" );
+    fprintf( dest_file, "strength_icons»%s_strength.bmp\n",domain );
     fprintf( dest_file, "strength_icon_width»16\nstrength_icon_height»12\n" );
-    fprintf( dest_file, "attack_icon»pg_attack.bmp\n" );
-    fprintf( dest_file, "move_icon»pg_move.bmp\n" );
-    fprintf( dest_file, "guard_icon»pg_guard.bmp\n" );
+    fprintf( dest_file, "attack_icon»%s_attack.bmp\n" ,domain);
+    fprintf( dest_file, "move_icon»%s_move.bmp\n",domain );
+    fprintf( dest_file, "guard_icon»%s_guard.bmp\n",domain );
     units_write_classes( dest_file );
     fprintf( dest_file, "<unit_lib\n" );
     /* first entry is RESERVED */
@@ -551,7 +601,11 @@ int units_convert_database(char *name, char *domain)
         fprintf( dest_file, "def_air»%i\n", entry.def_air );
         fprintf( dest_file, "def_close»%i\n", entry.def_close );
         fprintf( dest_file, "flags»%s\n", flags );
-        fprintf( dest_file, "icon_id»%i\n", entry.pic_id );
+        if (discard_not_used_icons){
+        	fprintf( dest_file, "icon_id»%i\n", new_icon_number[entry.pic_id] );
+        }else{
+        	fprintf( dest_file, "icon_id»%i\n", entry.pic_id );
+        }
         if ( strstr( flags, "°jet" ) )
             fprintf( dest_file, "move_sound»%s\n", "pg/air2.wav" );
         fprintf( dest_file, "cost»%i\n", entry.cost );
@@ -570,19 +624,30 @@ failure:
     return 0;
 }
 
-
 int save_lgeneral_equ(){
+	char buf[128]="pg";
+	char ext[128]=".udb";
 	char name[128]="pg.udb";
 
-	sprintf(MapStatusTxt,"LGen pg.udb saving...\nPlease wait.");
+	sprintf(MapStatusTxt,"LGen udb export.");
 	d_mapstatus_proc(MSG_DRAW, &(main_dlg[dmMapStatusIdx]), 0);
 
-	units_convert_database(name,"pg");
+	lgen_equip_dlg[2].dp=buf;
+	centre_dialog(lgen_equip_dlg);
+	if (do_dialog(lgen_equip_dlg, -1)==6){
+		strncpy(name,buf,128);
+		strncat(name,ext,128);
 
-	sprintf(MapStatusTxt,"LGen pg.udb saved.\nPick an Operation.");
-	main_dlg[dmMapStatusIdx].flags |= D_DIRTY;
+		int change_icons = (lgen_equip_dlg[4].flags&D_SELECTED)?1:0;
 
-	return D_O_K;
+		units_convert_database(name,buf,change_icons);
+
+		snprintf(MapStatusTxt,256,"LGen %s saved.\nPick an Operation.",name);
+		main_dlg[dmMapStatusIdx].flags |= D_DIRTY;
+	}else{
+		pick_msg();
+	}
+	return D_REDRAW;
 }
 
 int save_lgeneral_map_file(char *name, char *domain){
@@ -1041,28 +1106,110 @@ int check_icon_true_size_right(int icon_idx) {
 	return right;
 }
 
+int isFlipNeeded(int idx){
+	int flip=0,found=0,i,j,found_eqp_id=-1;
+	char buf[256]={""};
+	char * pch;
 
-int units_convert_bmps(char *name){
-	int i, sum=0, t,b,r,l,ysize,xsize;
+	if(strcmp(icon_name_aux1[idx],"")!=0){
+		strncpy(buf,icon_name_aux1[idx],256);
+		found=1;
+	}else{
+		// no icon_name_aux1 name, try to find icon in efile
+
+		for(j=0;j<total_equip;j++)
+			if ((int)equip[j][BMP]+(int)equip[j][BMP+1]*256 == idx){
+				strncpy(buf,equip[j],256);
+				found_eqp_id=j;
+				found=1;
+				break;
+			}
+	}
+
+	if (found){
+		int found_country=-1;
+		//get first token from string
+		pch = strtok (buf," ");
+		if (pch != NULL){
+			for(i=0;i<MAX_COUNTRY;i++){
+				//stricmp is a case insensitive string compare. It is not POSIX compatible but supported in MinGW
+				if (stricmp(pch,country_names_short[i])==0){
+					//match
+					if (country_side[i]==1) flip=1;
+					found_country=i;
+					break;
+				}
+			}
+		}
+
+		if (found_eqp_id!=-1 && found_country==-1)
+			if (country_side[(int)equip_country[found_eqp_id]]==1) flip=1;
+	}
+
+	return flip;
+}
+
+int units_convert_bmps(char *name, int isFlipIcons, int discard_not_used_icons){
+	int icon_idx, sum=0, t,b,r,l,ysize,xsize,k, limit, bmp_idx,s=0;
 	BITMAP *u_bmp;
+	int saved_icons[MAX_UICONS];
+
+	if (discard_not_used_icons) {
+		find_new_icon_numbers();
+		memset(saved_icons,0,sizeof(saved_icons));
+	}
 
 	//count
-	for(i=0;i<total_uicons;i++){
-		t=check_icon_true_size_top(i);
-		b=check_icon_true_size_bottom(i);
+	limit = total_uicons;
+	if (discard_not_used_icons) limit = total_equip;
 
-		ysize=(b>t?b-t+3:10); //add 2 for real pictures, 10 if empty
+	for(k=0;k<limit;k++){
+		if (discard_not_used_icons) {
+			bmp_idx = equip[k][BMP] + 256 * equip[k][BMP + 1];
+			//print_dec(bmp_idx);
+			//print_dec(used_icons[bmp_idx]);
+			if (saved_icons[bmp_idx]==0){
+				icon_idx = new_icon_number[bmp_idx];
+				saved_icons[bmp_idx]=1;
+				s++;
+			}else{
+				//icon already saved
+				continue;
+			}
+		} else {
+			icon_idx = k;
+		}
+		t=check_icon_true_size_top(icon_idx);
+		b=check_icon_true_size_bottom(icon_idx);
+
+		ysize=(b>t?b-t+3:3); //add 3 for real pictures, 3 if empty
 		sum += ysize;
 	}
+
 	u_bmp = create_bitmap(TILE_FULL_WIDTH, sum);
 	rectfill(u_bmp, 0, 0, TILE_FULL_WIDTH, sum, colors_to24bits(COLOR_BLACK)); // COLOR_BLACK is a transparent color for LGen
 	sum=0;
-	for(i=0;i<total_uicons;i++){
-		t=check_icon_true_size_top(i);
-		b=check_icon_true_size_bottom(i);
-		l=check_icon_true_size_left(i);
-		r=check_icon_true_size_right(i);
-		ysize=(b>t?b-t+3:10); //add 2 for real pictures, 10 if empty
+	if (discard_not_used_icons) {
+		memset(saved_icons,0,sizeof(saved_icons));
+	}
+	for(k=0;k<limit;k++){
+		if (discard_not_used_icons) {
+			bmp_idx = equip[k][BMP] + 256 * equip[k][BMP + 1];
+			if (saved_icons[bmp_idx]==0){
+				icon_idx = new_icon_number[bmp_idx];
+				saved_icons[bmp_idx]=1;
+			}else{
+				//icon already saved
+				continue;
+			}
+		} else {
+			icon_idx = k;
+		}
+		t=check_icon_true_size_top(icon_idx);
+		b=check_icon_true_size_bottom(icon_idx);
+		l=check_icon_true_size_left(icon_idx);
+		r=check_icon_true_size_right(icon_idx);
+		ysize=(b>t?b-t+3:3); //add 3 for real pictures, 3 if empty
 		xsize=(r>l?r-l+1:10); // 10 if empty
 
 		/*if (i==total_uicons-1) {
@@ -1070,8 +1217,21 @@ int units_convert_bmps(char *name){
 		}
 		 */
 
-		masked_blit(unit_bmp[i],u_bmp,l,t,0,sum+1,xsize,ysize);
-
+		//doFlip=0;
+		if (isFlipIcons && isFlipNeeded(icon_idx)){
+			//doFlip=1;
+			BITMAP *tmp_bmp;
+			tmp_bmp = create_bitmap(TILE_FULL_WIDTH, TILE_HEIGHT);
+			rectfill(tmp_bmp,0,0,TILE_FULL_WIDTH,TILE_HEIGHT+1,fpge_mask_color);
+			draw_sprite_h_flip(tmp_bmp,unit_bmp[icon_idx],0,0);
+			//swap left with right limits after H-flip
+			l=TILE_FULL_WIDTH-r;
+			r=l+xsize;
+			masked_blit(tmp_bmp,u_bmp,l,t,0,sum+1,xsize,ysize);
+			destroy_bitmap(tmp_bmp);
+		}else{
+			masked_blit(unit_bmp[icon_idx],u_bmp,l,t,0,sum+1,xsize,ysize);
+		}
 		putpixel(u_bmp,0,sum,make_color_fpge(0,192,248));
 		putpixel(u_bmp,xsize,sum,make_color_fpge(0,192,248));
 		putpixel(u_bmp,0,sum+ysize-1,make_color_fpge(0,192,248));
@@ -1084,17 +1244,28 @@ int units_convert_bmps(char *name){
 }
 
 int save_lgeneral_units_bmp(){
+	char buf[128]="pg";
+	char ext[128]=".bmp";
 	char name[128]="pg.bmp";
 
-	sprintf(MapStatusTxt,"LGen pg.bmp saving...\nPlease wait.");
+	sprintf(MapStatusTxt,"LGen bmp export.");
 	d_mapstatus_proc(MSG_DRAW, &(main_dlg[dmMapStatusIdx]), 0);
 
-	units_convert_bmps(name);
+	lgen_uicons_dlg[2].dp=buf;
+	centre_dialog(lgen_uicons_dlg);
+	if (do_dialog(lgen_uicons_dlg, -1)==7){
+		strncpy(name,buf,128);
+		strncat(name,ext,128);
+		int doFlip = (lgen_uicons_dlg[4].flags&D_SELECTED)?1:0;
+		int change_icons = (lgen_uicons_dlg[8].flags&D_SELECTED)?1:0;
+		units_convert_bmps(name, doFlip, change_icons);
 
-	sprintf(MapStatusTxt,"LGen pg.bmp saved.\nPick an Operation.");
-	main_dlg[dmMapStatusIdx].flags |= D_DIRTY;
-
-	return D_O_K;
+		snprintf(MapStatusTxt,256,"LGen %s saved.\nPick an Operation.",name);
+		main_dlg[dmMapStatusIdx].flags |= D_DIRTY;
+	}else{
+		pick_msg();
+	}
+	return D_REDRAW;
 }
 
 int save_nations_db(char *name, char *target_name, char *domain){

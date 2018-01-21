@@ -19,6 +19,7 @@
 #include "hash.h"
 #include "app6.h"
 #include "pg.h"
+#include "lgeneral.h"
 
 unsigned short UCS2_header=0xfeff;
 
@@ -1650,7 +1651,7 @@ int load_bmp_stackicn(){
 	return 0;
 }
 
-void place_flags(BITMAP *bmp,int x,int y, int idx, int mode){
+void place_flags(BITMAP *bmp,int x,int y, int idx, int mode, int tile_width, int tile_height){
 	int color,xx,yy,i,cursor=0,bmp_num,ctr,dx,dy;
 	int h,found_class=0,ncursor;
 
@@ -1692,12 +1693,18 @@ void place_flags(BITMAP *bmp,int x,int y, int idx, int mode){
 					//class not supported in NULP
 					ctr=-1;
 			}
+			int flag_x =20;
+			int flag_y =13;
 
-			if (cursor<10 || mode==1){
+			int flags_per_row = tile_width /flag_x;
+			int flags_small_rows = tile_height/flag_y-2+((tile_height%flag_y)>10?1:0); //a bit cheat here
+			if (cursor<flags_per_row*2+flags_small_rows*2 || mode==1){
 				//mode 0
 				if (mode ==0){
-					dx=( (cursor+(cursor>6)+(cursor>8))%3)*20;
-					dy=(38)*(cursor>2 && cursor<6)+(cursor>5)*(13)+(cursor>7)*13;
+					dx=( (cursor>=(flags_per_row*2)?((cursor-flags_per_row*2)%2)*(flags_per_row-1):cursor)%flags_per_row)*flag_x;
+					dy=(tile_height-flag_y+1)*(cursor>(flags_per_row-1) && cursor<(flags_per_row*2))+(cursor>(flags_per_row*2-1))*( (cursor-flags_per_row*2)/2+1 )*flag_y;
+					//dx=( (cursor+(cursor>(flags_per_row*2))*(flags_per_row-2)+(cursor>(flags_per_row*2+2))*(flags_per_row-2))%flags_per_row)*flag_x;
+					//dy=(tile_height-flag_y+1)*(cursor>(flags_per_row-1) && cursor<(flags_per_row*2))+(cursor>(flags_per_row*2-1))*flag_y+(cursor>(flags_per_row*2+1))*flag_y;
 				}
 				else{
 					//mode 1
@@ -1751,8 +1758,8 @@ void draw_unit_basic_desc(BITMAP *bmp, int k, int kk, int off, int bmp_id) {
 }
 
 
-void draw_units_per_country_bmp(int country, int month, int year){
-	int i,j,k,kk, no_of_units,c,temp_shift,off,bmp_id;
+void draw_units_per_country_bmp(int country, int month, int year, int flipIcons){
+	int i,j,k,kk, no_of_units,c,temp_shift,off,bmp_id, flip_this_icon=0;
 	BITMAP *bmp;
 	char country_units_bmp_name[256],str[256];
 
@@ -1771,6 +1778,7 @@ void draw_units_per_country_bmp(int country, int month, int year){
 		bmp=create_bitmap_ex(24,TILE_FULL_WIDTH*4,off+TILE_HEIGHT*no_of_units);
 		kk=0;
 		// first line
+		//flag
 		for(i=0;i<off;i++)
 			for(j=0;j<TILE_FULL_WIDTH*4;j++){
 				if (j>=TILE_FULL_WIDTH-19 && j<TILE_FULL_WIDTH && i<12 && country>0 && flag_bmp[country-1]!=NULL){
@@ -1802,13 +1810,18 @@ void draw_units_per_country_bmp(int country, int month, int year){
 			if (equip_country[k]==country && (int)equip[k][YR]*12+equip[k][MON] <= year*12+month && equip[k][LAST_YEAR] >= year ){
 				//printf("k=%d,kk=%d\n",k,kk);
 
-//unit picture
+				//unit picture
 				bmp_id=(int)equip[k][BMP]+equip[k][BMP+1]*256;
+				// check if unit should be flip, this is per icon not per country !!
+				if (flipIcons){
+					flip_this_icon=0;
+					if (isFlipNeeded(bmp_id)) flip_this_icon=1;
+				}
 				//row=0;
 				for(i=0;i<TILE_HEIGHT;i++)
 					for(j=0;j<TILE_FULL_WIDTH*4;j++){
 						if (j<TILE_FULL_WIDTH && unit_bmp[bmp_id]!=NULL){
-							c=getpixel(unit_bmp[bmp_id],j,i);
+							c=getpixel(unit_bmp[bmp_id],(flip_this_icon?TILE_FULL_WIDTH-j-1:j),i);
 							if (c == fpge_mask_color)
 								c=0xffe1e1;
 						}
@@ -1818,7 +1831,7 @@ void draw_units_per_country_bmp(int country, int month, int year){
 						c=make_color_fpge((c>>16)&0xff,(c>>8)&0xff, c&0xff);
 						putpixel(bmp,j,off+kk*TILE_HEIGHT+i,c);
 					}
-//description
+				//description
 				draw_unit_basic_desc(bmp,  k,  kk,  off,  bmp_id);
 
 				line(bmp,0,off+kk*TILE_HEIGHT,TILE_FULL_WIDTH*4,off+kk*TILE_HEIGHT,colors_to24bits(COLOR_BLACK));
@@ -1837,15 +1850,18 @@ void draw_units_per_country_bmp(int country, int month, int year){
 }
 
 
-void draw_units_bmp(BITMAP *draw_bmp, int comment_bmps){
+void draw_units_bmp(BITMAP *draw_bmp, int comment_bmps, int flipIcons, int bmp_x, int tile_width, int tile_height){
     char str[256];
-    int idx,c,bmp_x,bmp_y,x,y,i,j,offx=0,offy=0,temp_shift;
+    int idx,c,bmp_y,x,y,i,j,offx=0,offy=0,temp_shift,flip_this_icon=0,ioffx=0,ioffy=0;
 
 	if (comment_bmps == 1) {
 		offx = 24;
 		offy = 24;
 	}
-	bmp_x=20;
+
+	ioffx=(tile_width-TILE_FULL_WIDTH)/2;
+	ioffy=(tile_height-TILE_HEIGHT)/2;
+
 	bmp_y=total_uicons/bmp_x+((total_uicons%bmp_x)?1:0);
 
 	temp_shift=fpge_colors_bits_shift;
@@ -1858,8 +1874,8 @@ void draw_units_bmp(BITMAP *draw_bmp, int comment_bmps){
 		for(x=0;x<bmp_x;x++){
 			snprintf(str,256,"%d",x);
 			//printf("f1\n");
-			textout_centre_ex(draw_bmp, font, str, offx + TILE_FULL_WIDTH / 2 + x * TILE_FULL_WIDTH, (offy - 8) / 2, colors_to24bits(COLOR_WHITE), colors_to24bits(COLOR_BLACK));
-			textout_centre_ex(draw_bmp, font, str, offx + TILE_FULL_WIDTH / 2 + x * TILE_FULL_WIDTH, bmp_y * TILE_HEIGHT + offy + (offy - 8) / 2, colors_to24bits(COLOR_WHITE),
+			textout_centre_ex(draw_bmp, font, str, offx + tile_width / 2 + x * tile_width, (offy - 8) / 2, colors_to24bits(COLOR_WHITE), colors_to24bits(COLOR_BLACK));
+			textout_centre_ex(draw_bmp, font, str, offx + tile_width / 2 + x * tile_width, bmp_y * tile_height + offy + (offy - 8) / 2, colors_to24bits(COLOR_WHITE),
 						colors_to24bits(COLOR_BLACK));
 			//printf("f2\n");
 		}
@@ -1867,29 +1883,33 @@ void draw_units_bmp(BITMAP *draw_bmp, int comment_bmps){
 	for(y=0;y<bmp_y;y++){
 		//draw border numbers
 		if (comment_bmps==1){
-			snprintf(str,256,"%d",y*20);
+			snprintf(str,256,"%d",y*bmp_x);
 			//printf("f1\n");
-			textout_ex(draw_bmp, font, str, 0, y * TILE_HEIGHT + offy + TILE_HEIGHT / 2, colors_to24bits(COLOR_WHITE), colors_to24bits(COLOR_BLACK));
-			snprintf(str,256,"%d",y*20+19);
-			textout_ex(draw_bmp, font, str, bmp_x * TILE_FULL_WIDTH + offx, y * TILE_HEIGHT + offy + TILE_HEIGHT / 2, colors_to24bits(COLOR_WHITE), colors_to24bits(COLOR_BLACK));
+			textout_ex(draw_bmp, font, str, 0, y * tile_height + offy + tile_height / 2, colors_to24bits(COLOR_WHITE), colors_to24bits(COLOR_BLACK));
+			snprintf(str,256,"%d",y*bmp_x+bmp_x-1);
+			textout_ex(draw_bmp, font, str, bmp_x * tile_width + offx, y * tile_height + offy + tile_height / 2, colors_to24bits(COLOR_WHITE), colors_to24bits(COLOR_BLACK));
 			//printf("f2\n");
 		}
 		for(x=0;x<bmp_x;x++){
 			idx=y*bmp_x+x;
 			if (idx<total_uicons){
-				rectfill(draw_bmp, offx + x * TILE_FULL_WIDTH, offy + y * TILE_HEIGHT, offx + (x + 1) * TILE_FULL_WIDTH - 1, offy + (y + 1) * TILE_HEIGHT - 1, make_color_fpge(0xff, 0xe1, 0xe1));
+				rectfill(draw_bmp, offx + x * tile_width, offy + y * tile_height, offx + (x + 1) * tile_width - 1, offy + (y + 1) * tile_height - 1, make_color_fpge(0xff, 0xe1, 0xe1));
 
 				//draw aux texts
-				if (comment_bmps==2){
+				if (comment_bmps & 2){
 					strncpy(str,icon_name_aux1[idx],8);
 					str[8]=0;
-					textout_centre_ex(draw_bmp, font, str, offx + x * TILE_FULL_WIDTH + TILE_FULL_WIDTH / 2, offy + y * TILE_HEIGHT, make_color_fpge(0, 0, 0), make_color_fpge(0xff, 0xe1, 0xe1));
+					textout_centre_ex(draw_bmp, font, str, offx + x * tile_width + tile_width / 2, offy + y * tile_height, make_color_fpge(0, 0, 0), make_color_fpge(0xff, 0xe1, 0xe1));
 
 					strncpy(str,icon_name_aux2[idx],8);
 					str[8]=0;
-					textout_centre_ex(draw_bmp, font, str, offx + x * TILE_FULL_WIDTH + TILE_FULL_WIDTH / 2, offy + (y + 1) * TILE_HEIGHT - 8, make_color_fpge(0, 0, 0), make_color_fpge(0xff, 0xe1, 0xe1));
+					textout_centre_ex(draw_bmp, font, str, offx + x * tile_width + tile_width / 2, offy + (y + 1) * tile_height - 8, make_color_fpge(0, 0, 0), make_color_fpge(0xff, 0xe1, 0xe1));
 				}
 				//draw icon
+				if (flipIcons){
+					flip_this_icon=0;
+					if (isFlipNeeded(idx)) flip_this_icon=1;
+				}
 				for (i = 0; i < TILE_HEIGHT; i++)
 					for (j = 0; j < TILE_FULL_WIDTH; j++)
 						if (unit_bmp[idx] != NULL) {
@@ -1899,65 +1919,75 @@ void draw_units_bmp(BITMAP *draw_bmp, int comment_bmps){
 								continue;
 							}
 							c = make_color_fpge((c >> 16) & 0xff, (c >> 8) & 0xff, c & 0xff);
-							putpixel(draw_bmp, offx + x * TILE_FULL_WIDTH + j, offy + y * TILE_HEIGHT + i, c);
+							putpixel(draw_bmp, ioffx+offx + x * tile_width + (flip_this_icon?TILE_FULL_WIDTH-j-1:j), ioffy+offy + y * tile_height + i, c);
 						}
 				//draw flags
-				if (comment_bmps==1){
-					line(draw_bmp,offx+x*TILE_FULL_WIDTH+59,offy+y*TILE_HEIGHT,offx+x*TILE_FULL_WIDTH+59,offy+y*TILE_HEIGHT+49,colors_to24bits(COLOR_BLACK));
-					line(draw_bmp,offx+x*TILE_FULL_WIDTH,offy+y*TILE_HEIGHT+49,offx+x*TILE_FULL_WIDTH+59,offy+y*TILE_HEIGHT+49,colors_to24bits(COLOR_BLACK));
-					place_flags(draw_bmp,offx+x*TILE_FULL_WIDTH,offy+y*TILE_HEIGHT,idx,0);
+				if (comment_bmps & 1){
+					line(draw_bmp,offx+x*tile_width+tile_width-1,offy+y*tile_height,offx+x*tile_width+tile_width-1,offy+y*tile_height+tile_height-1,colors_to24bits(COLOR_BLACK));
+					line(draw_bmp,offx+x*tile_width,offy+y*tile_height+tile_height-1,offx+x*tile_width+tile_width-1,offy+y*tile_height+tile_height-1,colors_to24bits(COLOR_BLACK));
+					place_flags(draw_bmp,offx+x*tile_width,offy+y*tile_height,idx,0,tile_width,tile_height);
 				}
 			}else{
 				//blank
-				for(i=0;i<TILE_HEIGHT;i++)
-					for(j=0;j<TILE_FULL_WIDTH;j++)
-						putpixel(draw_bmp,offx+x*TILE_FULL_WIDTH+j,offy+y*TILE_HEIGHT+i,0xe1e1ff);
+				rectfill(draw_bmp, offx + x * tile_width, offy + y * tile_height, offx + (x + 1) * tile_width - 1, offy + (y + 1) * tile_height - 1, make_color_fpge(0xff, 0xe1, 0xe1));
+				/*
+				for(i=0;i<tile_height;i++)
+					for(j=0;j<tile_width;j++)
+						putpixel(draw_bmp,offx+x*tile_width+j,offy+y*tile_height+i,make_color_fpge(0xff, 0xe1, 0xe1));
+				*/
 			}
 		}
 	}
 	 fpge_colors_bits_shift=temp_shift;
 }
 
-
-void draw_one_unit_bmp(BITMAP *draw_bmp, int bmp_idx, int comment_bmps){
+void draw_one_unit_bmp(BITMAP *draw_bmp, int bmp_idx, int comment_bmps, int flip_this_icon, int tile_width, int tile_height){
 	 char str[256];
-    int c,i,j,temp_shift;
+    int c,i,j,temp_shift,ioffx=0,ioffy=0;
+
+	ioffx=(tile_width-TILE_FULL_WIDTH)/2;
+	ioffy=(tile_height-TILE_HEIGHT)/2;
 
 	temp_shift=fpge_colors_bits_shift;
     fpge_colors_bits_shift=1;
 
     if (bmp_idx< 0 || bmp_idx>total_uicons) return;
-  //icon
+   //icon
+    rectfill(draw_bmp, 0,0,tile_width,tile_height, make_color_fpge(0xff, 0xe1, 0xe1));
+
 	for(i=0;i<TILE_HEIGHT;i++)
 		for(j=0;j<TILE_FULL_WIDTH;j++){
 			c=getpixel(unit_bmp[bmp_idx],j,i);
 			if (c == fpge_mask_color) c=0xffe1e1;
 			c=make_color_fpge((c>>16)&0xff,(c>>8)&0xff, c&0xff);
-			putpixel(draw_bmp,j,i,c);
+			putpixel(draw_bmp,ioffx+(flip_this_icon?TILE_FULL_WIDTH-j-1:j),ioffy+i,c);
 		}
+
 	if (comment_bmps) {
 		//blank rest
-		for (i = 0; i < TILE_HEIGHT; i++)
-			for (j = 0; j < TILE_FULL_WIDTH * 3; j++)
-				putpixel(draw_bmp, TILE_FULL_WIDTH + j, i, 0xe1e1ff);
+		rectfill(draw_bmp, tile_width,0,tile_width*4,tile_height, make_color_fpge(0xff, 0xe1, 0xe1));
+
+		//for (i = 0; i < TILE_HEIGHT; i++)
+		//	for (j = 0; j < TILE_FULL_WIDTH * 3; j++)
+		//		putpixel(draw_bmp, TILE_FULL_WIDTH + j, i, 0xe1e1ff);
 
 		if (comment_bmps & 1) {
 			//draw flags
-			place_flags(draw_bmp, TILE_FULL_WIDTH, 0, bmp_idx, 1);
+			place_flags(draw_bmp, tile_width, 0, bmp_idx, 1,tile_width,tile_height);
 		}
 
 		if (comment_bmps & 2) {
 			//draw texts
 			strncpy(str,icon_name_aux1[bmp_idx],8);
 			str[8]=0;
-			textout_centre_ex(draw_bmp, font, str, TILE_FULL_WIDTH / 2, 0, make_color_fpge(0, 0, 0), make_color_fpge(0xff, 0xe1, 0xe1));
+			textout_centre_ex(draw_bmp, font, str, tile_width / 2, 0, make_color_fpge(0, 0, 0), make_color_fpge(0xff, 0xe1, 0xe1));
 
 			strncpy(str,icon_name_aux2[bmp_idx],8);
 			str[8]=0;
-			textout_centre_ex(draw_bmp, font, str, TILE_FULL_WIDTH / 2,  TILE_HEIGHT - 8, make_color_fpge(0, 0, 0), make_color_fpge(0xff, 0xe1, 0xe1));
+			textout_centre_ex(draw_bmp, font, str, tile_width / 2, tile_height - 8, make_color_fpge(0, 0, 0), make_color_fpge(0xff, 0xe1, 0xe1));
 		}
 	}
-	 fpge_colors_bits_shift=temp_shift;
+	fpge_colors_bits_shift=temp_shift;
 }
 
 int save_pgf_units_menu_bmp(){
@@ -1985,7 +2015,7 @@ int save_pgf_units_bmp(int comment_bmps){
             sprintf(MapStatusTxt,"Saving PGF 'tacicons.bmp'\nPlease wait...");
             d_mapstatus_proc(MSG_DRAW,&(main_dlg[dmMapStatusIdx]),0);
 
-            draw_units_bmp(pgf_tacicons_bmp,comment_bmps);
+            draw_units_bmp(pgf_tacicons_bmp,comment_bmps,0,20,TILE_FULL_WIDTH,TILE_HEIGHT);
 
 			if (save_bmp(path, pgf_tacicons_bmp, pgpal)) {
 				alert("ERROR: Cannot save PGF 'tacicons.bmp' file.", "File cannot be saved.", NULL,"&Continue", NULL, 'c', 0);

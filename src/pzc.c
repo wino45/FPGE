@@ -5,7 +5,7 @@
  * DIFFs:
  * format 14 - got one more INT in units
  * format 15
- * Format 14 and 15 introduced by path 1.01 ( changelog of 1.02 does not state about changes in editor)
+ * Format 14 and 15 introduced by patch 1.01 ( changelog of 1.02 does not state about changes in editor)
  * Only few maps in path 1.02 got format 14 or 15
  *
  *  Created on: 2011-08-24

@@ -54,8 +54,8 @@
 
 #define MAIN_DLG_SIZE 98
 #define LOAD_LAYER_DLG_SIZE 10
-#define UNITS_BMP_DLG_SIZE (9+5+4)
-#define COUNTRY_UNITS_BMP_DLG_SIZE (15)
+#define UNITS_BMP_DLG_SIZE (9+5+4+1+2+4)
+#define COUNTRY_UNITS_BMP_DLG_SIZE (15+1)
 
 extern DIALOG main_dlg[MAIN_DLG_SIZE];
 extern DIALOG load_dlg[7+4];

@@ -737,6 +737,14 @@ Changelog for version 0.5.0: Jan 09, 2010
     * LGen: added export nations -DB & BMP - todo: integrate with FPGE countries
     * LGen: added scenario export - todo: integrate with FPGE countries, add victory conditions
     * Removed some broadcast_dialog_message in unitlist, mapfrg, terr, vc, unit, fpge for better graphic performance.
+    
+    0.7.1 26 July 2012 
+    * LGen: added export options (domain and flip) of units pg.bmp, smaller empty icons
+    * CLI : -X[cu] got F modifier to flip icons
+    * UI: flip options to -X GUI. Menu "Export picture" -> "Export units BMP" & "Export country units"
+    * LGen: Added 'domain' in udb export
+    * LGen: Implemented "Skip not used icons" in udb and pg.bmp export
+    * Added number of columns and tiles size for units icons export dialog
   
 TODO:
 

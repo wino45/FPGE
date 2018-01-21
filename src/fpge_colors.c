@@ -31,6 +31,7 @@
 #include "unitsum.h"
 #include "pzc.h"
 #include "pg2.h"
+#include "lgeneral.h"
 
 int fpge_colors_bits=32; //new default 32bits
 int fpge_colors_bits_shift=0;
@@ -213,8 +214,8 @@ void prepare_dialogs(){
 	dialog_to24bits(units_bmp_dlg,sizeof(units_bmp_dlg)/sizeof(*units_bmp_dlg));
 	dialog_to24bits(pg2_convert_map_dlg,sizeof(pg2_convert_map_dlg)/sizeof(*pg2_convert_map_dlg));
 	dialog_to24bits(country_units_bmp_dlg,sizeof(country_units_bmp_dlg)/sizeof(*country_units_bmp_dlg));
-
-
+	dialog_to24bits(lgen_uicons_dlg,sizeof(lgen_uicons_dlg)/sizeof(*lgen_uicons_dlg));
+	dialog_to24bits(lgen_equip_dlg,sizeof(lgen_equip_dlg)/sizeof(*lgen_equip_dlg));
 }
 
 

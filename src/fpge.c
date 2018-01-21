@@ -36,7 +36,7 @@
 
 char MapInfoTxt[256];
 char AboutTxt1[256] = "Fred's Panzer General Editor";
-char AboutTxt2[256] = "Version 0.7.0";
+char AboutTxt2[256] = "Version 0.7.1";
 char AboutTxt3[256] = "Modified by Wino";
 char MapStatusTxt[256];
 char FilterStatusTxt[256];

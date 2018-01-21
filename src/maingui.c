@@ -31,7 +31,7 @@
 
 DIALOG country_units_bmp_dlg[COUNTRY_UNITS_BMP_DLG_SIZE] =
 {
-   /* 0 */   { d_textbox_proc, 0,   0,   224, 160+16-80+8+16*4, GUI_FG_COLOR,   GUI_BG_COLOR,   0,    0,      0,   0,   0,                      NULL, NULL },
+   /* 0 */   { d_textbox_proc, 0,   0,   224+16, 160+16-80+8+16*4+16, GUI_FG_COLOR,   GUI_BG_COLOR,   0,    0,      0,   0,   0,                      NULL, NULL },
 
    /* 1 */   { d_text_proc,    16,  8,   192, 16,  GUI_FG_COLOR,   GUI_BG_COLOR,   0,    0,      0,   0,   (void *)"Save countries units bmps", NULL, NULL },
    /* 2 */   { d_radio_proc,   16,  80+16-80+8,  128+32, 16,  GUI_FG_COLOR,   GUI_BG_COLOR,  0,D_SELECTED,  0,   0,   (void *)"All countries",             NULL, NULL },
@@ -48,15 +48,18 @@ DIALOG country_units_bmp_dlg[COUNTRY_UNITS_BMP_DLG_SIZE] =
    /* 9  */   { d_text_proc,    16,  120+16-80+8+16*3+8,   128, 16,  GUI_FG_COLOR,   GUI_BG_COLOR,   0,    0,      0,   0,   (void *)"Year", NULL, NULL },
    /* 10 */   { d_edit_proc,    16+128,  120+16-80+8+16*3+8,   40, 16,  GUI_FG_COLOR,GUI_EDIT_COLOR,   0,    0,      4,   1,  0  },
 
-   /* 11 */   { d_button_proc,  16,  112+16-80+8+16*5+8, 88,  16,  GUI_FG_COLOR,   GUI_BG_COLOR, 'c',D_EXIT,     0,   0,   (void *)"&Cancel",              NULL, NULL },
-   /* 12 */   { d_button_proc,  120, 112+16-80+8+16*5+8, 88,  16,  GUI_FG_COLOR,   GUI_BG_COLOR, 's',D_EXIT,     0,   0,   (void *)"&Save bmps",             NULL, NULL },
-		      { d_yield_proc, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL },
+   /* 11 */   { d_button_proc,  16,  112+16-80+8+16*5+8+16, 88,  16,  GUI_FG_COLOR,   GUI_BG_COLOR, 'c',D_EXIT,     0,   0,   (void *)"&Cancel",              NULL, NULL },
+   /* 12 */   { d_button_proc,  120+16, 112+16-80+8+16*5+8+16, 88,  16,  GUI_FG_COLOR,   GUI_BG_COLOR, 's',D_EXIT,     0,   0,   (void *)"&Save bmps",             NULL, NULL },
+
+   /* 13 */   { d_check_proc,    16,  120+16-80+8+16*3+8+8+4,   128+8*10, 16,  GUI_FG_COLOR,   GUI_BG_COLOR,   'f',    0,      1,   0,   (void *)"&Flip icons when needed ?", NULL, NULL },
+
+   { d_yield_proc, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL },
 		      { NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL }
 };
 
 DIALOG units_bmp_dlg[UNITS_BMP_DLG_SIZE] =
 {
-   /* 0 */   { d_textbox_proc, 0,   0,   224, 160+16-80+8+16*8, GUI_FG_COLOR,   GUI_BG_COLOR,   0,    0,      0,   0,   0,                      NULL, NULL },
+   /* 0 */   { d_textbox_proc, 0,   0,   224+16, 160+16-80+8+16*8+16+8+16+16, GUI_FG_COLOR,   GUI_BG_COLOR,   0,    0,      0,   0,   0,                      NULL, NULL },
 
    /* 1 */   { d_text_proc,    16,  8,   192, 16,  GUI_FG_COLOR,   GUI_BG_COLOR,   0,    0,      0,   0,   (void *)"Save units bmps", NULL, NULL },
    /* 2 */   { d_radio_proc,   16,  80+16-80+8,  128+32, 16,  GUI_FG_COLOR,   GUI_BG_COLOR,  0,D_SELECTED,  0,   0,   (void *)"All units on sheet",             NULL, NULL },
@@ -75,9 +78,18 @@ DIALOG units_bmp_dlg[UNITS_BMP_DLG_SIZE] =
    /* 12 */   { d_text_proc,    16,  120+16-80+8+16*7+8,   128, 16,  GUI_FG_COLOR,   GUI_BG_COLOR,   0,    0,      0,   0,   (void *)"Icon ID (end)", NULL, NULL },
    /* 13 */   { d_edit_proc,    16+128,  120+16-80+8+16*7+8,   40, 16,  GUI_FG_COLOR,GUI_EDIT_COLOR,   0,    0,      4,   1,  0  },
 
-   /* 14 */   { d_button_proc,  16,  112+16-80+8+16*9+8, 88,  16,  GUI_FG_COLOR,   GUI_BG_COLOR, 'c',D_EXIT,     0,   0,   (void *)"&Cancel",              NULL, NULL },
-   /* 15 */   { d_button_proc,  120, 112+16-80+8+16*9+8, 88,  16,  GUI_FG_COLOR,   GUI_BG_COLOR, 's',D_EXIT,     0,   0,   (void *)"&Save bmps",             NULL, NULL },
-		     { d_yield_proc, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL },
+   /* 14 */   { d_button_proc,  16,  112+16-80+8+16*9+8+16+8+16+16, 88,  16,  GUI_FG_COLOR,   GUI_BG_COLOR, 'c',D_EXIT,     0,   0,   (void *)"&Cancel",              NULL, NULL },
+   /* 15 */   { d_button_proc,  120+16, 112+16-80+8+16*9+8+16+8+16+16, 88,  16,  GUI_FG_COLOR,   GUI_BG_COLOR, 's',D_EXIT,     0,   0,   (void *)"&Save bmps",             NULL, NULL },
+   /* 16 */   { d_check_proc,    16,  120+16-80+8+16*7+8+8+4,   128+8*10, 16,  GUI_FG_COLOR,   GUI_BG_COLOR,   'f',    0,      1,   0,   (void *)"&Flip icons when needed ?", NULL, NULL },
+
+   /* 17 */   { d_text_proc,    16,  120+16-80+8+16*7+8+8+4+16+8-3,   128, 16,  GUI_FG_COLOR,   GUI_BG_COLOR,   0,    0,      0,   0,   (void *)"Columns", NULL, NULL },
+   /* 18 */   { d_edit_proc,    16+128,  120+16-80+8+16*7+8+8+4+16+8-3,   40, 16,  GUI_FG_COLOR,GUI_EDIT_COLOR,   0,    0,      4,   1,  0  },
+   /* 19 */   { d_text_proc,    16,  120+16-80+8+16*7+8+8+4+16+8-3+16,   128, 16,  GUI_FG_COLOR,   GUI_BG_COLOR,   0,    0,      0,   0,   (void *)"Tile X", NULL, NULL },
+   /* 20 */   { d_edit_proc,    16+128,  120+16-80+8+16*7+8+8+4+16+8-3+16,   40, 16,  GUI_FG_COLOR,GUI_EDIT_COLOR,   0,    0,      4,   1,  0  },
+   /* 21 */   { d_text_proc,    16,  120+16-80+8+16*7+8+8+4+16+8-3+16+16,   128, 16,  GUI_FG_COLOR,   GUI_BG_COLOR,   0,    0,      0,   0,   (void *)"Tile Y", NULL, NULL },
+   /* 22 */   { d_edit_proc,    16+128,  120+16-80+8+16*7+8+8+4+16+8-3+16+16,   40, 16,  GUI_FG_COLOR,GUI_EDIT_COLOR,   0,    0,      4,   1,  0  },
+
+   	   	   { d_yield_proc, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL },
 		     { NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL }
 };
 
@@ -919,18 +931,27 @@ int load_map_layer_dialog(){
 }
 
 int export_units_bmp_dialog(){
-	int i;
+	int i,x=60,y=50;
 	char start_str[2 * 8] = "1";
 	char end_str[2 * 8] = "0";
+	char columns_str[2 * 8] = "20";
+	char x_str[2 * 8] = "60";
+	char y_str[2 * 8] = "50";
 	int start_bmp_idx=0;
 	int end_bmp_idx=0;
 	int comment_bmps=0;
+	int flip_icons=0;
+	int columns=20;
 
     sprintf(MapStatusTxt,"Export units bmp.");
     d_mapstatus_proc(MSG_DRAW,&(main_dlg[dmMapStatusIdx]),0);
 
 	units_bmp_dlg[11].dp = &start_str;
 	units_bmp_dlg[13].dp = &end_str;
+	units_bmp_dlg[18].dp = &columns_str;
+
+	units_bmp_dlg[20].dp = &x_str;
+	units_bmp_dlg[22].dp = &y_str;
 
 	centre_dialog(units_bmp_dlg);
 	if (do_dialog(units_bmp_dlg,-1)==15 ){
@@ -950,10 +971,18 @@ int export_units_bmp_dialog(){
 			start_bmp_idx = atoi(start_str);
 			end_bmp_idx = atoi(end_str);
 		}
+		if (units_bmp_dlg[16].flags & D_SELECTED) {
+			//flip icons when needed
+			flip_icons=1;
+		}
+		if (atoi(columns_str)>0) columns=atoi(columns_str);
+		if (atoi(x_str)>0) x=atoi(x_str);
+		if (atoi(y_str)>0) y=atoi(y_str);
+
 		for(i=0;i<4;i++)
 			if(units_bmp_dlg[6+i].flags & D_SELECTED) comment_bmps=i;
 
-		handle_units_bmp_saving(1, 0, start_bmp_idx, end_bmp_idx, 0, 0, 0, comment_bmps);
+		handle_units_bmp_saving(1, 0, start_bmp_idx, end_bmp_idx, 0, 0, 0, comment_bmps, flip_icons, columns, x , y);
 	}
 	pick_msg();
    //sprintf(MapStatusTxt,"Pick operation");
@@ -966,6 +995,7 @@ int export_country_units_bmp_dialog(){
 	char month_str[2 * 8] = "12";
 	char year_str[2 * 8] = "44";
 	char country_str[2 * 8] = "8";
+	int flip_icons=0;
 	int m,y,c;
 
     sprintf(MapStatusTxt,"Country units bmp.");
@@ -979,16 +1009,20 @@ int export_country_units_bmp_dialog(){
 	if (do_dialog(country_units_bmp_dlg,-1)==12 ){
 
 		if (country_units_bmp_dlg[2].flags & D_SELECTED) {
-					//All countries
-					c=0;
+			//All countries
+			c = 0;
 		}
 		if (country_units_bmp_dlg[3].flags & D_SELECTED) {
-					//One country
-					c=atoi(country_str);
+			//One country
+			c = atoi(country_str);
+		}
+		if (country_units_bmp_dlg[13].flags & D_SELECTED) {
+			//flip icons when needed
+			flip_icons = 1;
 		}
 		m=atoi(month_str);
 		y=atoi(year_str);
-		handle_units_bmp_saving(0, 1, 0, 0, c, m, y, 0);
+		handle_units_bmp_saving(0, 1, 0, 0, c, m, y, 0,flip_icons,20,TILE_FULL_WIDTH , TILE_HEIGHT);
 	}
     //sprintf(MapStatusTxt,"Pick operation");
     pick_msg();
